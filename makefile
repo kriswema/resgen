@@ -53,10 +53,14 @@ $(EXECNAME) : $(OBJ)
 
 neat:
 	-mkdir $(OBJDIR)
+
 clean:
 	-rm -f $(OBJ)
 	-rm -f $(EXECNAME)
-spotless: clean
+
+spotless:
+	clean
 	-rm -r $(OBJDIR)
+
 get-deps:
 	-apt-get install libc6-dev-i386
