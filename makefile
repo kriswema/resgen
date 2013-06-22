@@ -1,9 +1,6 @@
 # RESGen v2 makefile for Linux
 #
 
-# Result filename
-EXECNAME=resgen
-
 # The compiler
 CC=g++
 
@@ -13,6 +10,10 @@ INCLUDEDIRS=-I.
 # source dir (own dir) plus temp object dir
 SRCDIR=.
 OBJDIR=$(SRCDIR)/obj
+BINDIR=$(SRCDIR)/bin
+
+# Define binary filename
+EXECNAME=$(BINDIR)/resgen
 
 #base flags that are used in any compilation
 BASE_CFLAGS=
@@ -53,6 +54,7 @@ $(EXECNAME) : $(OBJ)
 
 neat:
 	-mkdir $(OBJDIR)
+	mkdir $(BINDIR)
 
 clean:
 	rm -fRv $(OBJDIR)
