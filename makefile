@@ -59,7 +59,7 @@ clean:
 	-rm -f $(EXECNAME)
 
 spotless:
-	clean
+	make clean
 	-rm -r $(OBJDIR)
 
 get-deps:
