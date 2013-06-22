@@ -12,7 +12,7 @@ OBJDIR=$(SRCDIR)/obj
 BINDIR=$(SRCDIR)/bin
 
 # Define binary filename
-EXECNAME=$(BINDIR)/resgen
+EXECNAME=resgen
 
 #base flags that are used in any compilation
 BASE_CFLAGS=
@@ -48,7 +48,7 @@ OBJ = \
 	$(OBJDIR)/resgenclass.o \
 	$(OBJDIR)/vstring.o
 
-$(EXECNAME) : $(OBJ)
+$(BINDIR)/$(EXECNAME) : $(OBJ)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(OBJ)
 
 neat:
