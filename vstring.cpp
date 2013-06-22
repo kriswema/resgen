@@ -42,7 +42,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "leakcheck.h"
 
 #ifdef VS_OPCOMP_NOCASE
-#define VS_OPCOMP _stricmp
+#define VS_OPCOMP stricmp
 #else
 #define VS_OPCOMP strcmp
 #endif
@@ -407,7 +407,7 @@ int VString::CompareLimit(const char *string, int limit) const
 
 int VString::CompareNoCase(const char *string) const
 {
-	return _stricmp(data, string);
+	return stricmp(data, string);
 }
 
 VString VString::Mid(int index, int count) const
