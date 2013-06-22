@@ -64,3 +64,8 @@ spotless:
 
 get-deps:
 	-apt-get install libc6-dev-i386
+
+all:
+	make neat
+	make
+	make spotless
