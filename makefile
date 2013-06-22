@@ -1,5 +1,4 @@
 # RESGen v2 makefile for Linux
-#
 
 # The compiler
 CC=g++
@@ -7,7 +6,7 @@ CC=g++
 # Include dirs + own dir
 INCLUDEDIRS=-I.
 
-# source dir (own dir) plus temp object dir
+# Define folders
 SRCDIR=.
 OBJDIR=$(SRCDIR)/obj
 BINDIR=$(SRCDIR)/bin
@@ -53,15 +52,14 @@ $(EXECNAME) : $(OBJ)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(OBJ)
 
 neat:
-	-mkdir $(OBJDIR)
+	mkdir $(OBJDIR)
 	mkdir $(BINDIR)
 
 clean:
 	rm -fRv $(OBJDIR)
-	# -rm -f $(EXECNAME) 		.. WHY would you delete the binary?! wãt
 
 get-deps:
-	-apt-get install libc6-dev-i386
+	apt-get install libc6-dev-i386
 
 all:
 	make neat
