@@ -52,8 +52,8 @@ $(BINDIR)/$(EXECNAME) : $(OBJ)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(OBJ)
 
 neat:
-	mkdir $(OBJDIR)
-	mkdir $(BINDIR)
+	mkdir -p $(OBJDIR)
+	mkdir -p $(BINDIR)
 
 clean:
 	rm -fRv $(OBJDIR)
