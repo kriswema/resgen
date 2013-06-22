@@ -26,7 +26,7 @@ CFLAGS=$(BASE_CFLAGS) -w -s -m32 -march=i586 -O2 \
 	-fexpensive-optimizations -malign-loops=2 \
 	-malign-jumps=2 -malign-functions=2
 
-#use these when debugging 
+#use these when debugging
 #CFLAGS=$(BASE_CFLAGS) -g -D_DEBUG
 
 LDFLAGS=-lstdc++
@@ -46,7 +46,7 @@ OBJ = \
 	$(OBJDIR)/listbuilder.o \
 	$(OBJDIR)/resgen.o \
 	$(OBJDIR)/resgenclass.o \
-	$(OBJDIR)/vstring.o 
+	$(OBJDIR)/vstring.o
 
 $(EXECNAME) : $(OBJ)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(OBJ)

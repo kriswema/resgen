@@ -886,7 +886,7 @@ char * RESGen::LoadBSPData(VString &file, int *entdatalen, LinkedList *texlist)
 
 	// add terminating NULL for entity data
 	entdata[header.ent_header.filelen] = 0;
-	
+
 	if (entdatalen)
 	{
 		*entdatalen = header.ent_header.filelen;
@@ -1228,7 +1228,7 @@ void RESGen::ListDir(const VString &path, const VString &filepath, bool reporter
 				!file.CompareReverseLimitNoCase(".bmp", 4) ||
 				!file.CompareReverseLimitNoCase(".tga", 4) ||
 				!file.CompareReverseLimitNoCase(".txt", 4) ||
-				!file.CompareReverseLimitNoCase(".wad", 4)				
+				!file.CompareReverseLimitNoCase(".wad", 4)
 				)
 			{
 				// resource, add to list
@@ -1238,7 +1238,7 @@ void RESGen::ListDir(const VString &path, const VString &filepath, bool reporter
 				if (!resources.InsertSorted(tmp, RESGen_CompareVStringsFromList, false))
 				{
 					// double detected
-					delete tmp; 
+					delete tmp;
 				}
 
 				if (resourcedisp)
@@ -1321,7 +1321,7 @@ void RESGen::ListDir(const VString &path, const VString &filepath, bool reporter
 					!file.CompareReverseLimitNoCase(".bmp", 4) ||
 					!file.CompareReverseLimitNoCase(".tga", 4) ||
 					!file.CompareReverseLimitNoCase(".txt", 4) ||
-					!file.CompareReverseLimitNoCase(".wad", 4)				
+					!file.CompareReverseLimitNoCase(".wad", 4)
 					)
 				{
 					// resource, add to list
@@ -1420,7 +1420,7 @@ void RESGen::BuildPakResourceList(const VString &pakfilename)
 		fclose(pakfile);
 		return;
 	}
-	
+
 	// load file list to memory
 	if(fseek(pakfile, pakheader.diroffset, SEEK_SET))
 	{
@@ -1462,7 +1462,7 @@ void RESGen::BuildPakResourceList(const VString &pakfilename)
 			!strrnicmp(filelist[i].name, ".bmp", 4) ||
 			!strrnicmp(filelist[i].name, ".tga", 4) ||
 			!strrnicmp(filelist[i].name, ".txt", 4) ||
-			!strrnicmp(filelist[i].name, ".wad", 4)				
+			!strrnicmp(filelist[i].name, ".wad", 4)
 			)
 		{
 			// resource, add to list
@@ -1534,7 +1534,7 @@ bool RESGen::LoadExludeFile(VString &listfile)
 			#ifndef WIN32
 			line->TrimRight('\r'); // forces linux compatibility
 			line->TrimRight(); // remove remaining whitespace
-			#endif	
+			#endif
 			if (line->CompareLimit("//", 2) && line->GetLength() != 0)
 			{
 				// Convert backslashes to slashes

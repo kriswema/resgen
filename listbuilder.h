@@ -37,7 +37,7 @@ struct file_s
 	VString name;
 };
 
-class ListBuilder  
+class ListBuilder
 {
 public:
 #ifndef WIN32

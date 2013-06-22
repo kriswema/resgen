@@ -96,7 +96,7 @@ VString::VString(const char *string, int len)
 
 	strncpy(data, string, len); // Copy the input string
 	data[len] = 0; // terminating NULL
-	
+
 	length = strlen(data); // Get the string length
 }
 
@@ -342,62 +342,62 @@ bool operator!=(LPCSTR s1, const VString& s2)
 
 bool operator<(const VString& s1, const VString& s2)
 {
-	if (VS_OPCOMP(s1, s2) < 0) { return true; } else { return false; }	
+	if (VS_OPCOMP(s1, s2) < 0) { return true; } else { return false; }
 }
 
 bool operator<(const VString& s1, LPCSTR s2)
 {
-	if (VS_OPCOMP(s1, s2) < 0) { return true; } else { return false; }	
+	if (VS_OPCOMP(s1, s2) < 0) { return true; } else { return false; }
 }
 
 bool operator<(LPCSTR s1, const VString& s2)
 {
-	if (VS_OPCOMP(s1, s2) < 0) { return true; } else { return false; }	
+	if (VS_OPCOMP(s1, s2) < 0) { return true; } else { return false; }
 }
 
 bool operator>(const VString& s1, const VString& s2)
 {
-	if (VS_OPCOMP(s1, s2) > 0) { return true; } else { return false; }	
+	if (VS_OPCOMP(s1, s2) > 0) { return true; } else { return false; }
 }
 
 bool operator>(const VString& s1, LPCSTR s2)
 {
-	if (VS_OPCOMP(s1, s2) > 0) { return true; } else { return false; }	
+	if (VS_OPCOMP(s1, s2) > 0) { return true; } else { return false; }
 }
 
 bool operator>(LPCSTR s1, const VString& s2)
 {
-	if (VS_OPCOMP(s1, s2) > 0) { return true; } else { return false; }	
+	if (VS_OPCOMP(s1, s2) > 0) { return true; } else { return false; }
 }
 
 bool operator<=(const VString& s1, const VString& s2)
 {
-	if (VS_OPCOMP(s1, s2) <= 0) { return true; } else { return false; }	
+	if (VS_OPCOMP(s1, s2) <= 0) { return true; } else { return false; }
 }
 
 bool operator<=(const VString& s1, LPCSTR s2)
 {
-	if (VS_OPCOMP(s1, s2) <= 0) { return true; } else { return false; }	
+	if (VS_OPCOMP(s1, s2) <= 0) { return true; } else { return false; }
 }
 
 bool operator<=(LPCSTR s1, const VString& s2)
 {
-	if (VS_OPCOMP(s1, s2) <= 0) { return true; } else { return false; }	
+	if (VS_OPCOMP(s1, s2) <= 0) { return true; } else { return false; }
 }
 
 bool operator>=(const VString& s1, const VString& s2)
 {
-	if (VS_OPCOMP(s1, s2) >= 0) { return true; } else { return false; }	
+	if (VS_OPCOMP(s1, s2) >= 0) { return true; } else { return false; }
 }
 
 bool operator>=(const VString& s1, LPCSTR s2)
 {
-	if (VS_OPCOMP(s1, s2) >= 0) { return true; } else { return false; }	
+	if (VS_OPCOMP(s1, s2) >= 0) { return true; } else { return false; }
 }
 
 bool operator>=(LPCSTR s1, const VString& s2)
 {
-	if (VS_OPCOMP(s1, s2) >= 0) { return true; } else { return false; }	
+	if (VS_OPCOMP(s1, s2) >= 0) { return true; } else { return false; }
 }
 
 int VString::CompareLimit(const char *string, int limit) const
@@ -516,7 +516,7 @@ void VString::TrimLeft()
 {
 	// search until no whitespace char is found
 	char *cptr = data;
-	
+
 	while (*cptr != 0) // do till terminating NULL
 	{
 		if (isspace(*cptr))
@@ -543,7 +543,7 @@ void VString::TrimLeft(char chr)
 {
 	// search until no 'chr' is found
 	char *cptr = data;
-	
+
 	while (*cptr != 0) // do till terminating NULL
 	{
 		if (*cptr == chr)
@@ -570,7 +570,7 @@ void VString::TrimLeft(char *string)
 {
 	// search until none of the chars in 'string' is found
 	char *cptr = data;
-	
+
 	while (*cptr != 0) // do till terminating NULL
 	{
 		if (strchr(string, *cptr))
@@ -598,7 +598,7 @@ void VString::TrimRight()
 {
 	// search until no whitespace char is found
 	int i;
-	
+
 	for (i = length-1; i >= 0; i--) // do till string start
 	{
 		if (!isspace(data[i]))
@@ -620,7 +620,7 @@ void VString::TrimRight(char chr)
 {
 	// search until no 'chr' char is found
 	int i;
-	
+
 	for (i = length-1; i >= 0; i--) // do till string start
 	{
 		if (data[i] != chr)
@@ -642,7 +642,7 @@ void VString::TrimRight(char *string)
 {
 	// search until no 'chr' char is found
 	int i;
-	
+
 	for (i = length-1; i >= 0; i--) // do till string start
 	{
 		if (!strchr(string, data[i]))
@@ -804,7 +804,7 @@ int VString::CompareReverseLimit(const char *dst, int limit) const
 int VString::StrRChr(char search, int start)
 {
 	char *ret;
-	
+
 	if (start == -1 || start >= length)
 	{
 		ret = strrchr(data, search);

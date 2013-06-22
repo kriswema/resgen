@@ -41,7 +41,7 @@ typedef const char *LPCSTR;
 // work case insensitive. Otherwise they will work case sensitive.
 #define VS_OPCOMP_NOCASE
 
-class VString  
+class VString
 {
 public:
 	bool LoadFromFile(const char *filename);

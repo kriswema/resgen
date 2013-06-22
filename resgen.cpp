@@ -67,7 +67,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 // Param usage
 abcdefghijklmnopqrstuvwxyz
-xxxxxxxxxxxxx xx xxxxxxx  
+xxxxxxxxxxxxx xx xxxxxxx
 // Free: n q y z
 */
 
@@ -720,7 +720,7 @@ int main(int argc, char* argv[])
 			}
 			else
 			{
-				// 
+				//
 				// an error occured. List them.
 				strtmp = new VString(*(VString *)FileList.GetAt(0));
 				ErrorList.AddTail(strtmp);

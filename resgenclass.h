@@ -33,7 +33,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 int RESGen_CompareVStringsFromList(void *a, void *b); // For sorting of lists
 void RESGen_DeleteVString(void *a); // For sorting and searching of lists
 
-class RESGen  
+class RESGen
 {
 public:
 	bool LoadExludeFile(VString &listfile);
@@ -169,7 +169,7 @@ private:
 	};
 	struct bsp_header
 	{
-		int version;	
+		int version;
 		lumpinfo_s ent_header;
 		lumpinfo_s dnt_care01; // don't care
 		lumpinfo_s tex_header;
