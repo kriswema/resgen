@@ -5,7 +5,7 @@
 EXECNAME=resgen
 
 # The compiler
-CC=gcc
+CC=g++
 
 # Include dirs + own dir
 INCLUDEDIRS=-I.
