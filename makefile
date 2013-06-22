@@ -23,8 +23,8 @@ BASE_CFLAGS=
 #full optimization
 CFLAGS=$(BASE_CFLAGS) -w -s -march=native -O2 \
 	-ffast-math -funroll-loops \
-	-fexpensive-optimizations -malign-loops=2 \
-	-malign-jumps=2 -malign-functions=2
+	-fexpensive-optimizations -falign-loops=2 \
+	-falign-jumps=2 -falign-functions=2
 
 #use these when debugging
 #CFLAGS=$(BASE_CFLAGS) -g -D_DEBUG
