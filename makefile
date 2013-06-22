@@ -58,3 +58,5 @@ clean:
 	-rm -f $(EXECNAME)
 spotless: clean
 	-rm -r $(OBJDIR)
+get-deps:
+	-apt-get install libc6-dev-i386
