@@ -2,4 +2,4 @@ language: cpp
 install: sudo make get-deps
 before_script: make neat
 script: make
-after_script: make spotless
+after_script: make clean

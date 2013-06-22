@@ -55,12 +55,8 @@ neat:
 	-mkdir $(OBJDIR)
 
 clean:
-	-rm -f $(OBJ)
-	-rm -f $(EXECNAME)
-
-spotless:
-	make clean
-	-rm -r $(OBJDIR)
+	rm -fRv $(OBJDIR)
+	# -rm -f $(EXECNAME) 		.. WHY would you delete the binary?! wãt
 
 get-deps:
 	-apt-get install libc6-dev-i386
@@ -68,4 +64,4 @@ get-deps:
 all:
 	make neat
 	make
-	make spotless
+	make clean
