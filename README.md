@@ -1,4 +1,4 @@
-RESGen v2.0 manual
+# RESGen [![Build Status](https://travis-ci.org/kriswema/resgen.png?branch=develop)](https://travis-ci.org/kriswema/resgen) #
 
 INDEX
 1. Copyright and warranty
