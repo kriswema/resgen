@@ -65,3 +65,6 @@ all:
 	make neat
 	make
 	make clean
+
+install:
+	cp $(BINDIR)/$(EXECNAME) /usr/bin/$(EXECNAME)
