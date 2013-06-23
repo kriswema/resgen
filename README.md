@@ -5,12 +5,12 @@ RESGen is a tool to create res (resource) files for Half-Life. If a Half-Life ma
 The problem with res files, however, is that it can take hours to create one if the resources used by a map are not known. RESGen can shorten this time to mere seconds. It reads the maps BSP file and searches it for used resources. The results of this search are then used to create the res file.
 
 ## Usage ##
--a [rfafile]
-* The contents of the rfa file will be added to the end of the res file. This is useful when adding custom resources, like the StatsMe sound pack. The .rfa file extension is optional.
--b [rfafile]
-* Excludes generated resources listed in [rfafile] (Default exclude .rfa's included). Useful to avoid log spam and steam http download problems. It is    recommended to use this feature for steam servers, but note that it causes a speed decrease generating the res files.
--c
-* Displays the RESGen credits.
+* -a [rfafile]
+  * The contents of the rfa file will be added to the end of the res file. This is useful when adding custom resources, like the StatsMe sound pack. The .rfa file extension is optional.
+* -b [rfafile]
+  * Excludes generated resources listed in [rfafile] (Default exclude .rfa's included). Useful to avoid log spam and steam http download problems. It is    recommended to use this feature for steam servers, but note that it causes a speed decrease generating the res files.
+* -c
+  * Displays the RESGen credits.
 
 * -d [folder]
 
