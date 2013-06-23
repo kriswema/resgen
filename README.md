@@ -8,84 +8,47 @@ The problem with res files, however, is that it can take hours to create one if 
 * -a [rfafile]
   * The contents of the rfa file will be added to the end of the res file. This is useful when adding custom resources, like the StatsMe sound pack. The .rfa file extension is optional.
 * -b [rfafile]
-  * Excludes generated resources listed in [rfafile] (Default exclude .rfa's included). Useful to avoid log spam and steam http download problems. It is    recommended to use this feature for steam servers, but note that it causes a speed decrease generating the res files.
+  * Excludes generated resources listed in [rfafile] (Default exclude .rfa's included). Useful to avoid log spam and steam http download problems. It is recommended to use this feature for steam servers, but note that it causes a speed decrease generating the res files.
 * -c
   * Displays the RESGen credits.
-
 * -d [folder]
-
-  [folder] will be searched for bsp files. A trailing (back)slash is optional.
-
+  * [folder] will be searched for bsp files. A trailing (back)slash is optional.
 * -e [modpath]
-
-  Makes RESGen verify that all resources in the res file actually exist. Resources that can't be found will be excluded from the res file. RESGen expects modpath to point to a valid mod directory structure. If the modpath isn't the valve folder, RESGen will try to find the valve folder too, so a complete resource list can be established.
-
+  * Makes RESGen verify that all resources in the res file actually exist. Resources that can't be found will be excluded from the res file. RESGen expects modpath to point to a valid mod directory structure. If the modpath isn't the valve folder, RESGen will try to find the valve folder too, so a complete resource list can be established.
 * -f [map]
-
-  A res file will be generated for [map]. The .bsp file extension is optional.
-
+  * A res file will be generated for [map]. The .bsp file extension is optional.
 * -g
-
-  Displays content of generated .res files and reports all missing resources. Causes slower performance.
-
+  * Displays content of generated .res files and reports all missing resources. Causes slower performance.
 * -h
-
-  Displays the help screen.
-
+  * Displays the help screen.
 * -i
-
-  Displays maps found while building the map list. Only useful with the -r and/or -d option.
-
+  * Displays maps found while building the map list. Only useful with the -r and/or -d option.
 * -j
-
-  Resources found while building the resource list will be displayed. Useful with -e option.
-
+  * Resources found while building the resource list will be displayed. Useful with -e option.
 * -k
-
-  Windows only. RESGen will not wait for the user to press a key to exit.
-
+  * Windows only. RESGen will not wait for the user to press a key to exit.
 * -l
-
-  Turns on converting all res file entries to lowercase. RESGen converts all res file entries to lowercase since this is the default for Half-Life files. It has to do this because a lot of resource files in maps don't have the proper case that matches the actual resources. Only use this option if you know what you are doing.
-
+  * Turns on converting all res file entries to lowercase. RESGen converts all res file entries to lowercase since this is the default for Half-Life files. It has to do this because a lot of resource files in maps don't have the proper case that matches the actual resources. Only use this option if you know what you are doing.
 * -m
-  Matches the case of the res file entries to the actual case of the files on disk. This prevents any missing resources because of wrong case in filenames. Recommended on Linux. If this option is used, the -l option will have no effect. Only works if used with the -e option.
-
+  * Matches the case of the res file entries to the actual case of the files on disk. This prevents any missing resources because of wrong case in filenames. Recommended on Linux. If this option is used, the -l option will have no effect. Only works if used with the -e option.
 * -o
-
-  If a res file already exists it will be overwritten. Removes old res files if the new file doesn't contain any res entries and no file is specified with the -a option.
-
+  * If a res file already exists it will be overwritten. Removes old res files if the new file doesn't contain any res entries and no file is specified with the -a option.
 * -p
-
-  Prevents RESGen from using the contents of any pakfile for resource verification. Thus, any resource that is available, but in a pakfile is excluded from the res file. This option is only useful when the -e option is also used. Please note that if a map comes with it's own pakfile, using this option will generate a res file that is incomplete.
-
+  * Prevents RESGen from using the contents of any pakfile for resource verification. Thus, any resource that is available, but in a pakfile is excluded from the res file. This option is only useful when the -e option is also used. Please note that if a map comes with it's own pakfile, using this option will generate a res file that is incomplete.
 * -r [folder]
-
-  [folder] and it's subfolders will be searched for bsp files. A trailing (back)slash is optional.
-
+  * [folder] and it's subfolders will be searched for bsp files. A trailing (back)slash is optional.
 * -s
-
-  RESGen will display it's status line. This might considerably slow down res file generation, especially on smaller maps.
-
+  * RESGen will display it's status line. This might considerably slow down res file generation, especially on smaller maps.
 * -t
-
-  Linux only. RESGen will ignore symbolic links when searching folders for .bsp files. Please note that this does NOT affect resource searching. Useful with -d or -r options.
-
+  * Linux only. RESGen will ignore symbolic links when searching folders for .bsp files. Please note that this does NOT affect resource searching. Useful with -d or -r options.
 * -u
-
-  Parses relevant resource files to make sure they are actually used (such as WAD files) or to check if they have dependencies (such as MDL files with seperate textures). Only works with -e option.
-
+  * Parses relevant resource files to make sure they are actually used (such as WAD files) or to check if they have dependencies (such as MDL files with seperate textures). Only works with -e option.
 * -v
-
-  Makes RESGen only give minimal output. It's recommended you use this if you want to create res files as fast as possible. RESGen will still report any error.
-
+  * Makes RESGen only give minimal output. It's recommended you use this if you want to create res files as fast as possible. RESGen will still report any error.
 * -w
-
-  Displays the warranty for RESGen.
-
+  * Displays the warranty for RESGen.
 * -x [map]
-
-  Exclude this map from res file generation. Only works on maps found with -d or -r options. The .bsp file extension is optional.
+  * Exclude this map from res file generation. Only works on maps found with -d or -r options. The .bsp file extension is optional.
 
 Example 1:
 
