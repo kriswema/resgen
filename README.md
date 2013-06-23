@@ -1,7 +1,9 @@
 # RESGen #
+Master: [![Build Status](https://travis-ci.org/kriswema/resgen.png?branch=master)](https://travis-ci.org/kriswema/resgen)
 Develop: [![Build Status](https://travis-ci.org/kriswema/resgen.png?branch=develop)](https://travis-ci.org/kriswema/resgen)
 
 RESGen is a tool to create res (resource) files for Half-Life. If a Half-Life map has a corresponding res file, Half-Life is able to send all resources the resources the map uses to the clients, if they don't have them. This helps a great deal when running a server with custom maps, instead of the defaults. Most players do not have these custom maps and the resources that should go with them. The res file enables them to download the map via Half-Life and start playing right away.
+
 The problem with res files, however, is that it can take hours to create one if the resources used by a map are not known. RESGen can shorten this time to mere seconds. It reads the maps BSP file and searches it for used resources. The results of this search are then used to create the res file.
 
 ## Usage ##
