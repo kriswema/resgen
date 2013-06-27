@@ -61,8 +61,7 @@ clean:
 get-deps:
 	apt-get install libc6-dev-i386
 
-all:
-	make neat
+all: neat
 	make
 	make clean
 
