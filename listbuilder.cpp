@@ -35,8 +35,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <unistd.h>
 #endif
 
-#include "LinkedList.h"
-#include "vstring.h"
 #include "listbuilder.h"
 #include "leakcheck.h"
 
@@ -302,12 +300,7 @@ void ListBuilder::ListDir(const VString &path)
 void ListBuilder::ListDir(const VString &path)
 {
 	DIR *directory;
-	dirent *direntry;
 	struct stat filestatinfo; // Force as a struct for GCC
-
-	VString file;
-
-	int i;
 
 	// Open the current dir
 	directory = opendir(path);
@@ -325,10 +318,18 @@ void ListBuilder::ListDir(const VString &path)
 	firstdir = false;
 
 	// Start going through dirs finding files.
-	while (direntry = readdir(directory))
+	while (true)
 	{
+		const dirent * const direntry = readdir(directory);
+		if(direntry == NULL)
+		{
+			break;
+		}
+
 		// Do we have a dir?
-		file = path + direntry->d_name;
+		VString file = path + direntry->d_name;
+
+		int i;
 
 		if (symlink)
 		{
