@@ -85,8 +85,6 @@ xxxxxxxxxxxxx xx xxxxxxx
 #include <windows.h>
 #endif
 
-#include "LinkedList.h"
-#include "vstring.h"
 #include "listbuilder.h"
 #include "resgenclass.h"
 #include "resgen.h"

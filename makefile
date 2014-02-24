@@ -21,7 +21,7 @@ BASE_CFLAGS=
 #CFLAGS=$(BASE_CFLAGS) -w -s -march=i586 -O1
 
 #full optimization
-CFLAGS=$(BASE_CFLAGS) -w -s -march=native -O2 \
+CFLAGS=$(BASE_CFLAGS) -Wall -Wextra -pedantic -s -march=native -O2 \
 	-ffast-math -funroll-loops \
 	-fexpensive-optimizations -falign-loops=2 \
 	-falign-jumps=2 -falign-functions=2

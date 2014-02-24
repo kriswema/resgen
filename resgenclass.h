@@ -30,6 +30,11 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #pragma once
 #endif // _MSC_VER > 1000
 
+#include <cstddef>
+
+#include "LinkedList.h"
+#include "vstring.h"
+
 int RESGen_CompareVStringsFromList(void *a, void *b); // For sorting of lists
 void RESGen_DeleteVString(void *a); // For sorting and searching of lists
 
@@ -49,10 +54,10 @@ public:
 	virtual ~RESGen();
 
 private:
-	bool CheckModelExtTexture(VString &model);
+	bool CheckModelExtTexture(const VString &model);
 	VString valveresourcepath;
 	VString resourcepath;
-	bool CheckWadUse(VString &wadfile);
+	bool CheckWadUse(const VString &wadfile);
 	LinkedList texturelist;
 	bool checkforexcludes;
 	LinkedList excludelist;
@@ -66,14 +71,14 @@ private:
 	char * strtok_nexttoken;
 	char * StrTok(char *string, char delimiter);
 	int statcount; // statusbar counter
-	bool WriteRes(VString &folder, VString &mapname);
-	void AddWad(VString &wadlist, int start, int len);
+	bool WriteRes(const VString &folder, const VString &mapname);
+	void AddWad(const VString &wadlist, int start, int len);
 	LinkedList resfile;
-	void AddRes(VString res, char *prefix = NULL, char *suffix = NULL);
+	void AddRes(VString res, const char * const prefix = NULL, const char * const suffix = NULL);
 	void BStoS(char *string);
 	char * NextValue();
 	char * NextToken();
-	char * LoadBSPData(VString &file, int *entdatalen = NULL, LinkedList *texlist = NULL);
+	char * LoadBSPData(const VString &file, int * const entdatalen = NULL, LinkedList * const texlist = NULL);
 	bool checkforresources;
 	LinkedList resources;
 	bool verbal;
@@ -84,7 +89,7 @@ private:
 	bool parseresource;
 	VString rfastring;
 
-	typedef struct modelheader_s
+	struct modelheader_s
 	{
 		char id[4]; // Orriginal header is int, but this is easier
 		int version;
@@ -122,13 +127,13 @@ private:
 
 		// incomplete - cut off for space saving
 	};
-	typedef struct wadheader_s
+	struct wadheader_s
 	{
 		char identification[4]; // Should be WAD2 or WAD3
 		int numlumps; // Number of lumps
 		int infotableofs; // Offset of lump data
 	};
-	typedef struct wadlumpinfo_s
+	struct wadlumpinfo_s
 	{
 		int filepos;
 		int disksize;

@@ -46,7 +46,7 @@ class VString
 public:
 	bool LoadFromFile(const char *filename);
 	void StrRplChr(const char find, const char replace);
-	int StrChr(char search, int start = 0);
+	int StrChr(char search, int start = 0) const;
 	int StrRChr(char search, int start = -1);
 	int CompareReverseLimit(const char *dst, int limit) const;
 	int CompareReverseLimitNoCase(const char *dst, int limit) const;
@@ -93,7 +93,7 @@ private:
 	int length;
 	int memuse;
 	char * data;
-	void MemError(char *error);
+	void MemError(const char *error);
 
 protected:
 	void Cat(const char *string, int len);

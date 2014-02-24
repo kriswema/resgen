@@ -40,8 +40,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <unistd.h>
 #endif
 
-#include "vstring.h"
-#include "LinkedList.h"
 #include "resgenclass.h"
 #include "resgen.h"
 #include "leakcheck.h"
@@ -740,7 +738,7 @@ void RESGen::BuildResourceList(VString &respath, bool checkpak, bool sdisp, bool
 	printf("\n");
 }
 
-char * RESGen::LoadBSPData(VString &file, int *entdatalen, LinkedList *texlist)
+char * RESGen::LoadBSPData(const VString &file, int * const entdatalen, LinkedList * const texlist)
 {
 	FILE *bsp;
 	VString *texfile;
@@ -937,7 +935,7 @@ void RESGen::BStoS(char *string)
 	}
 }
 
-void RESGen::AddRes(VString res, char *prefix, char *suffix)
+void RESGen::AddRes(VString res, const char * const prefix, const char * const suffix)
 {
 	// Sometimes res entries start with a non alphanumeric character. Strip it.
 	while (!isalnum(res[0])) // keep stripping until a valid char is found
@@ -987,7 +985,7 @@ void RESGen::AddRes(VString res, char *prefix, char *suffix)
 	return;
 }
 
-void RESGen::AddWad(VString &wadlist, int start, int len)
+void RESGen::AddWad(const VString &wadlist, int start, int len)
 {
 	VString wadfile;
 
@@ -1002,7 +1000,7 @@ void RESGen::AddWad(VString &wadlist, int start, int len)
 	AddRes(wadfile);
 }
 
-bool RESGen::WriteRes(VString &folder, VString &mapname)
+bool RESGen::WriteRes(const VString &folder, const VString &mapname)
 {
 	// This function writes a standard res file.
 	FILE *f;
@@ -1265,7 +1263,6 @@ void RESGen::ListDir(const VString &path, const VString &filepath, bool reporter
 void RESGen::ListDir(const VString &path, const VString &filepath, bool reporterror)
 {
 	DIR *directory;
-	dirent *direntry;
 	struct stat filestatinfo; // Force as a struct for GCC
 
 	VString searchpath = path + filepath;
@@ -1291,8 +1288,14 @@ void RESGen::ListDir(const VString &path, const VString &filepath, bool reporter
 	firstdir = false;
 
 	// Start going through dirs finding files.
-	while (direntry = readdir(directory))
+	while (true)
 	{
+		const dirent * const direntry = readdir(directory);
+		if(direntry == NULL)
+		{
+			break;
+		}
+
 		// Do we have a dir?
 		// We follow symlinks. people shouldn't mess with symlinks in the HL folder anyways.
 		i = stat(searchpath + direntry->d_name, &filestatinfo); // Get the info about the files the links point to
@@ -1606,7 +1609,7 @@ void RESGen_DeleteVString(void *a)
 	delete va; // most secure way of deleting
 }
 
-bool RESGen::CheckWadUse(VString &wadfile)
+bool RESGen::CheckWadUse(const VString &wadfile)
 {
 	FILE *wad;
 	wadheader_s header;
@@ -1692,7 +1695,7 @@ bool RESGen::CheckWadUse(VString &wadfile)
 	return retval;
 }
 
-bool RESGen::CheckModelExtTexture(VString &model)
+bool RESGen::CheckModelExtTexture(const VString &model)
 {
 	FILE *mdl;
 	modelheader_s header;

@@ -67,7 +67,7 @@ VString::~VString()
 	if (data) { delete [] data; }
 }
 
-void VString::MemError(char *error)
+void VString::MemError(const char *error)
 {
 	printf("\n\nMemory allocation error (VString - %s).\n", error);
 	printf("\nTry to free more memory on your computer\n\n");
@@ -834,7 +834,7 @@ int VString::StrRChr(char search, int start)
 	}
 }
 
-int VString::StrChr(char search, int start)
+int VString::StrChr(char search, int start) const
 {
 	char *ret;
 	ret = strchr(&data[start], search);
