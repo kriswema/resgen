@@ -69,7 +69,7 @@ RESGen::~RESGen()
 	ClearExcludes();
 }
 
-void RESGen::SetParams(bool beverbal, bool statline, bool overwrt, bool lcase, bool mcase, bool prsresource, bool cdisp)
+void RESGen::SetParams(bool beverbal, bool statline, bool overwrt, bool lcase, bool mcase, bool prsresource, bool preservewads_, bool cdisp)
 {
 	verbal = beverbal;
 	statusline = statline;
@@ -77,6 +77,7 @@ void RESGen::SetParams(bool beverbal, bool statline, bool overwrt, bool lcase, b
 	tolower = lcase;
 	matchcase = mcase;
 	parseresource = prsresource;
+	preservewads = preservewads_;
 	contentdisp = cdisp;
 }
 
@@ -530,10 +531,13 @@ int RESGen::MakeRES(VString &map, int fileindex, int filecount)
 								printf("WAD file not used: %s\n", (LPCSTR)*tempres);
 							}
 
-							// remove file from list
-							resfile.RemoveAt(i);
-							delete tempres;
-							i = i - 1; // Next has become current. Don't skip it!
+							if(!preservewads)
+							{
+								// remove file from list
+								resfile.RemoveAt(i);
+								delete tempres;
+								i = i - 1; // Next has become current. Don't skip it!
+							}
 						}
 					}
 					else if (!tempres->CompareReverseLimitNoCase(".mdl", 4))

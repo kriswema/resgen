@@ -49,7 +49,7 @@ public:
 	void ClearResfile();
 	void BuildResourceList(VString &respath, bool checkpak, bool fdisp, bool rdisp);
 	int MakeRES(VString &map, int fileindex, int filecount);
-	void SetParams(bool beverbal, bool statline, bool overwrt, bool lcase, bool mcase, bool prsresource, bool cdisp);
+	void SetParams(bool beverbal, bool statline, bool overwrt, bool lcase, bool mcase, bool prsresource, bool preservewads, bool cdisp);
 	RESGen();
 	virtual ~RESGen();
 
@@ -87,6 +87,7 @@ private:
 	bool tolower;
 	bool matchcase;
 	bool parseresource;
+	bool preservewads;
 	VString rfastring;
 
 	struct modelheader_s
