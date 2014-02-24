@@ -34,6 +34,8 @@ Develop: [![Build Status](https://travis-ci.org/kriswema/resgen.png?branch=devel
   * Turns on converting all res file entries to lowercase. RESGen converts all res file entries to lowercase since this is the default for Half-Life files. It has to do this because a lot of resource files in maps don't have the proper case that matches the actual resources. Only use this option if you know what you are doing.
 * -m
   * Matches the case of the res file entries to the actual case of the files on disk. This prevents any missing resources because of wrong case in filenames. Recommended on Linux. If this option is used, the -l option will have no effect. Only works if used with the -e option.
+* -n
+  * Do not ignore unused WAD files. Necessary if the client insists on receiving all WADs referenced by the BSP, even if unused. Only works if used with the -u option.
 * -o
   * If a res file already exists it will be overwritten. Removes old res files if the new file doesn't contain any res entries and no file is specified with the -a option.
 * -p
@@ -100,7 +102,7 @@ http://resgen.hltools.com
 ## License ##
 Copyright (C) 2000-2005 Jeroen Bogers, Zero3Cool
 
-Copyright (c) 2013 [GitHub contributors] (https://github.com/kriswema/resgen/contributors)
+Copyright (c) 2013-2014 [GitHub contributors] (https://github.com/kriswema/resgen/contributors)
 
 RESGen is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -117,6 +119,8 @@ along with RESGen; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 ## Changelog ##
+Version 2.0.3
+ - New: Added -n option to preserve WAD files in .res file, even if unused.
 Version 2.0.2
  - Bugfix: Fixed flawed logic that caused RESGen not to parse skynames and
    in some cases of non-standard BSP styles, the wad files. Thanks go to

@@ -20,9 +20,9 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
 #ifdef _DEBUG
-#define VERSION "2.0.2 DBG"
+#define VERSION "2.0.3 DBG"
 #else
-#define VERSION "2.0.2"
+#define VERSION "2.0.3"
 #endif
 
 #include "LinkedList.h"
@@ -51,6 +51,7 @@ struct config_s
 	bool matchcase; // f
 	bool checkpak; // t
 	bool parseresource; // f
+	bool preservewads; // f
 	VString resource_path;
 
 #ifdef WIN32

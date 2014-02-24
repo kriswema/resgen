@@ -65,10 +65,12 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 -m -> [NEW] matches file case with resources found by -e
 -u -> [NEW] parses wads for used textures and mdls for external textures (use with -e)
 
+-n do not ignore unused wads (use with -u)
+
 // Param usage
 abcdefghijklmnopqrstuvwxyz
 xxxxxxxxxxxxx xx xxxxxxx
-// Free: n q y z
+// Free: q y z
 */
 
 // if you define NO_MULTIARG_FILES RESGen will reject any multiarg entries for:
@@ -205,6 +207,7 @@ void showhelp()
 	printf(" -e [modpath] Check for resource existance\n");
 	printf(" -p           Do not check for resource existance in pakfiles\n");
 	printf(" -u           Parse WAD and MDL files for external textures (use with -e)\n");
+	printf(" -n           Do not ignore unused WAD files (use with -u)\n");
 
 	printf(" -b [rfafile] Excludes resources from [rfafile] from generated res files.\n");
 
@@ -277,6 +280,7 @@ int main(int argc, char* argv[])
 	config.matchcase = false;
 	config.checkpak = true;
 	config.parseresource = false;
+	config.preservewads = false;
 
 #ifdef WIN32
 	config.keypress = true;
@@ -512,6 +516,10 @@ int main(int argc, char* argv[])
 				case 'u':
 					config.parseresource = true;
 					break;
+// -n
+				case 'n':
+					config.preservewads = true;
+					break;
 // -b
 				case 'b':
 #ifdef NO_MULTIARG_FILES
@@ -658,7 +666,7 @@ int main(int argc, char* argv[])
 
 	resgen.SetParams(
 		config.verbal, config.statusline, config.overwrite, config.tolower,
-		config.matchcase, config.parseresource, config.contentdisp);
+		config.matchcase, config.parseresource, config.preservewads, config.contentdisp);
 
 	if(!resgen.LoadRfaFile(config.rfafile))
 	{
