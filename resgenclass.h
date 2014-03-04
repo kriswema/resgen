@@ -55,32 +55,33 @@ public:
 
 private:
 	bool CheckModelExtTexture(const VString &model);
-	VString valveresourcepath;
-	VString resourcepath;
 	bool CheckWadUse(const VString &wadfile);
-	LinkedList texturelist;
-	bool checkforexcludes;
-	LinkedList excludelist;
-	bool resourcedisp;
 	void BuildPakResourceList(const VString &pakfile);
-	bool pakparse;
-	bool searchdisp;
-	bool contentdisp;
-	bool firstdir;
 	void ListDir(const VString &path, const VString &filepath, bool reporterror);
-	char * strtok_nexttoken;
 	char * StrTok(char *string, char delimiter);
-	int statcount; // statusbar counter
 	bool WriteRes(const VString &folder, const VString &mapname);
 	void AddWad(const VString &wadlist, int start, int len);
-	LinkedList resfile;
 	void AddRes(VString res, const char * const prefix = NULL, const char * const suffix = NULL);
 	void BStoS(char *string);
 	char * NextValue();
 	char * NextToken();
 	char * LoadBSPData(const VString &file, int * const entdatalen = NULL, LinkedList * const texlist = NULL);
+
+	VString valveresourcepath;
+	VString resourcepath;
 	bool checkforresources;
+	bool checkforexcludes;
+	bool resourcedisp;
+	bool pakparse;
+	bool searchdisp;
+	bool contentdisp;
+	bool firstdir;
+	char * strtok_nexttoken;
+	int statcount; // statusbar counter
 	LinkedList resources;
+	LinkedList resfile;
+	LinkedList texturelist;
+	LinkedList excludelist;
 	bool verbal;
 	bool statusline;
 	bool overwrite;

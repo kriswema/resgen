@@ -61,7 +61,6 @@ struct config_s
 #endif
 };
 
-int strrnicmp(const char *src, const char *dst, int limit);
 void getexitkey(bool verbal, bool keypress);
 
 void showcopyright();

@@ -43,6 +43,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "resgenclass.h"
 #include "resgen.h"
 #include "leakcheck.h"
+#include "util.h"
 
 // Half-Life BSP version
 #define BSPVERSION 30
@@ -833,9 +834,9 @@ char * RESGen::LoadBSPData(const VString &file, int * const entdatalen, LinkedLi
 			if (i != texheader->texcount) // load texture offsets
 			{
 				// header NOT read properly!
-				delete [] entdata;
-				//delete [] texheader;
 				printf("Error opening \"%s\". Corrupt texture data.\n  read: %d, expect: %d\n", (LPCSTR)file, i, texheader->texcount);
+				delete [] entdata;
+				delete [] texheader;
 				fclose(bsp);
 				return NULL;
 			}

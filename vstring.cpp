@@ -881,6 +881,7 @@ bool VString::LoadFromFile(const char *filename)
 	if (length == 0)
 	{
 		data[0] = 0;
+		fclose(f);
 		return true; // empty file, so we are successful
 	}
 
@@ -908,6 +909,7 @@ bool VString::LoadFromFile(const char *filename)
 			// Stream error
 			data[0] = 0; // empty string to be sure
 			length = 0;
+			fclose(f);
 			return false;
 		}
 		else

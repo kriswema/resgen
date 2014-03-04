@@ -24,6 +24,11 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //
 //////////////////////////////////////////////////////////////////////
 
+//#include <assert.h>
+#define assert(expr) (expr || *(int*)0)
+
+#include <stdexcept>
+
 #ifdef WIN32
 #include <windows.h>
 #include <stdio.h>
@@ -41,13 +46,48 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 exists in the pthread library and it works as documented */
 extern "C" int pthread_mutexattr_setkind_np __P((pthread_mutexattr_t *attr, int kind));
 #endif
-#else
-#define WaitToWrite()
-#define WaitToRead()
-#define DoneWriting()
-#define DoneReading()
 #endif
 
+
+#ifndef LL_SINGLETHREAD
+// RAII class for acquiring/releasing read lock
+class ReadLock
+{
+public:
+	ReadLock(LinkedList* const list_)
+		: list(list_)
+	{
+		list->WaitToRead();
+	}
+
+	~ReadLock()
+	{
+		list->DoneReading();
+	}
+
+private:
+	LinkedList* const list;
+};
+
+// RAII class for acquiring/releasing write lock
+class WriteLock
+{
+public:
+	WriteLock(LinkedList* const list_)
+		: list(list_)
+	{
+		list->WaitToWrite();
+	}
+
+	~WriteLock()
+	{
+		list->DoneWriting();
+	}
+
+private:
+	LinkedList* const list;
+};
+#endif
 
 
 //////////////////////////////////////////////////////////////////////
@@ -118,7 +158,10 @@ void LinkedList::AddTail(void *info)
 	temp->next = NULL;
 	temp->prev = NULL;
 
-	WaitToWrite();
+#ifndef LL_SINGLETHREAD
+	WriteLock writeLock;
+#endif
+
 	sortfunc = NULL; // Not sorted anymore
 
 	temp->data = info; // set data
@@ -136,8 +179,6 @@ void LinkedList::AddTail(void *info)
 
 	tail = temp;
 	count++;
-
-	DoneWriting();
 }
 
 void LinkedList::AddHead(void *info)
@@ -149,7 +190,10 @@ void LinkedList::AddHead(void *info)
 	temp->next = NULL;
 	temp->prev = NULL;
 
-	WaitToWrite();
+#ifndef LL_SINGLETHREAD
+	WriteLock writeLock;
+#endif
+
 	sortfunc = NULL; // Not sorted anymore
 
 	temp->data = info; // set data
@@ -168,10 +212,11 @@ void LinkedList::AddHead(void *info)
 	head = temp;
 	count++;
 
-	// increase lastget so it matches properly
-	lastget++;
-
-	DoneWriting();
+	if(lastget >= 0)
+	{
+		// increase lastget so it matches properly
+		lastget++;
+	}
 }
 
 void LinkedList::MemError()
@@ -188,32 +233,36 @@ void LinkedList::MemError()
 
 void * LinkedList::GetAt(int index)
 {
-	void *retval;
+#ifndef LL_SINGLETHREAD
+	ReadLock readLock(this);
+#endif
 
-	WaitToRead();
-	if (index >= count)
+	if(index >= count)
 	{
-		// request outside list
-		DoneReading();
-		return NULL;
+		throw std::out_of_range("Index out of range");
 	}
 
-	retval = GetNodeAt(index)->data;
+	node* const resultNode = GetNodeAt(index);
 
-	DoneReading();
+	if(resultNode == NULL)
+	{
+		throw std::out_of_range("Index out of range");
+	}
 
-	return retval;
+	return resultNode->data;
 }
 
 void LinkedList::RemoveAt(int index)
 {
 	node *temp; // temp node
 
-	WaitToWrite();
+#ifndef LL_SINGLETHREAD
+	WriteLock writeLock;
+#endif
+
 	if (index >= count)
 	{
 		// request outside list
-		DoneWriting();
 		return;
 	}
 
@@ -269,8 +318,6 @@ void LinkedList::RemoveAt(int index)
 
 	// remove the node from memory
 	delete temp;
-
-	DoneWriting();
 }
 
 #ifndef LL_SINGLETHREAD
@@ -351,11 +398,13 @@ void LinkedList::UnLockList()
 
 LinkedList::node * LinkedList::ForwardSearch(LinkedList::node * startnode, int startindex, int searchindex)
 {
-	int i;
-
 	// search for node we want.
-	for (i = startindex; i < searchindex; i++)
+	for (int i = startindex; i < searchindex; i++)
 	{
+		if(startnode == NULL)
+		{
+			throw std::out_of_range("Index out of range");
+		}
 		startnode = startnode->next;
 	}
 
@@ -367,11 +416,13 @@ LinkedList::node * LinkedList::ForwardSearch(LinkedList::node * startnode, int s
 
 LinkedList::node * LinkedList::BackwardSearch(LinkedList::node *startnode, int startindex, int searchindex)
 {
-	int i;
-
 	// search for node we want.
-	for (i = startindex; i > searchindex; i--)
+	for (int i = startindex; i > searchindex; i--)
 	{
+		if(startnode == NULL)
+		{
+			throw std::out_of_range("Index out of range");
+		}
 		startnode = startnode->prev;
 	}
 
@@ -383,8 +434,6 @@ LinkedList::node * LinkedList::BackwardSearch(LinkedList::node *startnode, int s
 
 LinkedList::node * LinkedList::GetNodeAt(int index)
 {
-	int middle;
-
 	if (lastget > 0) //lastget is valid
 	{
 		if (index == lastget)
@@ -396,7 +445,7 @@ LinkedList::node * LinkedList::GetNodeAt(int index)
 		{
 			// after lastget
 			// determine fastest way to goal
-			middle = ((count - lastget) / 2) + lastget; // will be rounded down.
+			const int middle = ((count - lastget) / 2) + lastget; // will be rounded down.
 			if (index <= middle)
 			{
 				// search is closer to lastget
@@ -412,7 +461,7 @@ LinkedList::node * LinkedList::GetNodeAt(int index)
 		{
 			// before lastget
 			// determine fastest way to goal
-			middle = (lastget / 2); // will be rounded semi-equally.
+			const int middle = (lastget / 2); // will be rounded semi-equally.
 			if (index <= middle)
 			{
 				// search is closer to head
@@ -428,7 +477,7 @@ LinkedList::node * LinkedList::GetNodeAt(int index)
 	else
 	{
 		// no lastget... Do a forward or backward search
-		middle = (count / 2); // will be rouded semi-equally
+		const int middle = (count / 2); // will be rouded semi-equally
 		if (index <= middle)
 		{
 			// search is closer to head
@@ -450,7 +499,9 @@ void LinkedList::BSort(int (*compare)(void *elem1, void *elem2))
 	node *a;
 	node *b;
 
-	WaitToWrite();
+#ifndef LL_SINGLETHREAD
+	WriteLock writeLock;
+#endif
 
 	max = count - 1;
 	while (max > 0)
@@ -470,8 +521,6 @@ void LinkedList::BSort(int (*compare)(void *elem1, void *elem2))
 	}
 
 	sortfunc = compare; // we are now sorted
-
-	DoneWriting();
 }
 
 void LinkedList::Swap(node *na, node *nb)
@@ -492,13 +541,13 @@ void LinkedList::QSort(int (*compare)(void *,void *))
 	}
 	else
 	{
-		WaitToWrite();
+#ifndef LL_SINGLETHREAD
+		WriteLock writeLock;
+#endif
 
 		QSortInternal(0, count-1, compare);
 
 		sortfunc = compare; // We are now sorted
-
-		DoneWriting();
 	}
 }
 
@@ -537,7 +586,9 @@ int LinkedList::Find(void *compdata, int (*compare)(void *,void *))
 	// Please note you have to use the SAME function for sorting as for finding
 	// or the list will fall back to the slow lookup method.
 
-	WaitToRead();
+#ifndef LL_SINGLETHREAD
+	ReadLock readLock(this);
+#endif
 
 	if (sortfunc == compare)
 	{
@@ -547,7 +598,6 @@ int LinkedList::Find(void *compdata, int (*compare)(void *,void *))
 
 		if (count == 0)
 		{
-			DoneReading();
 			return -1; // No list, so not found!
 		}
 
@@ -572,7 +622,6 @@ int LinkedList::Find(void *compdata, int (*compare)(void *,void *))
 			else
 			{
 				// string found!
-				DoneReading();
 				return pivot;
 			}
 		}
@@ -586,13 +635,10 @@ int LinkedList::Find(void *compdata, int (*compare)(void *,void *))
 		{
 			if (!compare(compdata, GetNodeAt(i)->data))
 			{
-				DoneReading();
 				return i;
 			}
 		}
 	}
-
-	DoneReading();
 
 	return -1; // not found
 }
@@ -604,11 +650,12 @@ void LinkedList::FilterDoubles(int (*compare)(void *,void *), void (*erase)(void
 	void *start;
 	void *next;
 
-	WaitToWrite();
+#ifndef LL_SINGLETHREAD
+	WriteLock writeLock;
+#endif
 
 	if (count <= 1)
 	{
-		DoneWriting();
 		return; // Doubles not possible!
 	}
 
@@ -653,8 +700,6 @@ void LinkedList::FilterDoubles(int (*compare)(void *,void *), void (*erase)(void
 			}
 		}
 	}
-
-	DoneWriting();
 }
 
 void LinkedList::InsertAt(void *info, int index)
@@ -677,7 +722,9 @@ void LinkedList::InsertAt(void *info, int index)
 	node *temp = new node;
 	if (temp == NULL) { MemError(); }
 
-	WaitToWrite();
+#ifndef LL_SINGLETHREAD
+	WriteLock writeLock;
+#endif
 	sortfunc = NULL; // Not sorted anymore
 
 	temp->data = info; // set data
@@ -696,19 +743,19 @@ void LinkedList::InsertAt(void *info, int index)
 	{
 		lastget++; // keep it matching with the actual index number
 	}
-
-	DoneWriting();
 }
 
 bool LinkedList::InsertSorted(void *info, int (*compare)(void *,void *), bool doublesallowed)
 {
+#ifndef LL_SINGLETHREAD
+	WriteLock writeLock;
+#endif
+
 	// Inserts item in list, while preserving sorting
 	if (sortfunc == compare && count >= 1) // if there is 1 item list is inherently sorted
 	{
 		int begin, end, pivot;
 		int result;
-
-		WaitToWrite();
 
 		begin = 0;
 		end = count - 1;

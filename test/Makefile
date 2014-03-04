@@ -4,29 +4,25 @@
 CC=g++
 
 # Include dirs + own dir
-INCLUDEDIRS=-I.
+INCLUDEDIRS=-I. -I..
 
 # Define folders
 SRCDIR=.
+MAIN_SRCDIR=..
 OBJDIR=$(SRCDIR)/obj
-BINDIR=$(SRCDIR)/bin
+MAIN_OBJDIR=../obj
+BINDIR=$(SRCDIR)
 
 # Define binary filename
-EXECNAME=resgen
+EXECNAME=testrunner
 
 #base flags that are used in any compilation
 BASE_CFLAGS=
 
-#safe optimization
-#CFLAGS=$(BASE_CFLAGS) -w -s -march=i586 -O1
-
-#full optimization
 CFLAGS=$(BASE_CFLAGS) -Wall -Wextra -pedantic
 
-#use these when debugging
-#CFLAGS=$(BASE_CFLAGS) -g -D_DEBUG
-
-LDFLAGS=-lstdc++
+LDFLAGS=
+LDLIBS=-lstdc++ -lcppunit
 
 DO_CC=$(CC) $(INCLUDEDIRS) $(CFLAGS) -o $@ -c $<
 
@@ -34,36 +30,36 @@ DO_CC=$(CC) $(INCLUDEDIRS) $(CFLAGS) -o $@ -c $<
 # RESGen files
 #############################################################################
 
-all: directories \
-	$(BINDIR)/$(EXECNAME)
+all: directories $(EXECNAME)
 
 debug: CFLAGS += -ggdb -g3
 debug: directories
-debug: $(BINDIR)/$(EXECNAME)
+debug: $(EXECNAME)
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.cpp
 	$(DO_CC)
 
 OBJ = \
-	$(OBJDIR)/LinkedList.o \
-	$(OBJDIR)/leakcheck.o \
-	$(OBJDIR)/listbuilder.o \
-	$(OBJDIR)/resgen.o \
-	$(OBJDIR)/resgenclass.o \
-	$(OBJDIR)/vstring.o
+	$(OBJDIR)/test.o \
+	$(MAIN_OBJDIR)/LinkedList.o \
+	$(MAIN_OBJDIR)/leakcheck.o \
+	$(MAIN_OBJDIR)/listbuilder.o \
+	$(MAIN_OBJDIR)/resgenclass.o \
+	$(MAIN_OBJDIR)/vstring.o
 
-$(BINDIR)/$(EXECNAME) : $(OBJ)
-	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(OBJ)
+
+$(EXECNAME) : $(OBJ)
+	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(OBJ) $(LDLIBS)
 
 directories:
 	mkdir -p $(OBJDIR)
-	mkdir -p $(BINDIR)
+
+test:
+	./$(EXECNAME)
 
 clean:
-	rm -fRv $(OBJDIR)
+	rm $(BINDIR)/$(EXECNAME)
+	rm -r $(OBJDIR)
 
 get-deps:
 	apt-get install libc6-dev-i386 libcppunit-dev
-
-install:
-	cp $(BINDIR)/$(EXECNAME) /usr/bin/$(EXECNAME)
