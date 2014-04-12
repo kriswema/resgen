@@ -40,8 +40,6 @@ class LinkedList
 public:
 	void FilterDoubles(int (*compare)(void *,void *), void (*erase)(void *));
 	int Find(void *compdata, int (*compare)(void *,void *));
-	void QSort(int (*compare)(void *elem1, void *elem2));
-	void BSort(int (*compare)(void *elem1, void *elem2));
 #ifndef LL_SINGLETHREAD
 	void UnLockList();
 	void LockList();
@@ -52,7 +50,10 @@ public:
 	void *GetAt(int index);
 	void AddHead(void *info);
 	void AddTail(void *info);
-	int GetCount();
+
+	 // Returns the numer of nodes in the list
+	int GetCount() const;
+
 	LinkedList();
 	virtual ~LinkedList();
 
@@ -80,8 +81,7 @@ private:
 		node *prev; // pointer to previous node
 		void *data;
 	}; // A node in the list
-	void QSortInternal(int begin, int end, int (*compare)(void *elem1, void *elem2));
-	void Swap(node *a, node *b);
+
 	void MemError();
 	int count; // number of nodes in the list
 	node *head; // Pointer to the head (start) of the list

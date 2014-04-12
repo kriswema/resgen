@@ -154,6 +154,76 @@ void LinkedListTest::testInsertAtInvalid()
     CPPUNIT_ASSERT(list.GetAt(1) == &b);
 }
 
+void LinkedListTest::testRemoveAtStart()
+{
+    LinkedList list;
+    int a = 3;
+    int b = 5;
+    int c = -1;
+	list.AddTail(&a);
+	list.AddTail(&b);
+	list.AddTail(&c);
+    
+	list.RemoveAt(0);
+
+    CPPUNIT_ASSERT(list.GetCount() == 2);
+    CPPUNIT_ASSERT(list.GetAt(0) == &b);
+    CPPUNIT_ASSERT(list.GetAt(1) == &c);
+}
+
+void LinkedListTest::testRemoveAtMiddle()
+{
+    LinkedList list;
+    int a = 3;
+    int b = 5;
+    int c = -1;
+	list.AddTail(&a);
+	list.AddTail(&b);
+	list.AddTail(&c);
+    
+	list.RemoveAt(1);
+
+    CPPUNIT_ASSERT(list.GetCount() == 2);
+    CPPUNIT_ASSERT(list.GetAt(0) == &a);
+    CPPUNIT_ASSERT(list.GetAt(1) == &c);
+}
+
+void LinkedListTest::testRemoveAtEnd()
+{
+    LinkedList list;
+    int a = 3;
+    int b = 5;
+    int c = -1;
+	list.AddTail(&a);
+	list.AddTail(&b);
+	list.AddTail(&c);
+    
+	list.RemoveAt(2);
+
+    CPPUNIT_ASSERT(list.GetCount() == 2);
+    CPPUNIT_ASSERT(list.GetAt(0) == &a);
+    CPPUNIT_ASSERT(list.GetAt(1) == &b);
+}
+
+void LinkedListTest::testRemoveAtInvalid()
+{
+    LinkedList list;
+    int a = 3;
+    int b = 5;
+    int c = -1;
+	list.AddTail(&a);
+	list.AddTail(&b);
+	list.AddTail(&c);
+
+    CPPUNIT_ASSERT_THROW(list.RemoveAt(-1), std::out_of_range);
+    CPPUNIT_ASSERT_THROW(list.RemoveAt(3), std::out_of_range);
+
+    CPPUNIT_ASSERT(list.GetCount() == 3);
+    CPPUNIT_ASSERT(list.GetAt(0) == &a);
+    CPPUNIT_ASSERT(list.GetAt(1) == &b);
+    CPPUNIT_ASSERT(list.GetAt(2) == &c);
+}
+
 int main()
 {
     using namespace CppUnit;

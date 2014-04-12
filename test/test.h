@@ -14,6 +14,10 @@ class LinkedListTest : public CppUnit::TestFixture
     CPPUNIT_TEST(testInsertAtMiddle);
     CPPUNIT_TEST(testInsertAtEnd);
     CPPUNIT_TEST(testInsertAtInvalid);
+    CPPUNIT_TEST(testRemoveAtStart);
+    CPPUNIT_TEST(testRemoveAtMiddle);
+    CPPUNIT_TEST(testRemoveAtEnd);
+    CPPUNIT_TEST(testRemoveAtInvalid);
 
     CPPUNIT_TEST_SUITE_END();
 
@@ -32,4 +36,8 @@ protected:
     void testInsertAtMiddle();
     void testInsertAtEnd();
     void testInsertAtInvalid();
+    void testRemoveAtStart();
+    void testRemoveAtMiddle();
+    void testRemoveAtEnd();
+    void testRemoveAtInvalid();
 };

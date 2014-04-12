@@ -144,7 +144,7 @@ LinkedList::~LinkedList()
 #endif
 }
 
-int LinkedList::GetCount() // returns the numer of nodes in the list
+int LinkedList::GetCount() const
 {
 	return count;
 }
@@ -256,10 +256,9 @@ void LinkedList::RemoveAt(int index)
 	WriteLock writeLock;
 #endif
 
-	if (index >= count)
+	if((index < 0) || (index >= count))
 	{
-		// request outside list
-		return;
+		throw std::out_of_range("Index out of range");
 	}
 
 	// Get the node we want
@@ -487,93 +486,6 @@ LinkedList::node * LinkedList::GetNodeAt(int index)
 	}
 
 	//return NULL; // can never happen
-}
-
-void LinkedList::BSort(int (*compare)(void *elem1, void *elem2))
-{
-	int max, bg, i;
-	node *a;
-	node *b;
-
-#ifndef LL_SINGLETHREAD
-	WriteLock writeLock;
-#endif
-
-	max = count - 1;
-	while (max > 0)
-	{
-		bg = max - 1;
-		max = 0;
-		for (i = 0; i <= bg; i++)
-		{
-			a = GetNodeAt(i);
-			b = GetNodeAt(i + 1);
-			if (compare(a->data, b->data) > 0)
-			{
-				Swap(a, b);
-				max = i;
-			}
-		}
-	}
-
-	sortfunc = compare; // we are now sorted
-}
-
-void LinkedList::Swap(node *na, node *nb)
-{
-	void *tmp;
-
-	// swap data
-	tmp = na->data;
-	na->data = nb->data;
-	nb->data = tmp;
-}
-
-void LinkedList::QSort(int (*compare)(void *,void *))
-{
-	if (count < 8)
-	{
-		BSort(compare); // faster for small lists
-	}
-	else
-	{
-#ifndef LL_SINGLETHREAD
-		WriteLock writeLock;
-#endif
-
-		QSortInternal(0, count-1, compare);
-
-		sortfunc = compare; // We are now sorted
-	}
-}
-
-void LinkedList::QSortInternal(int begin, int end, int (*compare)(void *,void *))
-{
-	if (end > begin)
-	{
-		node *nl;
-		Swap(GetNodeAt(begin), GetNodeAt((end-begin)/2+begin)); // this improves preformance with sorted lists
-		void *pivot = GetNodeAt(begin)->data;
-		int l = begin + 1;
-		int r = end;
-		while (l < r)
-		{
-			nl = GetNodeAt(l);
-			if (compare(nl->data, pivot) <= 0)
-			{
-				l++;
-			}
-			else
-			{
-				r--;
-				Swap(nl, GetNodeAt(r));
-			}
-		}
-		l--;
-		Swap(GetNodeAt(begin), GetNodeAt(l));
-		QSortInternal(begin, l, compare);
-		QSortInternal(r, end, compare);
-	}
 }
 
 int LinkedList::Find(void *compdata, int (*compare)(void *,void *))
