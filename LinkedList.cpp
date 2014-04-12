@@ -237,17 +237,13 @@ void * LinkedList::GetAt(int index)
 	ReadLock readLock(this);
 #endif
 
-	if(index >= count)
+	if((index < 0) || (index >= count))
 	{
 		throw std::out_of_range("Index out of range");
 	}
 
 	node* const resultNode = GetNodeAt(index);
-
-	if(resultNode == NULL)
-	{
-		throw std::out_of_range("Index out of range");
-	}
+	assert(resultNode != NULL);
 
 	return resultNode->data;
 }
@@ -704,14 +700,19 @@ void LinkedList::FilterDoubles(int (*compare)(void *,void *), void (*erase)(void
 
 void LinkedList::InsertAt(void *info, int index)
 {
+	if ((index < 0) || (index > count))
+	{
+		throw std::out_of_range("Index out of range");
+	}
+	
 	// Inserts a item BEFORE index (so the item currently at index gets bumped one place up)
-	if (index <= 0)
+	if (index == 0)
 	{
 		// Add as head
 		AddHead(info);
 		return;
 	}
-	if (index >= count)
+	if (index == count)
 	{
 		// index is bigger then existing, add as tail
 		AddTail(info);
@@ -754,22 +755,20 @@ bool LinkedList::InsertSorted(void *info, int (*compare)(void *,void *), bool do
 	// Inserts item in list, while preserving sorting
 	if (sortfunc == compare && count >= 1) // if there is 1 item list is inherently sorted
 	{
-		int begin, end, pivot;
-		int result;
-
-		begin = 0;
-		end = count - 1;
+		int begin = 0;
+		int end = count - 1;
 
 		// attempt to find the string
 		while (begin <= end) // this should never evaluate to false
 		{
-			pivot = (end-begin)/2+begin; // at least equal to begin and always smaller then end
+			const int pivot = ((end - begin) / 2) + begin; // at least equal to begin and always smaller then end
 
-			result = compare(info, GetNodeAt(pivot)->data);
+			const int result = compare(info, GetNodeAt(pivot)->data);
+
 			if (result < 0)
 			{
 				// if string is here, it should be before the current
-				end = pivot-1;
+				end = pivot - 1;
 				if (end < begin)
 				{
 					// search ended and nothing found. insert element at pivot (will be placed in front)
@@ -781,11 +780,11 @@ bool LinkedList::InsertSorted(void *info, int (*compare)(void *,void *), bool do
 			else if (result > 0)
 			{
 				// if string is here, it should be after the current
-				begin = pivot+1;
+				begin = pivot + 1;
 				if (end < begin)
 				{
 					// search ended and nothing found. insert element after pivot
-					InsertAt(info, pivot+1);
+					InsertAt(info, pivot + 1);
 					sortfunc = compare; // restore sortfunc
 					return true;
 				}

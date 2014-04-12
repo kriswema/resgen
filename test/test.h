@@ -10,6 +10,10 @@ class LinkedListTest : public CppUnit::TestFixture
     CPPUNIT_TEST(testAddTailSingle);
     CPPUNIT_TEST(testAddTailMultiple);
     CPPUNIT_TEST(testGetAtInvalid);
+    CPPUNIT_TEST(testInsertAtStart);
+    CPPUNIT_TEST(testInsertAtMiddle);
+    CPPUNIT_TEST(testInsertAtEnd);
+    CPPUNIT_TEST(testInsertAtInvalid);
 
     CPPUNIT_TEST_SUITE_END();
 
@@ -24,4 +28,8 @@ protected:
     void testAddTailSingle();
     void testAddTailMultiple();
     void testGetAtInvalid();
+    void testInsertAtStart();
+    void testInsertAtMiddle();
+    void testInsertAtEnd();
+    void testInsertAtInvalid();
 };
