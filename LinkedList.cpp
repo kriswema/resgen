@@ -250,8 +250,6 @@ void * LinkedList::GetAt(int index)
 
 void LinkedList::RemoveAt(int index)
 {
-	node *temp; // temp node
-
 #ifndef LL_SINGLETHREAD
 	WriteLock writeLock;
 #endif
@@ -262,7 +260,7 @@ void LinkedList::RemoveAt(int index)
 	}
 
 	// Get the node we want
-	temp = GetNodeAt(index);
+	node *temp = GetNodeAt(index);
 
 	// change count
 	count--;
@@ -475,8 +473,6 @@ LinkedList::node * LinkedList::GetNodeAt(int index)
 			return BackwardSearch(tail, count - 1, index);
 		}
 	}
-
-	//return NULL; // can never happen
 }
 
 int LinkedList::Find(void *compdata, int (*compare)(void *,void *))
@@ -492,22 +488,20 @@ int LinkedList::Find(void *compdata, int (*compare)(void *,void *))
 	if (sortfunc == compare)
 	{
 		// Returns -1 if not found, or the index of the found file
-		int begin, end, pivot;
-		int result;
-
+		//
 		if (count == 0)
 		{
 			return -1; // No list, so not found!
 		}
 
-		begin = 0;
-		end = count - 1;
+		int begin = 0;
+		int end = count - 1;
 
 		while (begin <= end)
 		{
-			pivot = (end-begin)/2+begin; // at least equal to begin and always smaller then end
+			int pivot = (end-begin)/2+begin; // at least equal to begin and always smaller then end
 
-			result = compare(compdata, GetNodeAt(pivot)->data);
+			int result = compare(compdata, GetNodeAt(pivot)->data);
 			if (result < 0)
 			{
 				// if string is here, it should be before the current
@@ -528,9 +522,7 @@ int LinkedList::Find(void *compdata, int (*compare)(void *,void *))
 	else
 	{
 		// do slow search, try every entry until found
-		int i;
-
-		for (i = 0; i < count; i++)
+		for (int i = 0; i < count; i++)
 		{
 			if (!compare(compdata, GetNodeAt(i)->data))
 			{

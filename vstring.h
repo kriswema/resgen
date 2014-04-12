@@ -48,7 +48,6 @@ public:
 	void StrRplChr(const char find, const char replace);
 	int StrChr(char search, int start = 0) const;
 	int StrRChr(char search, int start = -1);
-	int CompareReverseLimit(const char *dst, int limit) const;
 	int CompareReverseLimitNoCase(const char *dst, int limit) const;
 	void Trim(char *string);
 	void Trim(char chr);
@@ -60,14 +59,12 @@ public:
 	void TrimLeft(char chr);
 	void TrimLeft();
 	void MakeLower();
-	void MakeUpper();
 	VString Right(int count) const;
 	VString Left(int count) const;
 	VString Mid(int index) const;
 	VString Mid(int index, int count) const;
 	int CompareNoCase(const char* string) const;
 	int CompareLimit(const char *string, int limit) const;
-	int Compare(const char* string) const;
 	const VString& operator+=(const char *string);
 	const VString& operator+=(const VString& string);
 	friend VString operator+(const char *string1, const VString& string2);
@@ -79,8 +76,6 @@ public:
 	char operator [](int index) const;
 	char GetAt(int index) const;
 	void Empty();
-	bool IsEmpty() const;
-	void SetLength();
 	int GetLength() const;
 	operator LPCSTR() const;
 	VString (const char *string);

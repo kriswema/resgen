@@ -121,24 +121,6 @@ int VString::GetLength() const
 	return length;
 }
 
-void VString::SetLength()
-{
-	length = strlen(data); // re-evaluate lenght
-	return;
-}
-
-bool VString::IsEmpty() const
-{
-	if (length)
-	{
-		return false;
-	}
-	else
-	{
-		return true;
-	}
-}
-
 void VString::Empty()
 {
 	delete [] data;
@@ -303,11 +285,6 @@ const VString& VString::operator +=(const char *string)
 {
 	Cat(string, strlen(string));
 	return *this;
-}
-
-int VString::Compare(const char *string) const
-{
-	return strcmp(data, string);
 }
 
 bool operator==(const VString& s1, const VString& s2)
@@ -480,21 +457,6 @@ VString VString::Right(int count) const
 	delete [] tmp;
 	return retstr;
 
-}
-
-void VString::MakeUpper()
-{
-	#ifdef WIN32
-	_strupr(data);
-	#else
-	// Linux doesn't have strupr/strlwr
-	int i;
-
-	for (i=0; i < length; i++)
-	{
-		data[i] = toupper(data[i]);
-	}
-	#endif
 }
 
 void VString::MakeLower()
@@ -684,7 +646,6 @@ int VString::CompareReverseLimitNoCase(const char *dst, int limit) const
 	char *src = data;
 	int i = length - 1;
 	int j = strlen(dst) - 1;
-	int ret = 0;
 
 	limit--;
 
@@ -721,67 +682,7 @@ int VString::CompareReverseLimitNoCase(const char *dst, int limit) const
 		i = tolower(*src);
 		j = tolower(*dst);
 
-		ret = i - j;
-		if (ret)
-		{
-			if (ret < 0)
-			{
-				return -1;
-			}
-			else
-			{
-				return 1;
-			}
-		}
-		src--;
-		dst--;
-		limit--;
-	}
-
-	return 0;
-}
-
-int VString::CompareReverseLimit(const char *dst, int limit) const
-{
-	// first determine our maximum running length
-	char *src = data;
-	int i = length - 1;
-	int j = strlen(dst) - 1;
-	int ret = 0;
-
-	limit--;
-
-	if (i < limit)
-	{
-		if (i < j)
-		{
-			return -1;
-		}
-		else if (j < i)
-		{
-			return 1;
-		}
-		limit = i;
-	}
-	if (j < limit)
-	{
-		if (i < j)
-		{
-			return -1;
-		}
-		else if (j < i)
-		{
-			return 1;
-		}
-		limit = j;
-	}
-
-	src = src + i;
-	dst = dst + j;
-
-	while (limit >= 0)
-	{
-		ret = *src - *dst;
+		int ret = i - j;
 		if (ret)
 		{
 			if (ret < 0)
@@ -865,9 +766,7 @@ void VString::StrRplChr(const char find, const char replace)
 
 bool VString::LoadFromFile(const char *filename)
 {
-	FILE *f;
-
-	f = fopen(filename, "r"); // Open for reading
+	FILE *f = fopen(filename, "r"); // Open for reading
 
 	if (f == NULL)
 	{

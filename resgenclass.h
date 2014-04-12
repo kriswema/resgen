@@ -36,7 +36,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "vstring.h"
 
 int RESGen_CompareVStringsFromList(void *a, void *b); // For sorting of lists
-void RESGen_DeleteVString(void *a); // For sorting and searching of lists
 
 class RESGen
 {
@@ -62,7 +61,6 @@ private:
 	bool WriteRes(const VString &folder, const VString &mapname);
 	void AddWad(const VString &wadlist, int start, int len);
 	void AddRes(VString res, const char * const prefix = NULL, const char * const suffix = NULL);
-	void BStoS(char *string);
 	char * NextValue();
 	char * NextToken();
 	char * LoadBSPData(const VString &file, int * const entdatalen = NULL, LinkedList * const texlist = NULL);

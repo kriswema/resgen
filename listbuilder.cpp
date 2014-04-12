@@ -88,13 +88,10 @@ void ListBuilder::BuildList(LinkedList *srclist)
 
 	PrepExList();
 
-	int i;
-	file_s *file;
-
 	// walk entries and take appropritate actions.
-	for (i = 0; i < srclist->GetCount(); i++)
+	for (int i = 0; i < srclist->GetCount(); i++)
 	{
-		file = (file_s *) srclist->GetAt(i);
+		file_s *file = (file_s *) srclist->GetAt(i);
 
 		if (file->folder == false)
 		{
@@ -162,11 +159,9 @@ void ListBuilder::AddFile(const VString &filename, bool checkexlist)
 
 	if (checkexlist) // Process exceptions
 	{
-		file_s *tmpex;
-		int i;
-		for (i = 0; i < exlist->GetCount(); i++)
+		for (int i = 0; i < exlist->GetCount(); i++)
 		{
-			tmpex = (file_s *)exlist->GetAt(i);
+			file_s *tmpex = (file_s *)exlist->GetAt(i);
 			if(!tmp->CompareReverseLimitNoCase((LPCSTR)tmpex->name, tmpex->name.GetLength()))
 			{
 				// make sure mapname is not longer.
@@ -209,11 +204,9 @@ void ListBuilder::AddFile(const VString &filename, bool checkexlist)
 void ListBuilder::PrepExList()
 {
 	// Prepares Exceptionlist by adding .bsp to filenames that need it
-	file_s *tmp;
-	int i;
-	for (i = 0; i < exlist->GetCount(); i++)
+	for (int i = 0; i < exlist->GetCount(); i++)
 	{
-		tmp = (file_s *)exlist->GetAt(i);
+		file_s *tmp = (file_s *)exlist->GetAt(i);
 
 		if (tmp->name.CompareReverseLimitNoCase(".bsp", 4))
 		{
@@ -236,14 +229,12 @@ void ListBuilder::SetSymLink(bool slink)
 void ListBuilder::ListDir(const VString &path)
 {
 	WIN32_FIND_DATA filedata;
-	HANDLE filehandle;
 
 	// add *.* for searching all files.
 	VString searchdir = path + "*.*";
-	VString file;
 
 	// find first file
-	filehandle = FindFirstFile(searchdir, &filedata);
+	HANDLE filehandle = FindFirstFile(searchdir, &filedata);
 
 	if (filehandle == INVALID_HANDLE_VALUE)
 	{
@@ -265,7 +256,7 @@ void ListBuilder::ListDir(const VString &path)
 
 	do
 	{
-		file = path + filedata.cFileName;
+		VString file = path + filedata.cFileName;
 
 		// Check for directory
 		if (filedata.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
@@ -299,11 +290,10 @@ void ListBuilder::ListDir(const VString &path)
 // Linux dir parser
 void ListBuilder::ListDir(const VString &path)
 {
-	DIR *directory;
 	struct stat filestatinfo; // Force as a struct for GCC
 
 	// Open the current dir
-	directory = opendir(path);
+	DIR *directory = opendir(path);
 	// Is it open?
 	if (directory == NULL)
 	{

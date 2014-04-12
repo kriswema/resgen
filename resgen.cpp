@@ -224,21 +224,15 @@ int main(int argc, char* argv[])
 	config.symlink = true;
 #endif
 
-	int i, j;
-	int arglen;
-	char *argstr;
-
-	file_s *file;
-
 	// parse the command line
-	for (i = 1; i < argc; i++) // arg 0 is the command line.
+	for (int i = 1; i < argc; i++) // arg 0 is the command line.
 	{
-		argstr = argv[i];
+		char *argstr = argv[i];
 		if (argstr[0] == '-')
 		{
 			// cmdline switch(es)
-			arglen = strlen(argstr);
-			for (j = 1; j < arglen; j++)
+			int arglen = strlen(argstr);
+			for (int j = 1; j < arglen; j++)
 			{
 				switch (argstr[j])
 				{
@@ -276,6 +270,7 @@ int main(int argc, char* argv[])
 					break;
 // -d
 				case 'd':
+				{
 #ifdef NO_MULTIARG_FILES
 					if (arglen != 2)
 					{
@@ -294,7 +289,7 @@ int main(int argc, char* argv[])
 						break;
 					}
 
-					file = new file_s;
+					file_s *file = new file_s;
 					file->folder = true;
 					file->recursive = false;
 					i++; // increase i.. we used that arg.
@@ -302,8 +297,10 @@ int main(int argc, char* argv[])
 
 					config.files.AddTail(file); // add to linked list
 					break;
+				}
 // -r
 				case 'r':
+				{
 #ifdef NO_MULTIARG_FILES
 					if (arglen != 2)
 					{
@@ -322,7 +319,7 @@ int main(int argc, char* argv[])
 						break;
 					}
 
-					file = new file_s;
+					file_s *file = new file_s;
 					file->folder = true;
 					file->recursive = true;
 					i++; // increase i.. we used that arg.
@@ -330,8 +327,10 @@ int main(int argc, char* argv[])
 
 					config.files.AddTail(file); // add to linked list
 					break;
+				}
 // -f
 				case 'f':
+				{
 #ifdef NO_MULTIARG_FILES
 					if (arglen != 2)
 					{
@@ -350,7 +349,7 @@ int main(int argc, char* argv[])
 						break;
 					}
 
-					file = new file_s;
+					file_s *file = new file_s;
 					file->folder = false;
 					file->recursive = false;
 					i++; // increase i.. we used that arg.
@@ -358,8 +357,10 @@ int main(int argc, char* argv[])
 
 					config.files.AddTail(file); // add to linked list
 					break;
+				}
 // -x
 				case 'x':
+				{
 #ifdef NO_MULTIARG_FILES
 					if (arglen != 2)
 					{
@@ -378,7 +379,7 @@ int main(int argc, char* argv[])
 						break;
 					}
 
-					file = new file_s;
+					file_s *file = new file_s;
 					file->folder = false;
 					file->recursive = false;
 					i++; // increase i.. we used that arg.
@@ -386,6 +387,7 @@ int main(int argc, char* argv[])
 
 					config.excludes.AddTail(file); // add to linked list
 					break;
+				}
 // -o
 				case 'o':
 					config.overwrite = true;
@@ -499,7 +501,7 @@ int main(int argc, char* argv[])
 		else
 		{
 			// not a switch. Assume it's a map.
-			file = new file_s;
+			file_s *file = new file_s;
 			file->folder = false;
 			file->recursive = false;
 			file->name = argv[i];
@@ -582,7 +584,7 @@ int main(int argc, char* argv[])
 	// clean up config.files, we don't need it anymore
 	while (config.files.GetCount() > 0)
 	{
-		file = (file_s *)config.files.GetAt(0);
+		file_s *file = (file_s *)config.files.GetAt(0);
 		config.files.RemoveAt(0);
 		delete file;
 	}
@@ -590,7 +592,7 @@ int main(int argc, char* argv[])
 	// Clean up config.exludes, we don't need it anymore
 	while (config.excludes.GetCount() > 0)
 	{
-		file = (file_s *)config.excludes.GetAt(0);
+		file_s *file = (file_s *)config.excludes.GetAt(0);
 		config.excludes.RemoveAt(0);
 		delete file;
 	}
@@ -642,16 +644,13 @@ int main(int argc, char* argv[])
 
 	resgen.BuildResourceList(config.resource_path, config.checkpak, config.searchdisp, config.resourcedisp);
 
-	int filecount, errorcount, missingcount;
-	int retval;
-
-	i = 1;
-	filecount = FileList.GetCount();
+	int i = 1;
+	int filecount = FileList.GetCount();
 	while (FileList.GetCount() > 0)
 	{
 		if (config.contentdisp) { printf("\n"); } // Make output look a bit cleaner
 
-		retval = resgen.MakeRES(*(VString *)FileList.GetAt(0), i, filecount);
+		int retval = resgen.MakeRES(*(VString *)FileList.GetAt(0), i, filecount);
 		if(retval)
 		{
 			if (retval == 2)
@@ -682,8 +681,8 @@ int main(int argc, char* argv[])
 	}
 
 	// clean up errors
-	errorcount = ErrorList.GetCount();
-	missingcount = MissingList.GetCount();
+	int errorcount = ErrorList.GetCount();
+	int missingcount = MissingList.GetCount();
 	if (errorcount)
 	{
 		if (config.verbal) { printf("Failed to create res file(s) for:\n"); }

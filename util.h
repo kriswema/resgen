@@ -7,7 +7,6 @@ int strrnicmp(const char *src, const char *dst, int limit)
 	// first determine our maximum running length
 	int i = strlen(src) - 1;
 	int j = strlen(dst) - 1;
-	int ret = 0;
 
 	limit--;
 
@@ -44,7 +43,7 @@ int strrnicmp(const char *src, const char *dst, int limit)
 		i = tolower(*src);
 		j = tolower(*dst);
 
-		ret = i - j;
+		int ret = i - j;
 		if (ret)
 		{
 			if (ret < 0)

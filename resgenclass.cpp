@@ -84,18 +84,6 @@ void RESGen::SetParams(bool beverbal, bool statline, bool overwrt, bool lcase, b
 
 int RESGen::MakeRES(VString &map, int fileindex, int filecount)
 {
-	char *token;
-	int i;
-	int entdatalen; // Length of entity data
-	int percentage; // Percentage completed for current file
-	int resfileindex; // Index of file in resource list
-	bool fileexists; // does the res file already exist?
-
-	VString value; // value field
-	VString basefilename; // filename without extension
-	VString basefolder; // folder, including trailing /
-	VString resshowname; // name to show for resfile
-
 	#ifdef WIN32
 	WIN32_FIND_DATA filedata;
 	HANDLE filehandle;
@@ -104,12 +92,13 @@ int RESGen::MakeRES(VString &map, int fileindex, int filecount)
 	#endif
 
 	// Create basefilename
-	i = map.StrRChr('/'); // Linux style path
+	int i = map.StrRChr('/'); // Linux style path
 	if (i == -1)
 	{
 		i = map.StrRChr('\\'); // windows style path
 	}
 
+	VString basefolder; // folder, including trailing /
 	if (i == -1)
 	{
 		#ifdef WIN32
@@ -122,7 +111,7 @@ int RESGen::MakeRES(VString &map, int fileindex, int filecount)
 	{
 		basefolder = map.Left(i + 1);
 	}
-	basefilename = map.Mid(i + 1, map.GetLength() - i - 5);
+	VString basefilename = map.Mid(i + 1, map.GetLength() - i - 5);
 
 	if (verbal)
 	{
@@ -131,7 +120,7 @@ int RESGen::MakeRES(VString &map, int fileindex, int filecount)
 
 
 	// Check if resfile doesn't already exist
-	fileexists = false;
+	bool fileexists = false;
 	#ifdef WIN32
 	filehandle = FindFirstFile(basefolder + basefilename + ".res", &filedata);
 	if (filehandle != INVALID_HANDLE_VALUE)
@@ -161,6 +150,7 @@ int RESGen::MakeRES(VString &map, int fileindex, int filecount)
 	ClearTextures();
 
 	// first, get the enity data
+	int entdatalen; // Length of entity data
 	char *entdata = LoadBSPData(map, &entdatalen, &texturelist);
 	if (entdata == NULL)
 	{
@@ -170,8 +160,6 @@ int RESGen::MakeRES(VString &map, int fileindex, int filecount)
 
 	// get mapinfo
 	char *mistart;
-	char *mapinfo;
-	size_t milen;
 
 	// Look for first entity block
 	if ((mistart = strstr(entdata, "{")) == NULL)
@@ -183,14 +171,14 @@ int RESGen::MakeRES(VString &map, int fileindex, int filecount)
 	}
 
 	// Look for first block end (we do not need to parse the ather blocks vor skyname or wad info)
-	milen = ((size_t)strstr(mistart+1, "}") - (size_t)mistart) + 1;
+	size_t milen = ((size_t)strstr(mistart+1, "}") - (size_t)mistart) + 1;
 
-	mapinfo = new char [milen + 1];
+	char *mapinfo = new char [milen + 1];
 	memcpy(mapinfo, mistart, milen);
 	mapinfo[milen] = 0; // terminating NULL
 
 	// parse map info. We use StrTok for this...
-	token = StrTok(mapinfo, '\"');
+	char *token = StrTok(mapinfo, '\"');
 	if (!token)
 	{
 			printf("Error parsing \"%s\". No map information found.\n", (LPCSTR)map);
@@ -223,7 +211,7 @@ int RESGen::MakeRES(VString &map, int fileindex, int filecount)
 			}
 			// token has value
 
-			value = token;
+			VString value = token;
 			if (value.GetLength() != 0) // Don't try to parse an empty listing
 			{
 				// seperate the WAD files and save
@@ -258,7 +246,7 @@ int RESGen::MakeRES(VString &map, int fileindex, int filecount)
 			}
 			// token has value
 
-			value = token;
+			VString value = token;
 
 			// Add al 6 sky textures here
 			AddRes(value, "gfx/env/", "up.tga");
@@ -333,7 +321,7 @@ int RESGen::MakeRES(VString &map, int fileindex, int filecount)
 			return 1;
 		}
 
-		value = token; // asign token to a VString
+		VString value = token; // asign token to a VString
 
 		if (!value.CompareReverseLimitNoCase(".mdl", 4))
 		{
@@ -377,7 +365,7 @@ int RESGen::MakeRES(VString &map, int fileindex, int filecount)
 			statcount = 0;
 
 			// Calculate the percentage completed of the current file.
-			percentage = (((token-entdata)+1) * 101) / entdatalen; // Make the length one too long.
+			int percentage = (((token-entdata)+1) * 101) / entdatalen; // Make the length one too long.
 			if (percentage > 100)
 			{
 				 // Make sure we don;t go over 100%
@@ -462,8 +450,6 @@ int RESGen::MakeRES(VString &map, int fileindex, int filecount)
 	#endif
 
 	// Resource list has been made.
-	VString *tempres;
-	VString *extmdltex;
 	int status = 0; // RES status, 0 means ok, 2 means missing resource
 
 	// Check for resources on disk
@@ -472,9 +458,9 @@ int RESGen::MakeRES(VString &map, int fileindex, int filecount)
 		//printf("\nStarting resource check:\n");
 		for (i = 0; i < resfile.GetCount(); i++)
 		{
-			tempres = (VString *)resfile.GetAt(i);
+			VString *tempres = (VString *)resfile.GetAt(i);
 			//printf("%s\n", (LPCSTR)*tempres);
-			resfileindex = resources.Find(tempres, RESGen_CompareVStringsFromList);
+			int resfileindex = resources.Find(tempres, RESGen_CompareVStringsFromList);
 			if(resfileindex < 0)
 			{
 				// file not found - maybe it's excluded?
@@ -547,7 +533,7 @@ int RESGen::MakeRES(VString &map, int fileindex, int filecount)
 						if (CheckModelExtTexture(*(VString *)resources.GetAt(resfileindex)))
 						{
 							// Uses external texture, add
-							extmdltex = new VString(tempres->Left(tempres->GetLength() - 4)); // strip extention
+							VString *extmdltex = new VString(tempres->Left(tempres->GetLength() - 4)); // strip extention
 							*extmdltex += "T.mdl"; // add T and extention
 
 							// We can get away with this, since the model texture will be places AFTER the model
@@ -578,9 +564,9 @@ int RESGen::MakeRES(VString &map, int fileindex, int filecount)
 		//printf("\nStarting exclude check:\n");
 		for (i = 0; i < resfile.GetCount(); i++)
 		{
-			tempres = (VString *)resfile.GetAt(i);
+			VString *tempres = (VString *)resfile.GetAt(i);
 			//printf("%s\n", (LPCSTR)*tempres);
-			resfileindex = excludelist.Find(tempres, RESGen_CompareVStringsFromList);
+			int resfileindex = excludelist.Find(tempres, RESGen_CompareVStringsFromList);
 			if(resfileindex >= 0)
 			{
 				// file found
@@ -653,8 +639,6 @@ int RESGen::MakeRES(VString &map, int fileindex, int filecount)
 void RESGen::BuildResourceList(VString &respath, bool checkpak, bool sdisp, bool rdisp)
 {
 	VString valvepath;
-	VString filepath;
-	int slashpos;
 
 	searchdisp = sdisp;
 	resourcedisp = rdisp;
@@ -683,7 +667,7 @@ void RESGen::BuildResourceList(VString &respath, bool checkpak, bool sdisp, bool
 	if (respath.CompareReverseLimitNoCase("\\valve\\", 7))
 	{
 		// NOT valve dir, so check it too
-		slashpos = respath.StrRChr('\\', respath.GetLength()-2);
+		int slashpos = respath.StrRChr('\\', respath.GetLength()-2);
 		if (slashpos >= 0)
 		{
 			valvepath = respath.Left(slashpos);
@@ -703,7 +687,7 @@ void RESGen::BuildResourceList(VString &respath, bool checkpak, bool sdisp, bool
 	if (respath.CompareReverseLimitNoCase("/valve/", 7))
 	{
 		// NOT valve dir, so check it too
-		slashpos = respath.StrRChr('/', respath.GetLength()-2);
+		int slashpos = respath.StrRChr('/', respath.GetLength()-2);
 		if (slashpos >= 0)
 		{
 			valvepath = respath.Left(slashpos);
@@ -729,7 +713,7 @@ void RESGen::BuildResourceList(VString &respath, bool checkpak, bool sdisp, bool
 	}
 
 	firstdir = true;
-	filepath = "";
+	VString filepath = "";
 	ListDir(respath, filepath, true);
 
 	// Check the valve dir too
@@ -745,13 +729,8 @@ void RESGen::BuildResourceList(VString &respath, bool checkpak, bool sdisp, bool
 
 char * RESGen::LoadBSPData(const VString &file, int * const entdatalen, LinkedList * const texlist)
 {
-	FILE *bsp;
-	VString *texfile;
-	texdata_s texdata;
-	int i;
-
 	// first open the file.
-	bsp = fopen((LPCSTR)file, "rb"); // read in binary mode.
+	FILE *bsp = fopen((LPCSTR)file, "rb"); // read in binary mode.
 
 	if (bsp == NULL)
 	{
@@ -803,7 +782,6 @@ char * RESGen::LoadBSPData(const VString &file, int * const entdatalen, LinkedLi
 		// Load names of external textures
 		fseek(bsp, header.tex_header.fileofs, SEEK_SET); // go to start of texture data
 		int texcount;
-		texheader_s *texheader;
 
 		if (fread(&texcount, sizeof(int), 1, bsp) != 1) // first we want to know the number of files.
 		{
@@ -826,10 +804,10 @@ char * RESGen::LoadBSPData(const VString &file, int * const entdatalen, LinkedLi
 		if (texcount > 0)
 		{
 			// Textures available, read all offsets
-			texheader = (texheader_s *)new char [sizeof(int)*(texcount + 1)];
+			texheader_s *texheader = (texheader_s *)new char [sizeof(int)*(texcount + 1)];
 			texheader->texcount = texcount;
 
-			i = fread(texheader->offsets, sizeof(int), texheader->texcount, bsp);
+			int i = fread(texheader->offsets, sizeof(int), texheader->texcount, bsp);
 
 			if (i != texheader->texcount) // load texture offsets
 			{
@@ -847,6 +825,7 @@ char * RESGen::LoadBSPData(const VString &file, int * const entdatalen, LinkedLi
 				fseek(bsp, header.tex_header.fileofs + texheader->offsets[i], SEEK_SET);
 
 				// read texture data
+				texdata_s texdata;
 				if (fread(&texdata, sizeof(texdata_s), 1, bsp) != 1)
 				{
 					// header NOT read properly!
@@ -861,7 +840,7 @@ char * RESGen::LoadBSPData(const VString &file, int * const entdatalen, LinkedLi
 				if (texdata.offsets[0] == 0 && texdata.offsets[1] == 0 && texdata.offsets[2] == 0 && texdata.offsets[3] == 0)
 				{
 					// No texture for any mip level, so must be in a wad
-					texfile = new VString(texdata.name);
+					VString *texfile = new VString(texdata.name);
 					if (!texlist->InsertSorted(texfile, RESGen_CompareVStringsFromList, false))
 					{
 						// double detected
@@ -876,7 +855,7 @@ char * RESGen::LoadBSPData(const VString &file, int * const entdatalen, LinkedLi
 		/*
 		printf("\n\nTextures found:\n");
 
-		for (i = 0; i < texlist->GetCount(); i++)
+		for (int i = 0; i < texlist->GetCount(); i++)
 		{
 			printf("%s\n", (LPCSTR)(*(VString *)texlist->GetAt(i)));
 		}
@@ -926,20 +905,6 @@ char * RESGen::NextValue()
 	return token;
 }
 
-void RESGen::BStoS(char *string)
-{
-	// convert backslashes to slashes
-
-	string = strchr(string, '\\');
-	while(string) // find backslash
-	{
-		*string = '/'; // replace with slash
-		string++;
-
-		string = strchr(string, '\\');
-	}
-}
-
 void RESGen::AddRes(VString res, const char * const prefix, const char * const suffix)
 {
 	// Sometimes res entries start with a non alphanumeric character. Strip it.
@@ -968,10 +933,9 @@ void RESGen::AddRes(VString res, const char * const prefix, const char * const s
 	}
 
 	// Add file to list if it isn't in it yet.
-	VString *tempres;
 
 	// File not found, must be new. Add to list
-	tempres = new VString(res);
+	VString *tempres = new VString(res);
 	if (!resfile.InsertSorted(tempres, RESGen_CompareVStringsFromList, false))
 	{
 		// double file found, discard
@@ -1008,12 +972,9 @@ void RESGen::AddWad(const VString &wadlist, int start, int len)
 bool RESGen::WriteRes(const VString &folder, const VString &mapname)
 {
 	// This function writes a standard res file.
-	FILE *f;
-	int i;
-	VString *vtemp;
 
 	// Open the file
-	f = fopen(folder + mapname + ".res", "w");
+	FILE *f = fopen(folder + mapname + ".res", "w");
 
 	if (f == NULL)
 	{
@@ -1030,9 +991,9 @@ bool RESGen::WriteRes(const VString &folder, const VString &mapname)
 	fprintf(f, "\n// .res entries (%d):\n", resfile.GetCount());
 
 	// Resources
-	for (i = 0; i < resfile.GetCount(); i++)
+	for (int i = 0; i < resfile.GetCount(); i++)
 	{
-		vtemp = (VString *)resfile.GetAt(i);
+		VString *vtemp = (VString *)resfile.GetAt(i);
 		fprintf(f, "%s\n", (LPCSTR)*vtemp);
 	}
 
@@ -1053,11 +1014,10 @@ void RESGen::ClearResfile()
 	// RESGen calls this function internally with MakeRes, so normally there is no need to run this.
 	// You might want to use it or if you are running a lot of code after creating the resfile.
 
-	VString *temp;
 	while (resfile.GetCount() > 0)
 	{
 		// remove from list AND clean up memory from VString
-		temp = (VString *)resfile.GetAt(0);
+		VString *temp = (VString *)resfile.GetAt(0);
 		resfile.RemoveAt(0);
 		delete temp;
 	}
@@ -1068,11 +1028,10 @@ void RESGen::ClearTextures()
 	// RESGen calls this function internally with MakeRes, so normally there is no need to run this.
 	// You might want to use it or if you are running a lot of code after creating the resfile.
 
-	VString *temp;
 	while (texturelist.GetCount() > 0)
 	{
 		// remove from list AND clean up memory from VString
-		temp = (VString *)texturelist.GetAt(0);
+		VString *temp = (VString *)texturelist.GetAt(0);
 		texturelist.RemoveAt(0);
 		delete temp;
 	}
@@ -1084,11 +1043,10 @@ void RESGen::ClearResources()
 	// You might want to use it if you want to clear the resourcelist if you don't want to use resourcechecking anymore.
 	checkforresources = false;
 
-	VString *temp;
 	while (resources.GetCount() > 0)
 	{
 		// remove from list AND clean up memory from VString
-		temp = (VString *)resources.GetAt(0);
+		VString *temp = (VString *)resources.GetAt(0);
 		resources.RemoveAt(0);
 		delete temp;
 	}
@@ -1100,11 +1058,10 @@ void RESGen::ClearExcludes()
 	// You might want to use it if you want to clear the excludelist if you don't want to use exludes anymore.
 	checkforexcludes = false;
 
-	VString *temp;
 	while (excludelist.GetCount() > 0)
 	{
 		// remove from list AND clean up memory from VString
-		temp = (VString *)excludelist.GetAt(0);
+		VString *temp = (VString *)excludelist.GetAt(0);
 		excludelist.RemoveAt(0);
 		delete temp;
 	}
@@ -1138,7 +1095,6 @@ char * RESGen::StrTok(char *string, char delimiter)
 {
 	// This replaces the normal strtok function because we don;t want to skip leading delimiters.
 	// That 'feature' of strtok makes it kinda useless, unless you do a lot of checking for the skipping.
-	char *temp;
 
 	// set temp to start of string to parse
 	if (string == NULL)
@@ -1146,7 +1102,7 @@ char * RESGen::StrTok(char *string, char delimiter)
 		string = strtok_nexttoken;
 	}
 
-	temp = string;
+	char *temp = string;
 
 	// Search for token
 	while (*temp)
@@ -1179,15 +1135,12 @@ char * RESGen::StrTok(char *string, char delimiter)
 void RESGen::ListDir(const VString &path, const VString &filepath, bool reporterror)
 {
 	WIN32_FIND_DATA filedata;
-	HANDLE filehandle;
 
 	// add *.* for searching all files.
 	VString searchdir = path + filepath + "*.*";
-	VString file;
-	VString *tmp; // temp VString for adding to list
 
 	// find first file
-	filehandle = FindFirstFile(searchdir, &filedata);
+	HANDLE filehandle = FindFirstFile(searchdir, &filedata);
 
 	if (filehandle == INVALID_HANDLE_VALUE)
 	{
@@ -1209,7 +1162,7 @@ void RESGen::ListDir(const VString &path, const VString &filepath, bool reporter
 
 	do
 	{
-		file = filepath + filedata.cFileName;
+		VString file = filepath + filedata.cFileName;
 
 		// Check for directory
 		if (filedata.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
@@ -1237,7 +1190,7 @@ void RESGen::ListDir(const VString &path, const VString &filepath, bool reporter
 				// resource, add to list
 				file.StrRplChr('\\', '/'); // replace backslashes
 
-				tmp = new VString(file);
+				VString *tmp = new VString(file);
 				if (!resources.InsertSorted(tmp, RESGen_CompareVStringsFromList, false))
 				{
 					// double detected
@@ -1267,17 +1220,12 @@ void RESGen::ListDir(const VString &path, const VString &filepath, bool reporter
 // Linux dir parser
 void RESGen::ListDir(const VString &path, const VString &filepath, bool reporterror)
 {
-	DIR *directory;
 	struct stat filestatinfo; // Force as a struct for GCC
 
 	VString searchpath = path + filepath;
-	VString file;
-	VString *tmp; // temp VString for adding to list
-
-	int i;
 
 	// Open the current dir
-	directory = opendir(searchpath);
+	DIR *directory = opendir(searchpath);
 
 	// Is it open?
 	if (directory == NULL)
@@ -1303,9 +1251,9 @@ void RESGen::ListDir(const VString &path, const VString &filepath, bool reporter
 
 		// Do we have a dir?
 		// We follow symlinks. people shouldn't mess with symlinks in the HL folder anyways.
-		i = stat(searchpath + direntry->d_name, &filestatinfo); // Get the info about the files the links point to
+		int i = stat(searchpath + direntry->d_name, &filestatinfo); // Get the info about the files the links point to
 
-		file = filepath + direntry->d_name;
+		VString file = filepath + direntry->d_name;
 
 		if (i == 0)
 		{
@@ -1335,7 +1283,7 @@ void RESGen::ListDir(const VString &path, const VString &filepath, bool reporter
 					// resource, add to list
 					file.StrRplChr('\\', '/'); // replace backslashes
 
-					tmp = new VString(file);
+					VString *tmp = new VString(file);
 					if (!resources.InsertSorted(tmp, RESGen_CompareVStringsFromList, false))
 					{
 						// double detected
@@ -1366,21 +1314,8 @@ void RESGen::ListDir(const VString &path, const VString &filepath, bool reporter
 
 void RESGen::BuildPakResourceList(const VString &pakfilename)
 {
-	// Check a pakfile for resources
-	FILE *pakfile;
-	pakheader_s pakheader;
-	int pakheadersize = sizeof(pakheader_s);
-
-	int fileinfosize = sizeof(fileinfo_s);
-	fileinfo_s *filelist;
-	int filecount;
-
-	int retval;
-	int i;
-	VString *tmp;
-
 	// open the pak file in binary read mode
-	pakfile = fopen(pakfilename, "rb");
+	FILE *pakfile = fopen(pakfilename, "rb");
 
 	if (pakfile == NULL)
 	{
@@ -1389,8 +1324,11 @@ void RESGen::BuildPakResourceList(const VString &pakfilename)
 		return;
 	}
 
+	// Check a pakfile for resources
 	// get the header
-	retval = fread((void *)&pakheader, 1, pakheadersize, pakfile);
+	int pakheadersize = sizeof(pakheader_s);
+	pakheader_s pakheader;
+	int retval = fread((void *)&pakheader, 1, pakheadersize, pakfile);
 
 	if (retval != pakheadersize)
 	{
@@ -1416,7 +1354,8 @@ void RESGen::BuildPakResourceList(const VString &pakfilename)
 	}
 
 	// count the number of files in the pak
-	filecount = pakheader.dirsize / fileinfosize;
+	int fileinfosize = sizeof(fileinfo_s);
+	int filecount = pakheader.dirsize / fileinfosize;
 
 	// re-verify integrity of header
 	if (pakheader.dirsize % fileinfosize != 0 || filecount == 0)
@@ -1440,7 +1379,7 @@ void RESGen::BuildPakResourceList(const VString &pakfilename)
 		return;
 	}
 
-	filelist = new fileinfo_s [filecount];
+	fileinfo_s *filelist = new fileinfo_s [filecount];
 	retval = fread(filelist, 1, pakheader.dirsize, pakfile);
 	if (retval != pakheader.dirsize)
 	{
@@ -1461,7 +1400,7 @@ void RESGen::BuildPakResourceList(const VString &pakfilename)
 	}
 
 	// Read filelist for possible resources
-	for (i = 0; i < filecount; i++)
+	for (int i = 0; i < filecount; i++)
 	{
 		if (
 			!strrnicmp(filelist[i].name, ".mdl", 4) ||
@@ -1474,7 +1413,7 @@ void RESGen::BuildPakResourceList(const VString &pakfilename)
 			)
 		{
 			// resource, add to list
-			tmp = new VString(filelist[i].name);
+			VString *tmp = new VString(filelist[i].name);
 			tmp->StrRplChr('\\', '/'); // replace backslashes
 
 			if (!resources.InsertSorted(tmp, RESGen_CompareVStringsFromList, false))
@@ -1496,9 +1435,6 @@ void RESGen::BuildPakResourceList(const VString &pakfilename)
 
 bool RESGen::LoadExludeFile(VString &listfile)
 {
-	char linebuf[1024]; // optimal size for VString allocs
-	VString *line;
-
 	if (&listfile == NULL)
 	{
 		return false;
@@ -1531,7 +1467,8 @@ bool RESGen::LoadExludeFile(VString &listfile)
 	checkforexcludes = true; // We want to check for excludes
 
 	// loop to read file.. each line is an exclude
-	line = new VString;
+	VString *line = new VString;
+	char linebuf[1024]; // optimal size for VString allocs
 	while (fgets(linebuf, 1024, f))
 	{
 		*line += linebuf;
@@ -1608,25 +1545,9 @@ int RESGen_CompareVStringsFromList(void *a, void *b)
 	return va->CompareNoCase(*vb);
 }
 
-void RESGen_DeleteVString(void *a)
-{
-	VString *va = (VString *)a;
-	delete va; // most secure way of deleting
-}
-
 bool RESGen::CheckWadUse(const VString &wadfile)
 {
-	FILE *wad;
-	wadheader_s header;
-	wadlumpinfo_s lumpinfo;
-	int i;
-	VString texture;
-
-	int texloc;
-	VString *texstring;
-	bool retval;
-
-	wad = fopen((LPCSTR)(resourcepath+wadfile), "rb");
+	FILE *wad = fopen((LPCSTR)(resourcepath+wadfile), "rb");
 
 	if (!wad)
 	{
@@ -1642,6 +1563,7 @@ bool RESGen::CheckWadUse(const VString &wadfile)
 		}
 	}
 
+	wadheader_s header;
 	if (fread(&header, sizeof(wadheader_s), 1, wad) != 1)
 	{
 		printf("WAD file \"%s\" is corrupt.\n", (LPCSTR)wadfile);
@@ -1670,9 +1592,10 @@ bool RESGen::CheckWadUse(const VString &wadfile)
 		return false;
 	}
 
-	retval = false;
-	for (i = 0; i < header.numlumps; i++)
+	bool retval = false;
+	for (int i = 0; i < header.numlumps; i++)
 	{
+		wadlumpinfo_s lumpinfo;
 		if (fread(&lumpinfo, sizeof(wadlumpinfo_s), 1, wad) != 1)
 		{
 			printf("WAD file info table \"%s\" is corrupt.\n", (LPCSTR)wadfile);
@@ -1680,8 +1603,8 @@ bool RESGen::CheckWadUse(const VString &wadfile)
 			return false;
 		}
 
-		texture = lumpinfo.name;
-		texloc = texturelist.Find(&texture, RESGen_CompareVStringsFromList);
+		VString texture = lumpinfo.name;
+		int texloc = texturelist.Find(&texture, RESGen_CompareVStringsFromList);
 
 		if (texloc >= 0)
 		{
@@ -1689,7 +1612,7 @@ bool RESGen::CheckWadUse(const VString &wadfile)
 			retval = true;
 
 			// update texture list
-			texstring = (VString *)texturelist.GetAt(texloc);
+			VString *texstring = (VString *)texturelist.GetAt(texloc);
 			texturelist.RemoveAt(texloc);
 			delete texstring;
 		}
@@ -1702,10 +1625,7 @@ bool RESGen::CheckWadUse(const VString &wadfile)
 
 bool RESGen::CheckModelExtTexture(const VString &model)
 {
-	FILE *mdl;
-	modelheader_s header;
-
-	mdl = fopen((LPCSTR)(resourcepath+model), "rb");
+	FILE *mdl = fopen((LPCSTR)(resourcepath+model), "rb");
 
 	if (!mdl)
 	{
@@ -1721,6 +1641,7 @@ bool RESGen::CheckModelExtTexture(const VString &model)
 		}
 	}
 
+	modelheader_s header;
 	if (fread(&header, sizeof(modelheader_s), 1, mdl) != 1)
 	{
 		printf("MDL file \"%s\" is corrupt.\n", (LPCSTR)model);
