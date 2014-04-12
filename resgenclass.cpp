@@ -458,7 +458,7 @@ int RESGen::MakeRES(VString &map, int fileindex, int filecount)
 		//printf("\nStarting resource check:\n");
 		for (i = 0; i < resfile.GetCount(); i++)
 		{
-			VString *tempres = (VString *)resfile.GetAt(i);
+			VString *tempres = resfile.GetAt(i);
 			//printf("%s\n", (LPCSTR)*tempres);
 			int resfileindex = resources.Find(tempres, RESGen_CompareVStringsFromList);
 			if(resfileindex < 0)
@@ -502,7 +502,7 @@ int RESGen::MakeRES(VString &map, int fileindex, int filecount)
 				if (matchcase)
 				{
 					// match case
-					*tempres = *(VString *)resources.GetAt(resfileindex);
+					*tempres = *resources.GetAt(resfileindex);
 				}
 
 				if (parseresource)
@@ -510,7 +510,7 @@ int RESGen::MakeRES(VString &map, int fileindex, int filecount)
 					if (!tempres->CompareReverseLimitNoCase(".wad", 4))
 					{
 						// Check if wad file is used
-						if (!CheckWadUse(*(VString *)resources.GetAt(resfileindex))) // We MUST have the right file
+						if (!CheckWadUse(*resources.GetAt(resfileindex))) // We MUST have the right file
 						{
 							// Wad is NOT being used
 							if (contentdisp)
@@ -530,7 +530,7 @@ int RESGen::MakeRES(VString &map, int fileindex, int filecount)
 					else if (!tempres->CompareReverseLimitNoCase(".mdl", 4))
 					{
 						// Check model for external texture
-						if (CheckModelExtTexture(*(VString *)resources.GetAt(resfileindex)))
+						if (CheckModelExtTexture(*resources.GetAt(resfileindex)))
 						{
 							// Uses external texture, add
 							VString *extmdltex = new VString(tempres->Left(tempres->GetLength() - 4)); // strip extention
@@ -564,7 +564,7 @@ int RESGen::MakeRES(VString &map, int fileindex, int filecount)
 		//printf("\nStarting exclude check:\n");
 		for (i = 0; i < resfile.GetCount(); i++)
 		{
-			VString *tempres = (VString *)resfile.GetAt(i);
+			VString *tempres = resfile.GetAt(i);
 			//printf("%s\n", (LPCSTR)*tempres);
 			int resfileindex = excludelist.Find(tempres, RESGen_CompareVStringsFromList);
 			if(resfileindex >= 0)
@@ -591,7 +591,7 @@ int RESGen::MakeRES(VString &map, int fileindex, int filecount)
 			status = 2; // res file might not be complete
 			for (i = 0; i < texturelist.GetCount(); i++)
 			{
-				printf("Texture not found in wad files: %s\n", (LPCSTR)*(VString *)texturelist.GetAt(i));
+				printf("Texture not found in wad files: %s\n", (LPCSTR)*texturelist.GetAt(i));
 			}
 		}
 	}
@@ -727,7 +727,7 @@ void RESGen::BuildResourceList(VString &respath, bool checkpak, bool sdisp, bool
 	printf("\n");
 }
 
-char * RESGen::LoadBSPData(const VString &file, int * const entdatalen, LinkedList * const texlist)
+char * RESGen::LoadBSPData(const VString &file, int * const entdatalen, LinkedList<VString *> * const texlist)
 {
 	// first open the file.
 	FILE *bsp = fopen((LPCSTR)file, "rb"); // read in binary mode.
@@ -993,7 +993,7 @@ bool RESGen::WriteRes(const VString &folder, const VString &mapname)
 	// Resources
 	for (int i = 0; i < resfile.GetCount(); i++)
 	{
-		VString *vtemp = (VString *)resfile.GetAt(i);
+		VString *vtemp = resfile.GetAt(i);
 		fprintf(f, "%s\n", (LPCSTR)*vtemp);
 	}
 
@@ -1017,7 +1017,7 @@ void RESGen::ClearResfile()
 	while (resfile.GetCount() > 0)
 	{
 		// remove from list AND clean up memory from VString
-		VString *temp = (VString *)resfile.GetAt(0);
+		VString *temp = resfile.GetAt(0);
 		resfile.RemoveAt(0);
 		delete temp;
 	}
@@ -1031,7 +1031,7 @@ void RESGen::ClearTextures()
 	while (texturelist.GetCount() > 0)
 	{
 		// remove from list AND clean up memory from VString
-		VString *temp = (VString *)texturelist.GetAt(0);
+		VString *temp = texturelist.GetAt(0);
 		texturelist.RemoveAt(0);
 		delete temp;
 	}
@@ -1046,7 +1046,7 @@ void RESGen::ClearResources()
 	while (resources.GetCount() > 0)
 	{
 		// remove from list AND clean up memory from VString
-		VString *temp = (VString *)resources.GetAt(0);
+		VString *temp = resources.GetAt(0);
 		resources.RemoveAt(0);
 		delete temp;
 	}
@@ -1061,7 +1061,7 @@ void RESGen::ClearExcludes()
 	while (excludelist.GetCount() > 0)
 	{
 		// remove from list AND clean up memory from VString
-		VString *temp = (VString *)excludelist.GetAt(0);
+		VString *temp = excludelist.GetAt(0);
 		excludelist.RemoveAt(0);
 		delete temp;
 	}
@@ -1152,7 +1152,7 @@ void RESGen::ListDir(const VString &path, const VString &filepath, bool reporter
 			}
 			else
 			{
-				printf("There was an error with the directory you specified (%s) - ERROR NO: %d.\n", (LPCSTR)path, GetLastError());
+				printf("There was an error with the directory you specified (%s) - ERROR NO: %lu.\n", (LPCSTR)path, GetLastError());
 			}
 		}
 		return;
@@ -1538,11 +1538,9 @@ bool RESGen::LoadExludeFile(VString &listfile)
 	return true;
 }
 
-int RESGen_CompareVStringsFromList(void *a, void *b)
+int RESGen_CompareVStringsFromList(VString *a, VString *b)
 {
-	VString *va = (VString *)a;
-	VString *vb = (VString *)b;
-	return va->CompareNoCase(*vb);
+	return a->CompareNoCase(*b);
 }
 
 bool RESGen::CheckWadUse(const VString &wadfile)
@@ -1612,7 +1610,7 @@ bool RESGen::CheckWadUse(const VString &wadfile)
 			retval = true;
 
 			// update texture list
-			VString *texstring = (VString *)texturelist.GetAt(texloc);
+			VString *texstring = texturelist.GetAt(texloc);
 			texturelist.RemoveAt(texloc);
 			delete texstring;
 		}

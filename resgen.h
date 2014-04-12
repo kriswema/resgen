@@ -28,6 +28,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "LinkedList.h"
 #include "vstring.h"
 
+struct file_s;
+
 struct config_s
 {
 	bool help; // f
@@ -40,9 +42,9 @@ struct config_s
 	bool resourcedisp; // f
 	bool contentdisp; // f
 
-	LinkedList files;
-	LinkedList excludes; // Map exclude list - not resource!
-	LinkedList excludelists; // Exclude resource list files - not maps!
+	LinkedList<file_s *> files;
+	LinkedList<file_s *> excludes; // Map exclude list - not resource!
+	LinkedList<VString *> excludelists; // Exclude resource list files - not maps!
 
 	bool overwrite; // f
 	VString rfafile;

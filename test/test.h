@@ -53,7 +53,7 @@ protected:
 
     void metaTestCompareFunc();
 
-    LinkedList list1;
+    LinkedList<int*> list1;
     int a;
     int b;
     int c;

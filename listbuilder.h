@@ -46,12 +46,12 @@ public:
 #ifndef WIN32
 	void SetSymLink(bool slink);
 #endif
-	void BuildList(LinkedList *srclist);
-	ListBuilder(LinkedList *flist, LinkedList *excludes, bool beverbal, bool sdisp);
+	void BuildList(LinkedList<file_s *> *srclist);
+	ListBuilder(LinkedList<VString *> *flist, LinkedList<file_s *> *excludes, bool beverbal, bool sdisp);
 	virtual ~ListBuilder();
 
 private:
-	LinkedList * exlist;
+	LinkedList<file_s *> * exlist;
 	bool firstdir;
 	void ListDir(const VString &path);
 	bool recursive;
@@ -62,7 +62,7 @@ private:
 	void AddFile(const VString &filename, bool checkexlist);
 	bool searchdisp;
 	bool verbal;
-	LinkedList * filelist;
+	LinkedList<VString *> * filelist;
 };
 
 #endif // !defined(AFX_LISTBUILDER_H__EBF81BE5_23F6_426C_82E6_F5EB2AEDE98F__INCLUDED_)

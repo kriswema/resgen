@@ -10,9 +10,9 @@
 
 CPPUNIT_TEST_SUITE_REGISTRATION(LinkedListTest);
 
-int compareFunc(void* a, void* b)
+int compareFunc(int* a, int* b)
 {
-	return *((int*)a) - *((int*)b);
+	return *a - *b;
 }
 
 void LinkedListTest::setUp()
@@ -31,13 +31,13 @@ void LinkedListTest::tearDown()
 
 void LinkedListTest::testEmptyList()
 {
-    LinkedList list;
+    LinkedList<int*> list;
     CPPUNIT_ASSERT(list.GetCount() == 0);
 }
 
 void LinkedListTest::testAddHeadSingle()
 {
-    LinkedList list;
+    LinkedList<int*> list;
     int a = 3;
 	list.AddHead(&a);
     
@@ -47,7 +47,7 @@ void LinkedListTest::testAddHeadSingle()
 
 void LinkedListTest::testAddHeadMultiple()
 {
-    LinkedList list;
+    LinkedList<int*> list;
     int a = 3;
     int b = 5;
     int c = -1;
@@ -63,7 +63,7 @@ void LinkedListTest::testAddHeadMultiple()
 
 void LinkedListTest::testAddTailSingle()
 {
-    LinkedList list;
+    LinkedList<int*> list;
     int a = 3;
 	list.AddTail(&a);
     
@@ -81,7 +81,7 @@ void LinkedListTest::testAddTailMultiple()
 
 void LinkedListTest::testGetAtInvalid()
 {
-    LinkedList list;
+    LinkedList<int*> list;
     int a = 3;
 	list.AddTail(&a);
     
@@ -91,7 +91,7 @@ void LinkedListTest::testGetAtInvalid()
 
 void LinkedListTest::testInsertAtStart()
 {
-    LinkedList list;
+    LinkedList<int*> list;
     int a = 3;
     int b = 5;
     int c = -1;
@@ -119,7 +119,7 @@ void LinkedListTest::testInsertAtMiddle()
 
 void LinkedListTest::testInsertAtEnd()
 {
-    LinkedList list;
+    LinkedList<int*> list;
     int a = 3;
     int b = 5;
     int c = -1;
@@ -135,7 +135,7 @@ void LinkedListTest::testInsertAtEnd()
 
 void LinkedListTest::testInsertAtInvalid()
 {
-    LinkedList list;
+    LinkedList<int*> list;
     int a = 3;
     int b = 5;
     int c = -1;
@@ -208,7 +208,7 @@ void LinkedListTest::testFindInvalid()
 
 void LinkedListTest::testInsertSorted()
 {
-	LinkedList list;
+	LinkedList<int*> list;
 	CPPUNIT_ASSERT(list.InsertSorted(&a, compareFunc, false));
     CPPUNIT_ASSERT(list.GetCount() == 1);
     CPPUNIT_ASSERT(list.GetAt(0) == &a);

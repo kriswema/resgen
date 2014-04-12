@@ -43,7 +43,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-ListBuilder::ListBuilder(LinkedList *flist, LinkedList *excludes, bool beverbal, bool sdisp)
+ListBuilder::ListBuilder(LinkedList<VString *> *flist, LinkedList<file_s *> *excludes, bool beverbal, bool sdisp)
 {
 #ifdef _DEBUG
 	if (flist == NULL)
@@ -64,7 +64,7 @@ ListBuilder::~ListBuilder()
 
 }
 
-void ListBuilder::BuildList(LinkedList *srclist)
+void ListBuilder::BuildList(LinkedList<file_s *> *srclist)
 {
 #ifdef _DEBUG
 	if (srclist == NULL)
@@ -91,7 +91,7 @@ void ListBuilder::BuildList(LinkedList *srclist)
 	// walk entries and take appropritate actions.
 	for (int i = 0; i < srclist->GetCount(); i++)
 	{
-		file_s *file = (file_s *) srclist->GetAt(i);
+		file_s *file = srclist->GetAt(i);
 
 		if (file->folder == false)
 		{
@@ -161,7 +161,7 @@ void ListBuilder::AddFile(const VString &filename, bool checkexlist)
 	{
 		for (int i = 0; i < exlist->GetCount(); i++)
 		{
-			file_s *tmpex = (file_s *)exlist->GetAt(i);
+			file_s *tmpex = exlist->GetAt(i);
 			if(!tmp->CompareReverseLimitNoCase((LPCSTR)tmpex->name, tmpex->name.GetLength()))
 			{
 				// make sure mapname is not longer.
@@ -206,7 +206,7 @@ void ListBuilder::PrepExList()
 	// Prepares Exceptionlist by adding .bsp to filenames that need it
 	for (int i = 0; i < exlist->GetCount(); i++)
 	{
-		file_s *tmp = (file_s *)exlist->GetAt(i);
+		file_s *tmp = exlist->GetAt(i);
 
 		if (tmp->name.CompareReverseLimitNoCase(".bsp", 4))
 		{
@@ -246,7 +246,7 @@ void ListBuilder::ListDir(const VString &path)
 			}
 			else
 			{
-				printf("There was an error with the directory you specified (%s) - ERROR NO: %d.\n", (LPCSTR)path, GetLastError());
+				printf("There was an error with the directory you specified (%s) - ERROR NO: %lu.\n", (LPCSTR)path, GetLastError());
 			}
 		}
 		return;

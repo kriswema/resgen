@@ -570,9 +570,9 @@ int main(int argc, char* argv[])
 	}
 
 	// Build filelist
-	LinkedList FileList; // bsp files
-	LinkedList ErrorList; // failed bsp files
-	LinkedList MissingList; // bsp files with missing reources
+	LinkedList<VString *> FileList; // bsp files
+	LinkedList<VString *> ErrorList; // failed bsp files
+	LinkedList<VString *> MissingList; // bsp files with missing reources
 	VString *strtmp;
 
 	ListBuilder listbuild(&FileList, &config.excludes, config.verbal, config.searchdisp);
@@ -584,7 +584,7 @@ int main(int argc, char* argv[])
 	// clean up config.files, we don't need it anymore
 	while (config.files.GetCount() > 0)
 	{
-		file_s *file = (file_s *)config.files.GetAt(0);
+		file_s *file = config.files.GetAt(0);
 		config.files.RemoveAt(0);
 		delete file;
 	}
@@ -592,7 +592,7 @@ int main(int argc, char* argv[])
 	// Clean up config.exludes, we don't need it anymore
 	while (config.excludes.GetCount() > 0)
 	{
-		file_s *file = (file_s *)config.excludes.GetAt(0);
+		file_s *file = config.excludes.GetAt(0);
 		config.excludes.RemoveAt(0);
 		delete file;
 	}
@@ -620,7 +620,7 @@ int main(int argc, char* argv[])
 	{
 		while(config.excludelists.GetCount())
 		{
-			strtmp = (VString *)config.excludelists.GetAt(0);
+			strtmp = config.excludelists.GetAt(0);
 			if (!resgen.LoadExludeFile(*strtmp))
 			{
 				#ifdef WIN32
@@ -650,20 +650,20 @@ int main(int argc, char* argv[])
 	{
 		if (config.contentdisp) { printf("\n"); } // Make output look a bit cleaner
 
-		int retval = resgen.MakeRES(*(VString *)FileList.GetAt(0), i, filecount);
+		int retval = resgen.MakeRES(*FileList.GetAt(0), i, filecount);
 		if(retval)
 		{
 			if (retval == 2)
 			{
 				// res file was made properly, but some resources were missing
-				strtmp = new VString(*(VString *)FileList.GetAt(0));
+				strtmp = new VString(*FileList.GetAt(0));
 				MissingList.AddTail(strtmp);
 			}
 			else
 			{
 				//
 				// an error occured. List them.
-				strtmp = new VString(*(VString *)FileList.GetAt(0));
+				strtmp = new VString(*FileList.GetAt(0));
 				ErrorList.AddTail(strtmp);
 
 				resgen.ClearResfile(); // We are not going to try and fix it, so resfile can be cleared.
@@ -671,7 +671,7 @@ int main(int argc, char* argv[])
 			}
 		}
 
-		strtmp = (VString *)FileList.GetAt(0);
+		strtmp = FileList.GetAt(0);
 		FileList.RemoveAt(0);
 		delete strtmp;
 
@@ -688,7 +688,7 @@ int main(int argc, char* argv[])
 		if (config.verbal) { printf("Failed to create res file(s) for:\n"); }
 		while (ErrorList.GetCount() > 0)
 		{
-			strtmp = (VString *)ErrorList.GetAt(0);
+			strtmp = ErrorList.GetAt(0);
 			if (config.verbal) { printf(" %s\n", (LPCSTR)*strtmp); } // only print of verbal
 			ErrorList.RemoveAt(0);
 			delete strtmp;
@@ -704,7 +704,7 @@ int main(int argc, char* argv[])
 		}
 		while (MissingList.GetCount() > 0)
 		{
-			strtmp = (VString *)MissingList.GetAt(0);
+			strtmp = MissingList.GetAt(0);
 			if (config.verbal) { printf(" %s\n", (LPCSTR)*strtmp); } // only print of verbal
 			MissingList.RemoveAt(0);
 			delete strtmp;

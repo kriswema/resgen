@@ -35,7 +35,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "LinkedList.h"
 #include "vstring.h"
 
-int RESGen_CompareVStringsFromList(void *a, void *b); // For sorting of lists
+int RESGen_CompareVStringsFromList(VString *a, VString *b); // For sorting of lists
 
 class RESGen
 {
@@ -63,7 +63,7 @@ private:
 	void AddRes(VString res, const char * const prefix = NULL, const char * const suffix = NULL);
 	char * NextValue();
 	char * NextToken();
-	char * LoadBSPData(const VString &file, int * const entdatalen = NULL, LinkedList * const texlist = NULL);
+	char * LoadBSPData(const VString &file, int * const entdatalen = NULL, LinkedList<VString *> * const texlist = NULL);
 
 	VString valveresourcepath;
 	VString resourcepath;
@@ -76,10 +76,10 @@ private:
 	bool firstdir;
 	char * strtok_nexttoken;
 	int statcount; // statusbar counter
-	LinkedList resources;
-	LinkedList resfile;
-	LinkedList texturelist;
-	LinkedList excludelist;
+	LinkedList<VString *> resources;
+	LinkedList<VString *> resfile;
+	LinkedList<VString *> texturelist;
+	LinkedList<VString *> excludelist;
 	bool verbal;
 	bool statusline;
 	bool overwrite;
