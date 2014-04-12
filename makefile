@@ -10,6 +10,7 @@ INCLUDEDIRS=-I.
 SRCDIR=.
 OBJDIR=$(SRCDIR)/obj
 BINDIR=$(SRCDIR)/bin
+TESTDIR=test
 
 # Define binary filename
 EXECNAME=resgen
@@ -33,6 +34,8 @@ DO_CC=$(CC) $(INCLUDEDIRS) $(CFLAGS) -o $@ -c $<
 #############################################################################
 # RESGen files
 #############################################################################
+
+.PHONY: all debug directories clean get-deps install test
 
 all: directories \
 	$(BINDIR)/$(EXECNAME)
@@ -60,10 +63,14 @@ directories:
 	mkdir -p $(BINDIR)
 
 clean:
-	rm -fRv $(OBJDIR)
+	rm -rv $(OBJDIR)
+	$(MAKE) -C $(TESTDIR) clean
 
 get-deps:
 	apt-get install libc6-dev-i386 libcppunit-dev
 
 install:
 	cp $(BINDIR)/$(EXECNAME) /usr/bin/$(EXECNAME)
+
+test:
+	$(MAKE) -C $(TESTDIR) test

@@ -54,7 +54,7 @@ $(EXECNAME) : $(OBJ)
 directories:
 	mkdir -p $(OBJDIR)
 
-test:
+test: all
 	./$(EXECNAME)
 
 clean:
