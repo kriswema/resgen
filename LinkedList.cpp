@@ -380,15 +380,6 @@ void LinkedList::DoneWriting()
 #endif
 }
 
-void LinkedList::LockList()
-{
-	WaitToWrite();
-}
-
-void LinkedList::UnLockList()
-{
-	DoneWriting();
-}
 #endif
 
 LinkedList::node * LinkedList::ForwardSearch(LinkedList::node * startnode, int startindex, int searchindex)
@@ -549,65 +540,6 @@ int LinkedList::Find(void *compdata, int (*compare)(void *,void *))
 	}
 
 	return -1; // not found
-}
-
-void LinkedList::FilterDoubles(int (*compare)(void *,void *), void (*erase)(void *))
-{
-	// filters double entries. VERY slow on an unsorted list!
-	int i, j;
-	void *start;
-	void *next;
-
-#ifndef LL_SINGLETHREAD
-	WriteLock writeLock;
-#endif
-
-	if (count <= 1)
-	{
-		return; // Doubles not possible!
-	}
-
-	if (sortfunc == compare)
-	{
-		// Filter doubles from list
-		start = GetNodeAt(0)->data;
-		for (i = 1; i < count; i++)
-		{
-			next = GetNodeAt(i)->data;
-			if (!compare(start, next))
-			{
-				// double!
-				RemoveAt(i);
-				erase(next);
-				i--; // shorten list
-			}
-			else
-			{
-				start = next;
-			}
-		}
-	}
-	else
-	{
-		// Filter doubles from list, but in a very slow way
-		start = GetNodeAt(0)->data;
-		for (i = 0; i < count-1; i++)
-		{
-			// check every item except the last one with EVERY item after it.
-			start = GetNodeAt(i)->data;
-			for (j = i + 1; j < count; j++)
-			{
-				next = GetNodeAt(j)->data;
-				if (!compare(start, next))
-				{
-					// double!
-					RemoveAt(i);
-					erase(next);
-					j--; // shorten list
-				}
-			}
-		}
-	}
 }
 
 void LinkedList::InsertAt(void *info, int index)

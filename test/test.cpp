@@ -10,8 +10,19 @@
 
 CPPUNIT_TEST_SUITE_REGISTRATION(LinkedListTest);
 
+int compareFunc(void* a, void* b)
+{
+	return *((int*)a) - *((int*)b);
+}
+
 void LinkedListTest::setUp()
 {
+    a = 3;
+    b = 5;
+    c = -1;
+	list1.AddTail(&a);
+	list1.AddTail(&b);
+	list1.AddTail(&c);
 }
 
 void LinkedListTest::tearDown()
@@ -62,18 +73,10 @@ void LinkedListTest::testAddTailSingle()
 
 void LinkedListTest::testAddTailMultiple()
 {
-    LinkedList list;
-    int a = 3;
-    int b = 5;
-    int c = -1;
-	list.AddTail(&a);
-	list.AddTail(&b);
-	list.AddTail(&c);
-    
-    CPPUNIT_ASSERT(list.GetCount() == 3);
-    CPPUNIT_ASSERT(list.GetAt(0) == &a);
-    CPPUNIT_ASSERT(list.GetAt(1) == &b);
-    CPPUNIT_ASSERT(list.GetAt(2) == &c);
+    CPPUNIT_ASSERT(list1.GetCount() == 3);
+    CPPUNIT_ASSERT(list1.GetAt(0) == &a);
+    CPPUNIT_ASSERT(list1.GetAt(1) == &b);
+    CPPUNIT_ASSERT(list1.GetAt(2) == &c);
 }
 
 void LinkedListTest::testGetAtInvalid()
@@ -104,21 +107,14 @@ void LinkedListTest::testInsertAtStart()
 
 void LinkedListTest::testInsertAtMiddle()
 {
-    LinkedList list;
-    int a = 3;
-    int b = 5;
-    int c = -1;
     int d = -1;
-	list.AddTail(&a);
-	list.AddTail(&b);
-	list.AddTail(&c);
-	list.InsertAt(&d, 1);
+	list1.InsertAt(&d, 1);
     
-    CPPUNIT_ASSERT(list.GetCount() == 4);
-    CPPUNIT_ASSERT(list.GetAt(0) == &a);
-    CPPUNIT_ASSERT(list.GetAt(1) == &d);
-    CPPUNIT_ASSERT(list.GetAt(2) == &b);
-    CPPUNIT_ASSERT(list.GetAt(3) == &c);
+    CPPUNIT_ASSERT(list1.GetCount() == 4);
+    CPPUNIT_ASSERT(list1.GetAt(0) == &a);
+    CPPUNIT_ASSERT(list1.GetAt(1) == &d);
+    CPPUNIT_ASSERT(list1.GetAt(2) == &b);
+    CPPUNIT_ASSERT(list1.GetAt(3) == &c);
 }
 
 void LinkedListTest::testInsertAtEnd()
@@ -156,72 +152,88 @@ void LinkedListTest::testInsertAtInvalid()
 
 void LinkedListTest::testRemoveAtStart()
 {
-    LinkedList list;
-    int a = 3;
-    int b = 5;
-    int c = -1;
-	list.AddTail(&a);
-	list.AddTail(&b);
-	list.AddTail(&c);
-    
-	list.RemoveAt(0);
+	list1.RemoveAt(0);
 
-    CPPUNIT_ASSERT(list.GetCount() == 2);
-    CPPUNIT_ASSERT(list.GetAt(0) == &b);
-    CPPUNIT_ASSERT(list.GetAt(1) == &c);
+    CPPUNIT_ASSERT(list1.GetCount() == 2);
+    CPPUNIT_ASSERT(list1.GetAt(0) == &b);
+    CPPUNIT_ASSERT(list1.GetAt(1) == &c);
 }
 
 void LinkedListTest::testRemoveAtMiddle()
 {
-    LinkedList list;
-    int a = 3;
-    int b = 5;
-    int c = -1;
-	list.AddTail(&a);
-	list.AddTail(&b);
-	list.AddTail(&c);
-    
-	list.RemoveAt(1);
+	list1.RemoveAt(1);
 
-    CPPUNIT_ASSERT(list.GetCount() == 2);
-    CPPUNIT_ASSERT(list.GetAt(0) == &a);
-    CPPUNIT_ASSERT(list.GetAt(1) == &c);
+    CPPUNIT_ASSERT(list1.GetCount() == 2);
+    CPPUNIT_ASSERT(list1.GetAt(0) == &a);
+    CPPUNIT_ASSERT(list1.GetAt(1) == &c);
 }
 
 void LinkedListTest::testRemoveAtEnd()
 {
-    LinkedList list;
-    int a = 3;
-    int b = 5;
-    int c = -1;
-	list.AddTail(&a);
-	list.AddTail(&b);
-	list.AddTail(&c);
-    
-	list.RemoveAt(2);
+	list1.RemoveAt(2);
 
-    CPPUNIT_ASSERT(list.GetCount() == 2);
-    CPPUNIT_ASSERT(list.GetAt(0) == &a);
-    CPPUNIT_ASSERT(list.GetAt(1) == &b);
+    CPPUNIT_ASSERT(list1.GetCount() == 2);
+    CPPUNIT_ASSERT(list1.GetAt(0) == &a);
+    CPPUNIT_ASSERT(list1.GetAt(1) == &b);
 }
 
 void LinkedListTest::testRemoveAtInvalid()
 {
-    LinkedList list;
-    int a = 3;
-    int b = 5;
-    int c = -1;
-	list.AddTail(&a);
-	list.AddTail(&b);
-	list.AddTail(&c);
+    CPPUNIT_ASSERT_THROW(list1.RemoveAt(-1), std::out_of_range);
+    CPPUNIT_ASSERT_THROW(list1.RemoveAt(3), std::out_of_range);
 
-    CPPUNIT_ASSERT_THROW(list.RemoveAt(-1), std::out_of_range);
-    CPPUNIT_ASSERT_THROW(list.RemoveAt(3), std::out_of_range);
+    CPPUNIT_ASSERT(list1.GetCount() == 3);
+    CPPUNIT_ASSERT(list1.GetAt(0) == &a);
+    CPPUNIT_ASSERT(list1.GetAt(1) == &b);
+    CPPUNIT_ASSERT(list1.GetAt(2) == &c);
+}
 
-    CPPUNIT_ASSERT(list.GetCount() == 3);
+void LinkedListTest::testFind()
+{
+	// Use different addresses to make sure find is comparing by value
+	int a2 = 3;
+	int b2 = 5;
+	int c2 = -1;
+	CPPUNIT_ASSERT(list1.Find(&a2, compareFunc) == 0);
+	CPPUNIT_ASSERT(list1.Find(&b2, compareFunc) == 1);
+	CPPUNIT_ASSERT(list1.Find(&c2, compareFunc) == 2);
+}
+
+void LinkedListTest::testFindInvalid()
+{
+	// Use different addresses to make sure find is comparing by value
+	int invalid = 4;
+	CPPUNIT_ASSERT(list1.Find(&invalid, compareFunc) < 0);
+}
+
+void LinkedListTest::testInsertSorted()
+{
+	LinkedList list;
+	CPPUNIT_ASSERT(list.InsertSorted(&a, compareFunc, false));
+    CPPUNIT_ASSERT(list.GetCount() == 1);
+    CPPUNIT_ASSERT(list.GetAt(0) == &a);
+
+	CPPUNIT_ASSERT(list.InsertSorted(&b, compareFunc, false));
+    CPPUNIT_ASSERT(list.GetCount() == 2);
     CPPUNIT_ASSERT(list.GetAt(0) == &a);
     CPPUNIT_ASSERT(list.GetAt(1) == &b);
-    CPPUNIT_ASSERT(list.GetAt(2) == &c);
+
+	CPPUNIT_ASSERT(list.InsertSorted(&c, compareFunc, false));
+    CPPUNIT_ASSERT(list.GetCount() == 3);
+    CPPUNIT_ASSERT(list.GetAt(0) == &c);
+    CPPUNIT_ASSERT(list.GetAt(1) == &a);
+    CPPUNIT_ASSERT(list.GetAt(2) == &b);
+}
+
+void LinkedListTest::metaTestCompareFunc()
+{
+	int a = 1;
+	int b = 3;
+	int c = 3;
+
+	CPPUNIT_ASSERT(compareFunc(&a, &b) < 0);
+	CPPUNIT_ASSERT(compareFunc(&b, &a) > 0);
+	CPPUNIT_ASSERT(compareFunc(&b, &c) == 0);
 }
 
 int main()

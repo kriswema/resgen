@@ -1,5 +1,7 @@
 #include <cppunit/extensions/HelperMacros.h>
 
+#include "../LinkedList.h"
+
 class LinkedListTest : public CppUnit::TestFixture
 {
     CPPUNIT_TEST_SUITE(LinkedListTest);
@@ -18,6 +20,11 @@ class LinkedListTest : public CppUnit::TestFixture
     CPPUNIT_TEST(testRemoveAtMiddle);
     CPPUNIT_TEST(testRemoveAtEnd);
     CPPUNIT_TEST(testRemoveAtInvalid);
+    CPPUNIT_TEST(testFind);
+    CPPUNIT_TEST(testFindInvalid);
+    CPPUNIT_TEST(testInsertSorted);
+
+    CPPUNIT_TEST(metaTestCompareFunc);
 
     CPPUNIT_TEST_SUITE_END();
 
@@ -40,4 +47,14 @@ protected:
     void testRemoveAtMiddle();
     void testRemoveAtEnd();
     void testRemoveAtInvalid();
+    void testFind();
+    void testFindInvalid();
+    void testInsertSorted();
+
+    void metaTestCompareFunc();
+
+    LinkedList list1;
+    int a;
+    int b;
+    int c;
 };

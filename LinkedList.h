@@ -38,12 +38,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 class LinkedList
 {
 public:
-	void FilterDoubles(int (*compare)(void *,void *), void (*erase)(void *));
 	int Find(void *compdata, int (*compare)(void *,void *));
-#ifndef LL_SINGLETHREAD
-	void UnLockList();
-	void LockList();
-#endif
 	bool InsertSorted(void *info, int (*compare)(void *,void *), bool doublesallowed);
 	void InsertAt(void *info, int index);
 	void RemoveAt(int index);
