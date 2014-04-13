@@ -90,7 +90,6 @@ xxxxxxxxxxxxx xx xxxxxxx
 #include "listbuilder.h"
 #include "resgenclass.h"
 #include "resgen.h"
-#include "leakcheck.h"
 
 #ifdef WIN32
 void getexitkey(bool verbal, bool keypress)

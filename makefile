@@ -49,7 +49,6 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.cpp
 
 OBJ = \
 	$(OBJDIR)/LinkedList.o \
-	$(OBJDIR)/leakcheck.o \
 	$(OBJDIR)/listbuilder.o \
 	$(OBJDIR)/resgen.o \
 	$(OBJDIR)/resgenclass.o \

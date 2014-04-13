@@ -42,7 +42,6 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.cpp
 OBJ = \
 	$(OBJDIR)/test.o \
 	$(MAIN_OBJDIR)/LinkedList.o \
-	$(MAIN_OBJDIR)/leakcheck.o \
 	$(MAIN_OBJDIR)/listbuilder.o \
 	$(MAIN_OBJDIR)/resgenclass.o \
 	$(MAIN_OBJDIR)/vstring.o
