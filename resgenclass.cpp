@@ -803,25 +803,24 @@ char * RESGen::LoadBSPData(const VString &file, int * const entdatalen, LinkedLi
 		if (texcount > 0)
 		{
 			// Textures available, read all offsets
-			texheader_s *texheader = (texheader_s *)new char [sizeof(int)*(texcount + 1)];
-			texheader->texcount = texcount;
+			char *offsets = new char [sizeof(int) * texcount];
 
-			int i = fread(texheader->offsets, sizeof(int), texheader->texcount, bsp);
+			int i = fread(offsets, sizeof(int), texcount, bsp);
 
-			if (i != texheader->texcount) // load texture offsets
+			if (i != texcount) // load texture offsets
 			{
 				// header NOT read properly!
-				printf("Error opening \"%s\". Corrupt texture data.\n  read: %d, expect: %d\n", (LPCSTR)file, i, texheader->texcount);
+				printf("Error opening \"%s\". Corrupt texture data.\n  read: %d, expect: %d\n", (LPCSTR)file, i, texcount);
 				delete [] entdata;
-				delete [] texheader;
+				delete [] offsets;
 				fclose(bsp);
 				return NULL;
 			}
 
-			for (i = 0; i < texheader->texcount; i++)
+			for (i = 0; i < texcount; i++)
 			{
 				// go to texture location
-				fseek(bsp, header.tex_header.fileofs + texheader->offsets[i], SEEK_SET);
+				fseek(bsp, header.tex_header.fileofs + offsets[i], SEEK_SET);
 
 				// read texture data
 				texdata_s texdata;
@@ -829,7 +828,7 @@ char * RESGen::LoadBSPData(const VString &file, int * const entdatalen, LinkedLi
 				{
 					// header NOT read properly!
 					delete [] entdata;
-					delete [] texheader;
+					delete [] offsets;
 					printf("Error opening \"%s\". Corrupt BSP file.\n", (LPCSTR)file);
 					fclose(bsp);
 					return NULL;
@@ -848,7 +847,7 @@ char * RESGen::LoadBSPData(const VString &file, int * const entdatalen, LinkedLi
 				}
 			}
 
-			delete [] texheader; // done!
+			delete [] offsets; // done!
 		}
 
 		/*
@@ -856,7 +855,7 @@ char * RESGen::LoadBSPData(const VString &file, int * const entdatalen, LinkedLi
 
 		for (int i = 0; i < texlist->GetCount(); i++)
 		{
-			printf("%s\n", (LPCSTR)(*(VString *)texlist->GetAt(i)));
+			printf("%s\n", (LPCSTR)(*texlist->GetAt(i)));
 		}
 		printf("\n\n");
 		//*/

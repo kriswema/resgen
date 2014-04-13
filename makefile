@@ -48,7 +48,6 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.cpp
 	$(DO_CC)
 
 OBJ = \
-	$(OBJDIR)/LinkedList.o \
 	$(OBJDIR)/listbuilder.o \
 	$(OBJDIR)/resgen.o \
 	$(OBJDIR)/resgenclass.o \

@@ -43,6 +43,9 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //////////////////////////////////////////////////////////////////////
 
 ListBuilder::ListBuilder(LinkedList<VString *> *flist, LinkedList<file_s *> *excludes, bool beverbal, bool sdisp)
+	: firstdir(false)
+	, recursive(false)
+	, symlink(false)
 {
 #ifdef _DEBUG
 	if (flist == NULL)

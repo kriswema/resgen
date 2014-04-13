@@ -56,7 +56,6 @@ VString::VString()
 	length = 0;
 
 	data = new char[memuse]; // Make a new string array
-	if (data == NULL) { MemError("constructor"); }
 
 	data[0] = 0; // terminating NULL
 }
@@ -66,14 +65,6 @@ VString::~VString()
 	if (data) { delete [] data; }
 }
 
-void VString::MemError(const char *error)
-{
-	printf("\n\nMemory allocation error (VString - %s).\n", error);
-	printf("\nTry to free more memory on your computer\n\n");
-	printf("If this fails contact resgen@hltools.com\n");
-	exit(1);
-}
-
 VString::VString(const VString& stringSrc)
 {
 	length = stringSrc.GetLength();
@@ -81,7 +72,6 @@ VString::VString(const VString& stringSrc)
 	memuse = 1024 * (1 + (length / 1024));
 
 	data = new char[memuse]; // Make a new string array
-	if (data == NULL) { MemError("constructor"); }
 
 	memcpy(data, stringSrc.data, length + 1); // Copy the input string
 }
@@ -91,7 +81,6 @@ VString::VString(const char *string, int len)
 	memuse = 1024 * (1 + (len / 1024));
 
 	data = new char[memuse]; // Make a new string array
-	if (data == NULL) { MemError("constructor"); }
 
 	strncpy(data, string, len); // Copy the input string
 	data[len] = 0; // terminating NULL
@@ -105,7 +94,6 @@ VString::VString(const char *string)
 	memuse = 1024 * (1 + (length / 1024));
 
 	data = new char[memuse]; // Make a new string array
-	if (data == NULL) { MemError("constructor"); }
 
 	memcpy(data, string, length + 1); // Copy the input string
 }
@@ -128,7 +116,6 @@ void VString::Empty()
 	length = 0;
 
 	data = new char[memuse]; // Make a new string array
-	if (data == NULL) { MemError("Empty"); }
 
 	data[0] = 0; // terminating NULL
 }
@@ -153,8 +140,13 @@ void VString::SetAt(int index, char ch)
 	}
 }
 
-const VString& VString::operator=(const VString& stringSrc)
+VString& VString::operator=(const VString& stringSrc)
 {
+	if(&stringSrc == this)
+	{
+		return *this;
+	}
+
 	// Set to other VString data.
 	length = stringSrc.GetLength();
 
@@ -167,7 +159,6 @@ const VString& VString::operator=(const VString& stringSrc)
 
 		delete [] data;
 		data = new char[memuse]; // Make a new string array
-		if (data == NULL) { MemError("Operator ="); }
 #ifdef VS_NO_SHRINK
 	}
 #endif
@@ -191,7 +182,6 @@ const VString& VString::operator=(const char *string)
 
 		delete [] data;
 		data = new char[memuse]; // Make a new string array
-		if (data == NULL) { MemError("Operator ="); }
 #ifdef VS_NO_SHRINK
 	}
 #endif
@@ -216,7 +206,6 @@ void VString::AddTwoStr(const char *str1, int str1len, const char *str2, int str
 
 		delete [] data;
 		data = new char[memuse]; // Make a new string array
-		if (data == NULL) { MemError("AddTwoStr"); }
 #ifdef VS_NO_SHRINK
 	}
 #endif
@@ -257,7 +246,6 @@ void VString::Cat(const char *string, int len)
 		memuse = 1024 * (1 + (newlength / 1024));
 
 		char *temp = new char[memuse]; // Make a new string array
-		if (temp == NULL) { MemError("Cat"); }
 
 		memcpy(temp, data, length);
 		memcpy(&temp[length], string, len);
@@ -792,7 +780,6 @@ bool VString::LoadFromFile(const char *filename)
 
 		delete [] data;
 		data = new char[memuse]; // Make a new string array
-		if (data == NULL) { MemError("LoadFromFile"); }
 #ifdef VS_NO_SHRINK
 	}
 #endif

@@ -56,8 +56,6 @@ extern "C" int pthread_mutexattr_setkind_np __P((pthread_mutexattr_t *attr, int 
 #include <stdexcept>
 
 
-void MemError();
-
 template <class T>
 class LinkedList
 {
@@ -371,7 +369,6 @@ void LinkedList<T>::InsertAt(T info, int index)
 
 	// insert
 	node *temp = new node;
-	if (temp == NULL) { MemError(); }
 
 #ifndef LL_SINGLETHREAD
 	WriteLock writeLock(this);
@@ -484,7 +481,6 @@ template <class T>
 void LinkedList<T>::AddHead(T info)
 {
 	node *temp = new node;
-	if (temp == NULL) { MemError(); }
 
 	// set to null (defines beginning or end node)
 	temp->next = NULL;
@@ -523,7 +519,6 @@ template <class T>
 void LinkedList<T>::AddTail(T info)
 {
 	node *temp = new node;
-	if (temp == NULL) { MemError(); }
 
 	// set to null (defines beginning or end node)
 	temp->next = NULL;

@@ -162,11 +162,6 @@ private:
 		unsigned width, height;
 		unsigned offsets[4];
 	};
-	struct texheader_s
-	{
-		int texcount;
-		int offsets[4];
-	};
 	struct lumpinfo_s
 	{
 		int fileofs;

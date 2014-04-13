@@ -71,7 +71,7 @@ public:
 	friend VString operator+(const VString& string1, const char *string2);
 	friend VString operator+(const VString& string1, const VString& string2);
 	const VString& operator=(const char *string);
-	const VString& operator=(const VString& stringSrc);
+	VString& operator=(const VString& stringSrc);
 	void SetAt(int index, char ch);
 	char operator [](int index) const;
 	char GetAt(int index) const;
@@ -88,7 +88,6 @@ private:
 	int length;
 	int memuse;
 	char * data;
-	void MemError(const char *error);
 
 protected:
 	void Cat(const char *string, int len);
