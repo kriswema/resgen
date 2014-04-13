@@ -43,6 +43,7 @@ OBJ = \
 	$(OBJDIR)/test.o \
 	$(MAIN_OBJDIR)/listbuilder.o \
 	$(MAIN_OBJDIR)/resgenclass.o \
+	$(MAIN_OBJDIR)/util.o \
 	$(MAIN_OBJDIR)/vstring.o
 
 
@@ -56,8 +57,8 @@ test: all
 	./$(EXECNAME)
 
 clean:
-	rm $(BINDIR)/$(EXECNAME)
-	rm -r $(OBJDIR)
+	rm -f $(BINDIR)/$(EXECNAME)
+	rm -rf $(OBJDIR)
 
 get-deps:
 	apt-get install libc6-dev-i386 libcppunit-dev

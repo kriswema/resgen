@@ -26,8 +26,10 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 // RESGen does it's own security checks, no need to add VS2005's layer
 #define _CRT_SECURE_NO_DEPRECATE
 
+#include <memory>
 #include <stdio.h>
 #include <string.h>
+#include <strings.h>
 #include <ctype.h>
 #include <stdlib.h>
 
@@ -38,6 +40,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #define stricmp strcasecmp
 #endif
 
+#include "util.h"
 #include "vstring.h"
 
 #ifdef VS_OPCOMP_NOCASE
@@ -753,7 +756,7 @@ void VString::StrRplChr(const char find, const char replace)
 
 bool VString::LoadFromFile(const char *filename)
 {
-	FILE *f = fopen(filename, "r"); // Open for reading
+	File f(filename, "r");
 
 	if (f == NULL)
 	{
@@ -767,7 +770,6 @@ bool VString::LoadFromFile(const char *filename)
 	if (length == 0)
 	{
 		data[0] = 0;
-		fclose(f);
 		return true; // empty file, so we are successful
 	}
 
@@ -794,7 +796,6 @@ bool VString::LoadFromFile(const char *filename)
 			// Stream error
 			data[0] = 0; // empty string to be sure
 			length = 0;
-			fclose(f);
 			return false;
 		}
 		else
@@ -804,8 +805,6 @@ bool VString::LoadFromFile(const char *filename)
 	}
 
 	data[length] = 0; // Add terminating null
-
-	fclose(f);
 
 	return true;
 }

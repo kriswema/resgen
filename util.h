@@ -1,66 +1,26 @@
 #ifndef UTIL_H
 #define UTIL_H
 
-int strrnicmp(const char *src, const char *dst, int limit)
+#include <string>
+
+// RAII wrapper for FILE
+class File
 {
-	// derived from VString function
-	// first determine our maximum running length
-	int i = strlen(src) - 1;
-	int j = strlen(dst) - 1;
+public:
+	File(const char* fileName, const std::string& mode);
+	File(const std::string& fileName, const std::string& mode);
+	~File();
 
-	limit--;
+	void close();
+	void open(const std::string& fileName, const std::string& mode);
 
-	if (i < limit)
-	{
-		if (i < j)
-		{
-			return -1;
-		}
-		else if (j < i)
-		{
-			return 1;
-		}
-		limit = i;
-	}
-	if (j < limit)
-	{
-		if (i < j)
-		{
-			return -1;
-		}
-		else if (j < i)
-		{
-			return 1;
-		}
-		limit = j;
-	}
+	operator FILE*();
+	FILE* operator->();
 
-	src = src + i;
-	dst = dst + j;
+private:
+	FILE* fileHandle;
+};
 
-	while (limit >= 0)
-	{
-		i = tolower(*src);
-		j = tolower(*dst);
-
-		int ret = i - j;
-		if (ret)
-		{
-			if (ret < 0)
-			{
-				return -1;
-			}
-			else
-			{
-				return 1;
-			}
-		}
-		src--;
-		dst--;
-		limit--;
-	}
-
-	return 0;
-}
+int strrnicmp(const char *src, const char *dst, int limit);
 
 #endif // UTIL_H

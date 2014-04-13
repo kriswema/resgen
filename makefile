@@ -22,7 +22,8 @@ BASE_CFLAGS=
 #CFLAGS=$(BASE_CFLAGS) -w -s -march=i586 -O1
 
 #full optimization
-CFLAGS=$(BASE_CFLAGS) -Wall -Wextra -pedantic
+#CFLAGS=$(BASE_CFLAGS) -Wall -Wextra -pedantic
+CFLAGS=$(BASE_CFLAGS) -std=c++11 -Wall -Wextra -pedantic
 
 #use these when debugging
 #CFLAGS=$(BASE_CFLAGS) -g -D_DEBUG
@@ -51,6 +52,7 @@ OBJ = \
 	$(OBJDIR)/listbuilder.o \
 	$(OBJDIR)/resgen.o \
 	$(OBJDIR)/resgenclass.o \
+	$(OBJDIR)/util.o \
 	$(OBJDIR)/vstring.o
 
 $(BINDIR)/$(EXECNAME) : $(OBJ)
@@ -61,11 +63,15 @@ directories:
 	mkdir -p $(BINDIR)
 
 clean:
-	rm -rv $(OBJDIR)
+	rm -rf $(OBJDIR)
 	$(MAKE) -C $(TESTDIR) clean
 
 get-deps:
 	apt-get install libc6-dev-i386 libcppunit-dev
+
+prof: CFLAGS += -pg
+prof: LDFLAGS += -pg
+prof: all
 
 install:
 	cp $(BINDIR)/$(EXECNAME) /usr/bin/$(EXECNAME)

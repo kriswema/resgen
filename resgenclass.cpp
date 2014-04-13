@@ -729,7 +729,7 @@ void RESGen::BuildResourceList(VString &respath, bool checkpak, bool sdisp, bool
 char * RESGen::LoadBSPData(const VString &file, int * const entdatalen, LinkedList<VString *> * const texlist)
 {
 	// first open the file.
-	FILE *bsp = fopen((LPCSTR)file, "rb"); // read in binary mode.
+	File bsp((LPCSTR)file, "rb"); // read in binary mode.
 
 	if (bsp == NULL)
 	{
@@ -744,14 +744,12 @@ char * RESGen::LoadBSPData(const VString &file, int * const entdatalen, LinkedLi
 	{
 		// header NOT read properly!
 		printf("Error opening \"%s\". Corrupt BSP file.\n", (LPCSTR)file);
-		fclose(bsp);
 		return NULL;
 	}
 
 	if (header.version != BSPVERSION)
 	{
 		printf("Error opening \"%s\". Incorrect BSP version.\n", (LPCSTR)file);
-		fclose(bsp);
 		return NULL;
 	}
 
@@ -759,7 +757,6 @@ char * RESGen::LoadBSPData(const VString &file, int * const entdatalen, LinkedLi
 	{
 		// File corrupted
 		printf("Error opening \"%s\". Corrupt BSP header.\n", (LPCSTR)file);
-		fclose(bsp);
 		return NULL;
 	}
 
@@ -772,7 +769,6 @@ char * RESGen::LoadBSPData(const VString &file, int * const entdatalen, LinkedLi
 		// not the right ammount of data was read
 		delete [] entdata;
 		printf("Error opening \"%s\". BSP file corrupt.\n", (LPCSTR)file);
-		fclose(bsp);
 		return NULL;
 	}
 
@@ -787,7 +783,6 @@ char * RESGen::LoadBSPData(const VString &file, int * const entdatalen, LinkedLi
 			// header NOT read properly!
 			delete [] entdata;
 			printf("Error opening \"%s\". Corrupt texture header.\n", (LPCSTR)file);
-			fclose(bsp);
 			return NULL;
 		}
 
@@ -796,7 +791,6 @@ char * RESGen::LoadBSPData(const VString &file, int * const entdatalen, LinkedLi
 			// File corrupted
 			delete [] entdata;
 			printf("Error opening \"%s\". Corrupt BSP textures.\n", (LPCSTR)file);
-			fclose(bsp);
 			return NULL;
 		}
 
@@ -813,7 +807,6 @@ char * RESGen::LoadBSPData(const VString &file, int * const entdatalen, LinkedLi
 				printf("Error opening \"%s\". Corrupt texture data.\n  read: %d, expect: %d\n", (LPCSTR)file, i, texcount);
 				delete [] entdata;
 				delete [] offsets;
-				fclose(bsp);
 				return NULL;
 			}
 
@@ -830,7 +823,6 @@ char * RESGen::LoadBSPData(const VString &file, int * const entdatalen, LinkedLi
 					delete [] entdata;
 					delete [] offsets;
 					printf("Error opening \"%s\". Corrupt BSP file.\n", (LPCSTR)file);
-					fclose(bsp);
 					return NULL;
 				}
 
@@ -861,9 +853,6 @@ char * RESGen::LoadBSPData(const VString &file, int * const entdatalen, LinkedLi
 		//*/
 	}
 
-	// Done with BSP file
-	fclose(bsp);
-
 	// add terminating NULL for entity data
 	entdata[header.ent_header.filelen] = 0;
 
@@ -874,10 +863,8 @@ char * RESGen::LoadBSPData(const VString &file, int * const entdatalen, LinkedLi
 
 	#ifdef _DEBUG
 	// Debug write entity data to file
-	FILE *tmp;
-	tmp = fopen(file + "_ent.txt", "w");
+	File tmp(file + "_ent.txt", "w");
 	fprintf(tmp, "%s", entdata);
-	fclose(tmp);
 	#endif
 
 	return entdata;
@@ -972,7 +959,7 @@ bool RESGen::WriteRes(const VString &folder, const VString &mapname)
 	// This function writes a standard res file.
 
 	// Open the file
-	FILE *f = fopen(folder + mapname + ".res", "w");
+	File f(folder + mapname + ".res", "w");
 
 	if (f == NULL)
 	{
@@ -1000,9 +987,6 @@ bool RESGen::WriteRes(const VString &folder, const VString &mapname)
 	{
 		fprintf(f, "\n// Added .res content:\n%s\n", (LPCSTR)rfastring);
 	}
-
-	// File done. close
-	fclose(f);
 
 	return true;
 }
@@ -1313,7 +1297,7 @@ void RESGen::ListDir(const VString &path, const VString &filepath, bool reporter
 void RESGen::BuildPakResourceList(const VString &pakfilename)
 {
 	// open the pak file in binary read mode
-	FILE *pakfile = fopen(pakfilename, "rb");
+	File pakfile(pakfilename, "rb");
 
 	if (pakfile == NULL)
 	{
@@ -1336,7 +1320,6 @@ void RESGen::BuildPakResourceList(const VString &pakfilename)
 			printf("Reading pakfile header failed. Wrong size (%d read, %d expected).\n", retval, pakheadersize);
 			printf("Is \"%s\" a valid pakfile?\n", (LPCSTR)pakfilename);
 		}
-		fclose(pakfile);
 		return;
 	}
 
@@ -1347,7 +1330,6 @@ void RESGen::BuildPakResourceList(const VString &pakfilename)
 		{
 			printf("Pakfile \"%s\" does not appear to be a Half-Life pakfile (ID mismatch).\n", (LPCSTR)pakfilename);
 		}
-		fclose(pakfile);
 		return;
 	}
 
@@ -1362,7 +1344,6 @@ void RESGen::BuildPakResourceList(const VString &pakfilename)
 		{
 			printf("Pakfile \"%s\" does not appear to be a Half-Life pakfile (invalid dirsize).\n", (LPCSTR)pakfilename);
 		}
-		fclose(pakfile);
 		return;
 	}
 
@@ -1373,7 +1354,6 @@ void RESGen::BuildPakResourceList(const VString &pakfilename)
 		{
 			printf("Error seeking for file list.\nPakfile \"%s\" is not a pakfile, or is corrupted.\n", (LPCSTR)pakfilename);
 		}
-		fclose(pakfile);
 		return;
 	}
 
@@ -1385,12 +1365,9 @@ void RESGen::BuildPakResourceList(const VString &pakfilename)
 		{
 			printf("Error seeking for file list.\nPakfile \"%s\" is not a pakfile, or is corrupted.\n", (LPCSTR)pakfilename);
 		}
-		fclose(pakfile);
 		delete [] filelist;
 		return;
 	}
-
-	fclose(pakfile); // not needed anymore
 
 	if (verbal)
 	{
@@ -1450,7 +1427,7 @@ bool RESGen::LoadExludeFile(VString &listfile)
 		listfile += ".rfa";
 	}
 
-	FILE *f = fopen(listfile, "rt"); // Text mode
+	File f(listfile, "rt"); // Text mode
 
 	if (f == NULL)
 	{
@@ -1531,8 +1508,6 @@ bool RESGen::LoadExludeFile(VString &listfile)
 		delete line; // clean up
 	}
 
-	fclose(f);
-
 	return true;
 }
 
@@ -1543,14 +1518,14 @@ int RESGen_CompareVStringsFromList(VString *a, VString *b)
 
 bool RESGen::CheckWadUse(const VString &wadfile)
 {
-	FILE *wad = fopen((LPCSTR)(resourcepath+wadfile), "rb");
+	File wad((LPCSTR)(resourcepath+wadfile), "rb");
 
 	if (!wad)
 	{
 		// try the valve folder
 		if (valveresourcepath.GetLength() > 0)
 		{
-			wad = fopen((LPCSTR)(valveresourcepath+wadfile), "rb");
+			wad.open((LPCSTR)(valveresourcepath+wadfile), "rb");
 		}
 		if (!wad)
 		{
@@ -1563,28 +1538,24 @@ bool RESGen::CheckWadUse(const VString &wadfile)
 	if (fread(&header, sizeof(wadheader_s), 1, wad) != 1)
 	{
 		printf("WAD file \"%s\" is corrupt.\n", (LPCSTR)wadfile);
-		fclose(wad);
 		return false;
 	}
 
 	if (strncmp(header.identification, "WAD", 3))
 	{
 		printf("\"%s\" is not a WAD file.\n", (LPCSTR)wadfile);
-		fclose(wad);
 		return false;
 	}
 
 	if (header.identification[3] != '2' && header.identification[3] != '3')
 	{
 		printf("Incorrect WAD file version for \"%s\"\n", (LPCSTR)wadfile);
-		fclose(wad);
 		return false;
 	}
 
 	if (fseek(wad, header.infotableofs, SEEK_SET))
 	{
 		printf("Cannot find WAD info table in \"%s\"\n", (LPCSTR)wadfile);
-		fclose(wad);
 		return false;
 	}
 
@@ -1595,7 +1566,6 @@ bool RESGen::CheckWadUse(const VString &wadfile)
 		if (fread(&lumpinfo, sizeof(wadlumpinfo_s), 1, wad) != 1)
 		{
 			printf("WAD file info table \"%s\" is corrupt.\n", (LPCSTR)wadfile);
-			fclose(wad);
 			return false;
 		}
 
@@ -1614,21 +1584,19 @@ bool RESGen::CheckWadUse(const VString &wadfile)
 		}
 	}
 
-	fclose(wad);
-
 	return retval;
 }
 
 bool RESGen::CheckModelExtTexture(const VString &model)
 {
-	FILE *mdl = fopen((LPCSTR)(resourcepath+model), "rb");
+	File mdl((LPCSTR)(resourcepath+model), "rb");
 
 	if (!mdl)
 	{
 		// try the valve folder
 		if (valveresourcepath.GetLength() > 0)
 		{
-			mdl = fopen((LPCSTR)(valveresourcepath+model), "rb");
+			mdl.open((LPCSTR)(valveresourcepath+model), "rb");
 		}
 		if (!mdl)
 		{
@@ -1641,31 +1609,26 @@ bool RESGen::CheckModelExtTexture(const VString &model)
 	if (fread(&header, sizeof(modelheader_s), 1, mdl) != 1)
 	{
 		printf("MDL file \"%s\" is corrupt.\n", (LPCSTR)model);
-		fclose(mdl);
 		return false;
 	}
 
 	if (strncmp(header.id, "IDST", 4))
 	{
 		printf("\"%s\" is not a MDL file.\n", (LPCSTR)model);
-		fclose(mdl);
 		return false;
 	}
 
 	if (header.version != 10)
 	{
 		printf("Incorrect MDL file version for \"%s\"\n", (LPCSTR)model);
-		fclose(mdl);
 		return false;
 	}
 
 	if (header.textureindex == 0)
 	{
-		fclose(mdl);
 		return true; // Uses seperate texture
 	}
 
-	fclose(mdl);
 	return false;
 }
 
