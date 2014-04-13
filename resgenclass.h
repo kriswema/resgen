@@ -31,6 +31,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #endif // _MSC_VER > 1000
 
 #include <cstddef>
+#include <string>
 
 #include "LinkedList.h"
 #include "vstring.h"
@@ -53,8 +54,8 @@ public:
 	virtual ~RESGen();
 
 private:
-	bool CheckModelExtTexture(const VString &model);
-	bool CheckWadUse(const VString &wadfile);
+	bool CheckModelExtTexture(const std::string &model);
+	bool CheckWadUse(const std::string &wadfile);
 	void BuildPakResourceList(const VString &pakfile);
 	void ListDir(const VString &path, const VString &filepath, bool reporterror);
 	char * StrTok(char *string, char delimiter);
@@ -66,7 +67,7 @@ private:
 	char * LoadBSPData(const VString &file, int * const entdatalen = NULL, LinkedList<VString *> * const texlist = NULL);
 
 	VString valveresourcepath;
-	VString resourcepath;
+	std::string resourcepath;
 	bool checkforresources;
 	bool checkforexcludes;
 	bool resourcedisp;

@@ -215,9 +215,9 @@ int RESGen::MakeRES(VString &map, int fileindex, int filecount)
 			{
 				// seperate the WAD files and save
 				i = 0;
-				int seppos;
+				size_t seppos;
 
-				while ((seppos = value.StrChr(';', i)) >= 0)
+				while ((seppos = value.StrChr(';', i)) != std::string::npos)
 				{
 					AddWad(value, i, seppos - i); // Add wad to reslist
 					i = seppos + 1;
@@ -509,7 +509,7 @@ int RESGen::MakeRES(VString &map, int fileindex, int filecount)
 					if (!tempres->CompareReverseLimitNoCase(".wad", 4))
 					{
 						// Check if wad file is used
-						if (!CheckWadUse(*resources.GetAt(resfileindex))) // We MUST have the right file
+						if (!CheckWadUse(std::string(*resources.GetAt(resfileindex)))) // We MUST have the right file
 						{
 							// Wad is NOT being used
 							if (contentdisp)
@@ -529,7 +529,7 @@ int RESGen::MakeRES(VString &map, int fileindex, int filecount)
 					else if (!tempres->CompareReverseLimitNoCase(".mdl", 4))
 					{
 						// Check model for external texture
-						if (CheckModelExtTexture(*resources.GetAt(resfileindex)))
+						if (CheckModelExtTexture(std::string(*resources.GetAt(resfileindex))))
 						{
 							// Uses external texture, add
 							VString *extmdltex = new VString(tempres->Left(tempres->GetLength() - 4)); // strip extention
@@ -656,50 +656,38 @@ void RESGen::BuildResourceList(VString &respath, bool checkpak, bool sdisp, bool
 
 	// Check the respath and check ../valve if the respath doesn't point to valve
 
-	// prepare folder name
 	#ifdef WIN32
-	if (respath[respath.GetLength() - 1] != '\\')
-	{
-		// No ending "\", add
-		respath += "\\";
-	}
-	if (respath.CompareReverseLimitNoCase("\\valve\\", 7))
-	{
-		// NOT valve dir, so check it too
-		int slashpos = respath.StrRChr('\\', respath.GetLength()-2);
-		if (slashpos >= 0)
-		{
-			valvepath = respath.Left(slashpos);
-			valvepath += "\\valve\\";
-		}
-		else
-		{
-			valvepath = respath + "..\\valve\\";
-		}
-	}
+	const char* pathSep = "\\";
+	const char* valveStr = "\\valve\\";
 	#else
-	if (respath[respath.GetLength() - 1] != '/')
-	{
-		// No ending "/", add
-		respath += "/";
-	}
-	if (respath.CompareReverseLimitNoCase("/valve/", 7))
-	{
-		// NOT valve dir, so check it too
-		int slashpos = respath.StrRChr('/', respath.GetLength()-2);
-		if (slashpos >= 0)
-		{
-			valvepath = respath.Left(slashpos);
-			valvepath += "/valve/";
-		}
-		else
-		{
-			valvepath = respath + "../valve/";
-		}
-	}
+	const char* pathSep = "/";
+	const char* valveStr = "/valve/";
 	#endif
 
-	resourcepath = respath;
+	// prepare folder name
+	
+	if (respath[respath.GetLength() - 1] != pathSep[0])
+	{
+		// No path separator, add
+		respath += pathSep;
+	}
+
+	if (respath.CompareReverseLimitNoCase(valveStr, 7))
+	{
+		// NOT valve dir, so check it too
+		size_t slashpos = respath.StrRChr(pathSep[0], respath.GetLength()-2);
+		if (slashpos != std::string::npos)
+		{
+			valvepath = respath.Left(slashpos);
+			valvepath += valveStr;
+		}
+		else
+		{
+			valvepath = respath + ".." + valveStr;
+		}
+	}
+
+	resourcepath = std::string(respath);
 	valveresourcepath = valvepath;
 
 	if (resourcedisp)
@@ -1516,20 +1504,20 @@ int RESGen_CompareVStringsFromList(VString *a, VString *b)
 	return a->CompareNoCase(*b);
 }
 
-bool RESGen::CheckWadUse(const VString &wadfile)
+bool RESGen::CheckWadUse(const std::string &wadfile)
 {
-	File wad((LPCSTR)(resourcepath+wadfile), "rb");
+	File wad(resourcepath + wadfile, "rb");
 
 	if (!wad)
 	{
 		// try the valve folder
 		if (valveresourcepath.GetLength() > 0)
 		{
-			wad.open((LPCSTR)(valveresourcepath+wadfile), "rb");
+			wad.open(std::string(valveresourcepath) + wadfile, "rb");
 		}
 		if (!wad)
 		{
-			printf("Failed to open WAD file \"%s\".\n", (LPCSTR)wadfile);
+			printf("Failed to open WAD file \"%s\".\n", wadfile.c_str());
 			return false;
 		}
 	}
@@ -1537,25 +1525,25 @@ bool RESGen::CheckWadUse(const VString &wadfile)
 	wadheader_s header;
 	if (fread(&header, sizeof(wadheader_s), 1, wad) != 1)
 	{
-		printf("WAD file \"%s\" is corrupt.\n", (LPCSTR)wadfile);
+		printf("WAD file \"%s\" is corrupt.\n", wadfile.c_str());
 		return false;
 	}
 
 	if (strncmp(header.identification, "WAD", 3))
 	{
-		printf("\"%s\" is not a WAD file.\n", (LPCSTR)wadfile);
+		printf("\"%s\" is not a WAD file.\n", wadfile.c_str());
 		return false;
 	}
 
 	if (header.identification[3] != '2' && header.identification[3] != '3')
 	{
-		printf("Incorrect WAD file version for \"%s\"\n", (LPCSTR)wadfile);
+		printf("Incorrect WAD file version for \"%s\"\n", wadfile.c_str());
 		return false;
 	}
 
 	if (fseek(wad, header.infotableofs, SEEK_SET))
 	{
-		printf("Cannot find WAD info table in \"%s\"\n", (LPCSTR)wadfile);
+		printf("Cannot find WAD info table in \"%s\"\n", wadfile.c_str());
 		return false;
 	}
 
@@ -1565,7 +1553,7 @@ bool RESGen::CheckWadUse(const VString &wadfile)
 		wadlumpinfo_s lumpinfo;
 		if (fread(&lumpinfo, sizeof(wadlumpinfo_s), 1, wad) != 1)
 		{
-			printf("WAD file info table \"%s\" is corrupt.\n", (LPCSTR)wadfile);
+			printf("WAD file info table \"%s\" is corrupt.\n", wadfile.c_str());
 			return false;
 		}
 
@@ -1587,20 +1575,20 @@ bool RESGen::CheckWadUse(const VString &wadfile)
 	return retval;
 }
 
-bool RESGen::CheckModelExtTexture(const VString &model)
+bool RESGen::CheckModelExtTexture(const std::string &model)
 {
-	File mdl((LPCSTR)(resourcepath+model), "rb");
+	File mdl((LPCSTR)((std::string(resourcepath)+model).c_str()), "rb");
 
 	if (!mdl)
 	{
 		// try the valve folder
 		if (valveresourcepath.GetLength() > 0)
 		{
-			mdl.open((LPCSTR)(valveresourcepath+model), "rb");
+			mdl.open((LPCSTR)((std::string(valveresourcepath)+model).c_str()), "rb");
 		}
 		if (!mdl)
 		{
-			printf("Failed to open MDL file \"%s\".\n", (LPCSTR)model);
+			printf("Failed to open MDL file \"%s\".\n", model.c_str());
 			return false;
 		}
 	}
@@ -1608,19 +1596,19 @@ bool RESGen::CheckModelExtTexture(const VString &model)
 	modelheader_s header;
 	if (fread(&header, sizeof(modelheader_s), 1, mdl) != 1)
 	{
-		printf("MDL file \"%s\" is corrupt.\n", (LPCSTR)model);
+		printf("MDL file \"%s\" is corrupt.\n", model.c_str());
 		return false;
 	}
 
 	if (strncmp(header.id, "IDST", 4))
 	{
-		printf("\"%s\" is not a MDL file.\n", (LPCSTR)model);
+		printf("\"%s\" is not a MDL file.\n", model.c_str());
 		return false;
 	}
 
 	if (header.version != 10)
 	{
-		printf("Incorrect MDL file version for \"%s\"\n", (LPCSTR)model);
+		printf("Incorrect MDL file version for \"%s\"\n", model.c_str());
 		return false;
 	}
 

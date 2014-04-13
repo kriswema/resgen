@@ -692,51 +692,25 @@ int VString::CompareReverseLimitNoCase(const char *dst, int limit) const
 	return 0;
 }
 
-int VString::StrRChr(char search, int start)
+size_t VString::StrRChr(char search, int start)
 {
-	char *ret;
-
-	if (start == -1 || start >= length)
+	if (start < -1)
 	{
-		ret = strrchr(data, search);
-	}
-	else
-	{
-		int i;
-		ret = NULL;
-		for (i = start; i >= 0; i--)
-		{
-			if (data[i] == search)
-			{
-				// found the char
-				ret = &data[i];
-				break;
-			}
-		}
+		return std::string::npos;
 	}
 
-	if (ret == NULL)
+	if (start == -1)
 	{
-		return -1;
+		start = length;
 	}
-	else
-	{
-		return ret - data;
-	}
+
+	return std::string(data).rfind(search, start);
 }
 
 int VString::StrChr(char search, int start) const
 {
-	char *ret;
-	ret = strchr(&data[start], search);
-	if (ret == NULL)
-	{
-		return -1;
-	}
-	else
-	{
-		return ret - data;
-	}
+	std::string s = data;
+	return s.find(search, start);
 }
 
 void VString::StrRplChr(const char find, const char replace)

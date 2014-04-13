@@ -47,7 +47,7 @@ public:
 	bool LoadFromFile(const char *filename);
 	void StrRplChr(const char find, const char replace);
 	int StrChr(char search, int start = 0) const;
-	int StrRChr(char search, int start = -1);
+	size_t StrRChr(char search, int start = -1);
 	int CompareReverseLimitNoCase(const char *dst, int limit) const;
 	void Trim(char *string);
 	void Trim(char chr);
