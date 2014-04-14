@@ -108,7 +108,7 @@ int RESGen::MakeRES(VString &map, int fileindex, int filecount)
 	}
 	else
 	{
-		basefolder = map.Left(i + 1).data;
+		basefolder = map.Left(i + 1);
 	}
 	std::string basefilename = map.Mid(i + 1, map.GetLength() - i - 5);
 
@@ -534,7 +534,7 @@ int RESGen::MakeRES(VString &map, int fileindex, int filecount)
 						if (CheckModelExtTexture(std::string(*resources.GetAt(resfileindex))))
 						{
 							// Uses external texture, add
-							VString *extmdltex = new VString(tempres->Left(tempres->GetLength() - 4)); // strip extention
+							VString *extmdltex = new VString(tempres->Left(tempres->GetLength() - 4).c_str()); // strip extention
 							*extmdltex += "T.mdl"; // add T and extention
 
 							// We can get away with this, since the model texture will be places AFTER the model
@@ -597,7 +597,7 @@ int RESGen::MakeRES(VString &map, int fileindex, int filecount)
 		}
 	}
 
-	if (resfile.GetCount() == 0 && rfastring.GetLength() == 0)
+	if (resfile.GetCount() == 0 && rfastring.empty())
 	{
 		// no resources!
 		if (verbal) { printf("No resources were found for \"%s.res\".", basefilename.c_str()); }
@@ -637,17 +637,15 @@ int RESGen::MakeRES(VString &map, int fileindex, int filecount)
 	return status;
 }
 
-void RESGen::BuildResourceList(VString &respath, bool checkpak, bool sdisp, bool rdisp)
+void RESGen::BuildResourceList(std::string &respath, bool checkpak, bool sdisp, bool rdisp)
 {
-	VString valvepath;
-
 	searchdisp = sdisp;
 	resourcedisp = rdisp;
 	pakparse = checkpak;
 
 	ClearResources(); // clear the current list first
 
-	if (respath.GetLength() == 0)
+	if (respath.empty())
 	{
 		// no respath, thus no reslist
 		checkforresources = false;
@@ -668,19 +666,21 @@ void RESGen::BuildResourceList(VString &respath, bool checkpak, bool sdisp, bool
 
 	// prepare folder name
 	
-	if (respath[respath.GetLength() - 1] != pathSep[0])
+	if (respath[respath.length() - 1] != pathSep[0])
 	{
 		// No path separator, add
 		respath += pathSep;
 	}
 
-	if (respath.CompareReverseLimitNoCase(valveStr, 7))
+	std::string valvepath;
+
+	if (VString(respath.c_str()).CompareReverseLimitNoCase(valveStr, 7))
 	{
 		// NOT valve dir, so check it too
-		size_t slashpos = respath.StrRChr(pathSep[0], respath.GetLength()-2);
+		size_t slashpos = VString(respath.c_str()).StrRChr(pathSep[0], respath.length() - 2);
 		if (slashpos != std::string::npos)
 		{
-			valvepath = respath.Left(slashpos);
+			valvepath = VString(respath.c_str()).Left(slashpos);
 			valvepath += valveStr;
 		}
 		else
@@ -689,28 +689,28 @@ void RESGen::BuildResourceList(VString &respath, bool checkpak, bool sdisp, bool
 		}
 	}
 
-	resourcepath = std::string(respath);
+	resourcepath = respath;
 	valveresourcepath = valvepath;
 
 	if (resourcedisp)
 	{
-		printf("Searching %s for resources:\n", (LPCSTR)respath);
+		printf("Searching %s for resources:\n", respath.c_str());
 	}
 	else if (verbal)
 	{
-		printf("Searching %s for resources...\n", (LPCSTR)respath);
+		printf("Searching %s for resources...\n", respath.c_str());
 	}
 
 	firstdir = true;
 	VString filepath = "";
-	ListDir(respath, filepath, true);
+	ListDir(VString(respath.c_str()), filepath, true);
 
 	// Check the valve dir too
-	if (valvepath.GetLength() > 0)
+	if (!valvepath.empty())
 	{
 		firstdir = true;
 		filepath = "";
-		ListDir(valvepath, filepath, false);
+		ListDir(VString(valvepath.c_str()), filepath, false);
 	}
 
 	printf("\n");
@@ -886,7 +886,7 @@ void RESGen::AddRes(VString res, const char * const prefix, const char * const s
 	while (!isalnum(res[0])) // keep stripping until a valid char is found
 	{
 		// Remove character
-		res = res.Right(res.GetLength() - 1); // Kinda slow, but usually only happens once.
+		res = VString(res.Right(res.GetLength() - 1).c_str()); // Kinda slow, but usually only happens once.
 	}
 
 	res.StrRplChr('\\', '/'); // replace backslashes
@@ -938,7 +938,7 @@ void RESGen::AddWad(const VString &wadlist, int start, int len)
 	wadfile.StrRplChr('\\', '/'); // replace backslashes
 
 	// strip folders
-	wadfile = wadfile.Right(len - wadfile.StrRChr('/') - 1); // We can get away with this because on not found, StrRChr returns -1. The right function is optimized for when the requested length equals the string length
+	wadfile = VString(wadfile.Right(len - wadfile.StrRChr('/') - 1).c_str()); // We can get away with this because on not found, StrRChr returns -1. The right function is optimized for when the requested length equals the string length
 
 	// Add file to reslist
 	AddRes(wadfile);
@@ -973,9 +973,9 @@ bool RESGen::WriteRes(const VString &folder, const VString &mapname)
 	}
 
 	// RFA file, if needed
-	if (rfastring.GetLength() > 0)
+	if (!rfastring.empty())
 	{
-		fprintf(f, "\n// Added .res content:\n%s\n", (LPCSTR)rfastring);
+		fprintf(f, "\n// Added .res content:\n%s\n", rfastring.c_str());
 	}
 
 	return true;
@@ -1054,13 +1054,19 @@ bool RESGen::LoadRfaFile(VString &filename)
 		filename += ".rfa";
 	}
 
-	if(!rfastring.LoadFromFile(filename))
+	VString str;
+	const bool bSuccess = str.LoadFromFile(filename);
+
+	if(bSuccess)
+	{
+		rfastring = std::string(str.data);
+	}
+	else
 	{
 		printf("Error reading rfa file: \"%s\"\n", (LPCSTR)filename);
-		return false;
 	}
 
-	return true;
+	return bSuccess;
 }
 
 char * RESGen::StrTok(char *string, char delimiter)
@@ -1513,9 +1519,9 @@ bool RESGen::CheckWadUse(const std::string &wadfile)
 	if (!wad)
 	{
 		// try the valve folder
-		if (valveresourcepath.GetLength() > 0)
+		if (!valveresourcepath.empty())
 		{
-			wad.open(std::string(valveresourcepath) + wadfile, "rb");
+			wad.open(valveresourcepath + wadfile, "rb");
 		}
 		if (!wad)
 		{
@@ -1584,9 +1590,9 @@ bool RESGen::CheckModelExtTexture(const std::string &model)
 	if (!mdl)
 	{
 		// try the valve folder
-		if (valveresourcepath.GetLength() > 0)
+		if (!valveresourcepath.empty())
 		{
-			mdl.open((LPCSTR)((std::string(valveresourcepath)+model).c_str()), "rb");
+			mdl.open((valveresourcepath + model).c_str(), "rb");
 		}
 		if (!mdl)
 		{

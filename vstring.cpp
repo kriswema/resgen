@@ -408,44 +408,44 @@ std::string VString::Mid(int index) const
 	return Mid(index, length - index);
 }
 
-VString VString::Left(int count) const
+std::string VString::Left(int count) const
 {
 	if (count <= 0)
 	{
-		VString retstr("");
-		return retstr;
+		return std::string();
 	}
+
 	if (count >= length)
 	{
-		return *this;
+		return std::string(data);
 	}
 
 	char *tmp = new char [count + 1];
 	memcpy(tmp, data, count);
 	tmp[count] = 0; // terminating null
-	VString retstr(tmp);
+
+	std::string retstr(tmp);
 	delete [] tmp;
 	return retstr;
 }
 
-VString VString::Right(int count) const
+std::string VString::Right(int count) const
 {
 	if (count <= 0)
 	{
-		VString retstr("");
-		return retstr;
+		return std::string();
 	}
 	if (count >= length)
 	{
-		return *this;
+		return std::string(data);
 	}
 
 	char *tmp = new char [count + 1];
 	memcpy(tmp, &data[length - count], count + 1);
-	VString retstr(tmp);
+
+	std::string retstr(tmp);
 	delete [] tmp;
 	return retstr;
-
 }
 
 void VString::MakeLower()

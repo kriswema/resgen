@@ -54,7 +54,7 @@ struct config_s
 	bool checkpak; // t
 	bool parseresource; // f
 	bool preservewads; // f
-	VString resource_path;
+	std::string resource_path;
 
 #ifdef WIN32
 	bool keypress; // t

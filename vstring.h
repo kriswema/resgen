@@ -60,8 +60,8 @@ public:
 	void TrimLeft(char chr);
 	void TrimLeft();
 	void MakeLower();
-	VString Right(int count) const;
-	VString Left(int count) const;
+	std::string Right(int count) const;
+	std::string Left(int count) const;
 	std::string Mid(int index) const;
 	std::string Mid(int index, int count) const;
 	int CompareNoCase(const char* string) const;
