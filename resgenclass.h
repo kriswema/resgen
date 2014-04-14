@@ -48,7 +48,7 @@ public:
 	void ClearResources();
 	void ClearResfile();
 	void BuildResourceList(std::string &respath, bool checkpak, bool fdisp, bool rdisp);
-	int MakeRES(VString &map, int fileindex, int filecount);
+	int MakeRES(std::string &map, int fileindex, int filecount);
 	void SetParams(bool beverbal, bool statline, bool overwrt, bool lcase, bool mcase, bool prsresource, bool preservewads, bool cdisp);
 	RESGen();
 	virtual ~RESGen();
@@ -64,7 +64,7 @@ private:
 	void AddRes(VString res, const char * const prefix = NULL, const char * const suffix = NULL);
 	char * NextValue();
 	char * NextToken();
-	char * LoadBSPData(const VString &file, int * const entdatalen = NULL, LinkedList<VString *> * const texlist = NULL);
+	char * LoadBSPData(const std::string &file, int * const entdatalen = NULL, LinkedList<VString *> * const texlist = NULL);
 
 	std::string valveresourcepath;
 	std::string resourcepath;

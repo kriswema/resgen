@@ -410,6 +410,8 @@ std::string VString::Mid(int index) const
 
 std::string VString::Left(int count) const
 {
+	//return std::string(data).substr(0, count);
+	
 	if (count <= 0)
 	{
 		return std::string();

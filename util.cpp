@@ -115,3 +115,11 @@ int strrnicmp(const char *src, const char *dst, int limit)
 
 	return 0;
 }
+
+std::string replaceCharAll(std::string str, const char find, const char replace)
+{
+	std::string result = str;
+	std::replace(result.begin(), result.end(), find, replace);
+	return result;
+}
+

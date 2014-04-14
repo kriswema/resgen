@@ -1,6 +1,7 @@
 #ifndef UTIL_H
 #define UTIL_H
 
+#include <algorithm>
 #include <string>
 
 // RAII wrapper for FILE
@@ -22,5 +23,7 @@ private:
 };
 
 int strrnicmp(const char *src, const char *dst, int limit);
+
+std::string replaceCharAll(std::string str, const char find, const char replace);
 
 #endif // UTIL_H

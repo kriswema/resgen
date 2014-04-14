@@ -81,7 +81,7 @@ void RESGen::SetParams(bool beverbal, bool statline, bool overwrt, bool lcase, b
 	contentdisp = cdisp;
 }
 
-int RESGen::MakeRES(VString &map, int fileindex, int filecount)
+int RESGen::MakeRES(std::string &map, int fileindex, int filecount)
 {
 	#ifdef WIN32
 	WIN32_FIND_DATA filedata;
@@ -91,10 +91,10 @@ int RESGen::MakeRES(VString &map, int fileindex, int filecount)
 	#endif
 
 	// Create basefilename
-	int i = map.StrRChr('/'); // Linux style path
+	int i = map.rfind('/'); // Linux style path
 	if (i == -1)
 	{
-		i = map.StrRChr('\\'); // windows style path
+		i = map.rfind('\\'); // windows style path
 	}
 
 	std::string basefolder; // folder, including trailing /
@@ -108,9 +108,9 @@ int RESGen::MakeRES(VString &map, int fileindex, int filecount)
 	}
 	else
 	{
-		basefolder = map.Left(i + 1);
+		basefolder = map.substr(0, i + 1);
 	}
-	std::string basefilename = map.Mid(i + 1, map.GetLength() - i - 5);
+	std::string basefilename = map.substr(i + 1, map.length() - i - 5);
 
 	std::string resName = basefolder + basefilename + ".res";
 
@@ -166,7 +166,7 @@ int RESGen::MakeRES(VString &map, int fileindex, int filecount)
 	if ((mistart = strstr(entdata, "{")) == NULL)
 	{
 		// Something wrong with bsp entity data
-		printf("Error parsing \"%s\". Entity data not in recognized text format.\n", (LPCSTR)map);
+		printf("Error parsing \"%s\". Entity data not in recognized text format.\n", map.c_str());
 		delete [] entdata; // Clean up entiy data!
 		return 1;
 	}
@@ -182,7 +182,7 @@ int RESGen::MakeRES(VString &map, int fileindex, int filecount)
 	char *token = StrTok(mapinfo, '\"');
 	if (!token)
 	{
-			printf("Error parsing \"%s\". No map information found.\n", (LPCSTR)map);
+			printf("Error parsing \"%s\". No map information found.\n", map.c_str());
 			delete [] mapinfo; // clean up mapinfo
 			delete [] entdata; // Clean up entiy data!
 			return 1;
@@ -191,7 +191,7 @@ int RESGen::MakeRES(VString &map, int fileindex, int filecount)
 	token = StrTok(NULL, '\"');
 	if (!token)
 	{
-			printf("Error parsing \"%s\". Entity data is corrupt.\n", (LPCSTR)map);
+			printf("Error parsing \"%s\". Entity data is corrupt.\n", map.c_str());
 			delete [] mapinfo; // clean up mapinfo
 			delete [] entdata; // Clean up entiy data!
 			return 1;
@@ -205,7 +205,7 @@ int RESGen::MakeRES(VString &map, int fileindex, int filecount)
 			token = NextValue();
 			if (!token)
 			{
-				printf("Error parsing \"%s\" for WADs. Entity data is corrupt.\n", (LPCSTR)map);
+				printf("Error parsing \"%s\" for WADs. Entity data is corrupt.\n", map.c_str());
 				delete [] mapinfo; // clean up mapinfo
 				delete [] entdata; // Clean up entiy data!
 				return 1;
@@ -240,7 +240,7 @@ int RESGen::MakeRES(VString &map, int fileindex, int filecount)
 			token = NextValue();
 			if (!token)
 			{
-				printf("Error parsing \"%s\" skies. Entity data is corrupt.\n", (LPCSTR)map);
+				printf("Error parsing \"%s\" skies. Entity data is corrupt.\n", map.c_str());
 				delete [] mapinfo; // clean up mapinfo
 				delete [] entdata; // Clean up entiy data!
 				return 1;
@@ -263,7 +263,7 @@ int RESGen::MakeRES(VString &map, int fileindex, int filecount)
 			token = NextValue();
 			if (!token)
 			{
-				printf("Error parsing \"%s\" for map data. Entity data is corrupt.\n", (LPCSTR)map);
+				printf("Error parsing \"%s\" for map data. Entity data is corrupt.\n", map.c_str());
 				delete [] mapinfo; // clean up mapinfo
 				delete [] entdata; // Clean up entiy data!
 				return 1;
@@ -274,7 +274,7 @@ int RESGen::MakeRES(VString &map, int fileindex, int filecount)
 		token = NextToken(); // exit value
 		if (!token)
 		{
-			printf("Error parsing \"%s\". Keys/values not alligned.\n", (LPCSTR)map);
+			printf("Error parsing \"%s\". Keys/values not alligned.\n", map.c_str());
 			delete [] mapinfo; // clean up mapinfo
 			delete [] entdata; // Clean up entiy data!
 			return 1;
@@ -297,7 +297,7 @@ int RESGen::MakeRES(VString &map, int fileindex, int filecount)
 	token = StrTok(entdata, '\"');
 	if (!token)
 	{
-			printf("Error parsing \"%s\". No initial key.\n", (LPCSTR)map);
+			printf("Error parsing \"%s\". No initial key.\n", map.c_str());
 			delete [] entdata; // Clean up entity data!
 			return 1;
 	}
@@ -306,7 +306,7 @@ int RESGen::MakeRES(VString &map, int fileindex, int filecount)
 	token = StrTok(NULL, '\"');
 	if (!token)
 	{
-			printf("Error parsing \"%s\". First key not found.\n", (LPCSTR)map);
+			printf("Error parsing \"%s\". First key not found.\n", map.c_str());
 			delete [] entdata; // Clean up entity data!
 			return 1;
 	}
@@ -317,7 +317,7 @@ int RESGen::MakeRES(VString &map, int fileindex, int filecount)
 		token = NextValue();
 		if (!token)
 		{
-			printf("\rError parsing \"%s\". Key to value transition failed.\n", (LPCSTR)map);
+			printf("\rError parsing \"%s\". Key to value transition failed.\n", map.c_str());
 			delete [] entdata; // Clean up entity data!
 			return 1;
 		}
@@ -353,7 +353,7 @@ int RESGen::MakeRES(VString &map, int fileindex, int filecount)
 		token = NextToken(); // exit value
 		if (!token)
 		{
-			printf("\rError parsing \"%s\". Could not move on to next key.\n", (LPCSTR)map);
+			printf("\rError parsing \"%s\". Could not move on to next key.\n", map.c_str());
 			delete [] entdata; // Clean up entiy data!
 			return 1;
 		}
@@ -716,14 +716,14 @@ void RESGen::BuildResourceList(std::string &respath, bool checkpak, bool sdisp, 
 	printf("\n");
 }
 
-char * RESGen::LoadBSPData(const VString &file, int * const entdatalen, LinkedList<VString *> * const texlist)
+char * RESGen::LoadBSPData(const std::string &file, int * const entdatalen, LinkedList<VString *> * const texlist)
 {
 	// first open the file.
-	File bsp((LPCSTR)file, "rb"); // read in binary mode.
+	File bsp(file, "rb"); // read in binary mode.
 
 	if (bsp == NULL)
 	{
-		printf("Error opening \"%s\"\n", (LPCSTR)file);
+		printf("Error opening \"%s\"\n", file.c_str());
 		return NULL;
 	}
 
@@ -733,20 +733,20 @@ char * RESGen::LoadBSPData(const VString &file, int * const entdatalen, LinkedLi
 	if (fread(&header, sizeof(bsp_header), 1, bsp) != 1)
 	{
 		// header NOT read properly!
-		printf("Error opening \"%s\". Corrupt BSP file.\n", (LPCSTR)file);
+		printf("Error opening \"%s\". Corrupt BSP file.\n", file.c_str());
 		return NULL;
 	}
 
 	if (header.version != BSPVERSION)
 	{
-		printf("Error opening \"%s\". Incorrect BSP version.\n", (LPCSTR)file);
+		printf("Error opening \"%s\". Incorrect BSP version.\n", file.c_str());
 		return NULL;
 	}
 
 	if (header.ent_header.fileofs <= 0 || header.ent_header.filelen <= 0)
 	{
 		// File corrupted
-		printf("Error opening \"%s\". Corrupt BSP header.\n", (LPCSTR)file);
+		printf("Error opening \"%s\". Corrupt BSP header.\n", file.c_str());
 		return NULL;
 	}
 
@@ -758,7 +758,7 @@ char * RESGen::LoadBSPData(const VString &file, int * const entdatalen, LinkedLi
 	{
 		// not the right ammount of data was read
 		delete [] entdata;
-		printf("Error opening \"%s\". BSP file corrupt.\n", (LPCSTR)file);
+		printf("Error opening \"%s\". BSP file corrupt.\n", file.c_str());
 		return NULL;
 	}
 
@@ -772,7 +772,7 @@ char * RESGen::LoadBSPData(const VString &file, int * const entdatalen, LinkedLi
 		{
 			// header NOT read properly!
 			delete [] entdata;
-			printf("Error opening \"%s\". Corrupt texture header.\n", (LPCSTR)file);
+			printf("Error opening \"%s\". Corrupt texture header.\n", file.c_str());
 			return NULL;
 		}
 
@@ -780,7 +780,7 @@ char * RESGen::LoadBSPData(const VString &file, int * const entdatalen, LinkedLi
 		{
 			// File corrupted
 			delete [] entdata;
-			printf("Error opening \"%s\". Corrupt BSP textures.\n", (LPCSTR)file);
+			printf("Error opening \"%s\". Corrupt BSP textures.\n", file.c_str());
 			return NULL;
 		}
 
@@ -794,7 +794,7 @@ char * RESGen::LoadBSPData(const VString &file, int * const entdatalen, LinkedLi
 			if (i != texcount) // load texture offsets
 			{
 				// header NOT read properly!
-				printf("Error opening \"%s\". Corrupt texture data.\n  read: %d, expect: %d\n", (LPCSTR)file, i, texcount);
+				printf("Error opening \"%s\". Corrupt texture data.\n  read: %d, expect: %d\n", file.c_str(), i, texcount);
 				delete [] entdata;
 				delete [] offsets;
 				return NULL;
@@ -812,7 +812,7 @@ char * RESGen::LoadBSPData(const VString &file, int * const entdatalen, LinkedLi
 					// header NOT read properly!
 					delete [] entdata;
 					delete [] offsets;
-					printf("Error opening \"%s\". Corrupt BSP file.\n", (LPCSTR)file);
+					printf("Error opening \"%s\". Corrupt BSP file.\n", file.c_str());
 					return NULL;
 				}
 
@@ -931,17 +931,15 @@ void RESGen::AddRes(VString res, const char * const prefix, const char * const s
 
 void RESGen::AddWad(const VString &wadlist, int start, int len)
 {
-	std::string wadfileStd = wadlist.Mid(start, len);
+	std::string wadfile = wadlist.Mid(start, len);
 
-	VString wadfile(wadfileStd.c_str());
-
-	wadfile.StrRplChr('\\', '/'); // replace backslashes
+	wadfile = replaceCharAll(wadfile, '\\', '/');
 
 	// strip folders
-	wadfile = VString(wadfile.Right(len - wadfile.StrRChr('/') - 1).c_str()); // We can get away with this because on not found, StrRChr returns -1. The right function is optimized for when the requested length equals the string length
+	wadfile = wadfile.substr(wadfile.rfind('/') + 1);
 
 	// Add file to reslist
-	AddRes(wadfile);
+	AddRes(VString(wadfile.c_str()));
 }
 
 bool RESGen::WriteRes(const VString &folder, const VString &mapname)

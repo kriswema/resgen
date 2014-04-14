@@ -649,7 +649,8 @@ int main(int argc, char* argv[])
 	{
 		if (config.contentdisp) { printf("\n"); } // Make output look a bit cleaner
 
-		int retval = resgen.MakeRES(*FileList.GetAt(0), i, filecount);
+		std::string map(FileList.GetAt(0)->data);
+		int retval = resgen.MakeRES(map, i, filecount);
 		if(retval)
 		{
 			if (retval == 2)
