@@ -47,7 +47,8 @@ public:
 	bool LoadFromFile(const char *filename);
 	void StrRplChr(const char find, const char replace);
 	int StrChr(char search, int start = 0) const;
-	size_t StrRChr(char search, int start = -1);
+	size_t StrRChr(char search);
+	size_t StrRChr(char search, int start);
 	int CompareReverseLimitNoCase(const char *dst, int limit) const;
 	void Trim(char *string);
 	void Trim(char chr);
@@ -61,8 +62,8 @@ public:
 	void MakeLower();
 	VString Right(int count) const;
 	VString Left(int count) const;
-	VString Mid(int index) const;
-	VString Mid(int index, int count) const;
+	std::string Mid(int index) const;
+	std::string Mid(int index, int count) const;
 	int CompareNoCase(const char* string) const;
 	int CompareLimit(const char *string, int limit) const;
 	const VString& operator+=(const char *string);
@@ -84,10 +85,12 @@ public:
 	VString();
 	virtual ~VString();
 
+public:
+	char * data;
+
 private:
 	int length;
 	int memuse;
-	char * data;
 
 protected:
 	void Cat(const char *string, int len);

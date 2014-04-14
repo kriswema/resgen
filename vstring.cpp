@@ -377,7 +377,7 @@ int VString::CompareNoCase(const char *string) const
 	return stricmp(data, string);
 }
 
-VString VString::Mid(int index, int count) const
+std::string VString::Mid(int index, int count) const
 {
 	// make sure we return something sensible
 	if (index < 0) { index = 0; }
@@ -386,14 +386,13 @@ VString VString::Mid(int index, int count) const
 	if (index >= length || count <= 0)
 	{
 		// this will result in an empty string.
-		VString retstr("");
-		return retstr;
+		return "";
 	}
 
 	if (index == 0 && count == length)
 	{
 		// They want the entire string...
-		return *this;
+		return std::string(data);
 	}
 
 	char *tmp = new char [count + 1];
@@ -401,10 +400,10 @@ VString VString::Mid(int index, int count) const
 	tmp[count] = 0; // terminating null
 	VString retstr(tmp);
 	delete [] tmp;
-	return retstr;
+	return std::string(retstr.data);
 }
 
-VString VString::Mid(int index) const
+std::string VString::Mid(int index) const
 {
 	return Mid(index, length - index);
 }
@@ -493,57 +492,26 @@ void VString::TrimLeft()
 
 void VString::TrimLeft(char chr)
 {
-	// search until no 'chr' is found
-	char *cptr = data;
+	size_t firstIndex = std::string(data).find_first_not_of(chr);
 
-	while (*cptr != 0) // do till terminating NULL
-	{
-		if (*cptr == chr)
-		{
-			// it's a 'chr'
-			cptr++; // increase pointer.
-		}
-		else
-		{
-			// current cptr points to first non-'chr' char
-			break;
-		}
-	}
-
-	if (cptr != data)
+	if((firstIndex != std::string::npos) && (firstIndex > 0))
 	{
 		// move string forward
-		memmove(data, cptr, length - (cptr - data) + 1);
-		length -= (int)(cptr-data);
+		memmove(data, data + firstIndex, length - firstIndex + 1);
+		length -= firstIndex;
 	}
 }
 
 void VString::TrimLeft(char *string)
 {
-	// search until none of the chars in 'string' is found
-	char *cptr = data;
+	size_t firstIndex = std::string(data).find_first_not_of(string);
 
-	while (*cptr != 0) // do till terminating NULL
-	{
-		if (strchr(string, *cptr))
-		{
-			// it's a char from 'string'
-			cptr++; // increase pointer.
-		}
-		else
-		{
-			// current cptr points to first non-'string' char
-			break;
-		}
-	}
-
-	if (cptr != data)
+	if((firstIndex != std::string::npos) && (firstIndex > 0))
 	{
 		// move string forward
-		memmove(data, cptr, length - (cptr - data) + 1);
-		length -= (int)(cptr-data);
+		memmove(data, data + firstIndex, length - firstIndex + 1);
+		length -= firstIndex;
 	}
-
 }
 
 void VString::TrimRight()
@@ -570,19 +538,9 @@ void VString::TrimRight()
 
 void VString::TrimRight(char chr)
 {
-	// search until no 'chr' char is found
-	int i;
+	size_t i = std::string(data).find_last_not_of(chr);
 
-	for (i = length-1; i >= 0; i--) // do till string start
-	{
-		if (data[i] != chr)
-		{
-			// i points to first non-'chr' char
-			break;
-		}
-	}
-
-	if (i != length-1)
+	if (i != std::string::npos)
 	{
 		// set terminating null on place of last whitespace
 		data[i + 1] = 0;
@@ -592,19 +550,9 @@ void VString::TrimRight(char chr)
 
 void VString::TrimRight(char *string)
 {
-	// search until no 'chr' char is found
-	int i;
+	size_t i = std::string(data).find_last_not_of(string);
 
-	for (i = length-1; i >= 0; i--) // do till string start
-	{
-		if (!strchr(string, data[i]))
-		{
-			// i points to first non-'chr' char
-			break;
-		}
-	}
-
-	if (i != length-1)
+	if (i != std::string::npos)
 	{
 		// set terminating null on place of last whitespace
 		data[i + 1] = 0;
@@ -633,57 +581,47 @@ void VString::Trim(char *string)
 int VString::CompareReverseLimitNoCase(const char *dst, int limit) const
 {
 	// first determine our maximum running length
-	char *src = data;
-	int i = length - 1;
-	int j = strlen(dst) - 1;
+	const char *src = data;
 
-	limit--;
-
-	if (i < limit)
 	{
-		if (i < j)
-		{
-			return -1;
-		}
-		else if (j < i)
-		{
-			return 1;
-		}
-		limit = i;
-	}
-	if (j < limit)
-	{
-		if (i < j)
-		{
-			return -1;
-		}
-		else if (j < i)
-		{
-			return 1;
-		}
-		limit = j;
-	}
+		int i = length - 1;
+		int j = strlen(dst) - 1;
 
-	src = src + i;
-	dst = dst + j;
+		limit--;
+
+		if (i < limit)
+		{
+			if(i != j)
+			{
+				return i - j;
+			}
+
+			limit = i;
+		}
+		if (j < limit)
+		{
+			if(i != j)
+			{
+				return i - j;
+			}
+
+			limit = j;
+		}
+
+		src += i;
+		dst += j;
+	}
 
 	while (limit >= 0)
 	{
-		i = tolower(*src);
-		j = tolower(*dst);
+		int i = tolower(*src);
+		int j = tolower(*dst);
 
-		int ret = i - j;
-		if (ret)
+		if (i != j)
 		{
-			if (ret < 0)
-			{
-				return -1;
-			}
-			else
-			{
-				return 1;
-			}
+			return i - j;
 		}
+
 		src--;
 		dst--;
 		limit--;
@@ -692,13 +630,13 @@ int VString::CompareReverseLimitNoCase(const char *dst, int limit) const
 	return 0;
 }
 
+size_t VString::StrRChr(char search)
+{
+	return std::string(data).rfind(search);
+}
+
 size_t VString::StrRChr(char search, int start)
 {
-	if (start < -1)
-	{
-		return std::string::npos;
-	}
-
 	if (start == -1)
 	{
 		start = length;

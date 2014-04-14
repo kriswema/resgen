@@ -78,26 +78,20 @@ int strrnicmp(const char *src, const char *dst, int limit)
 
 	if (i < limit)
 	{
-		if (i < j)
-		{
-			return -1;
-		}
-		else if (j < i)
-		{
-			return 1;
-		}
+        if (i != j)
+        {
+            return i - j;
+        }
+
 		limit = i;
 	}
 	if (j < limit)
 	{
-		if (i < j)
-		{
-			return -1;
-		}
-		else if (j < i)
-		{
-			return 1;
-		}
+        if (i != j)
+        {
+            return i - j;
+        }
+
 		limit = j;
 	}
 
@@ -109,18 +103,11 @@ int strrnicmp(const char *src, const char *dst, int limit)
 		i = tolower(*src);
 		j = tolower(*dst);
 
-		int ret = i - j;
-		if (ret)
-		{
-			if (ret < 0)
-			{
-				return -1;
-			}
-			else
-			{
-				return 1;
-			}
-		}
+        if (i != j)
+        {
+            return i - j;
+        }
+
 		src--;
 		dst--;
 		limit--;

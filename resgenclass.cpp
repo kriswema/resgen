@@ -97,7 +97,7 @@ int RESGen::MakeRES(VString &map, int fileindex, int filecount)
 		i = map.StrRChr('\\'); // windows style path
 	}
 
-	VString basefolder; // folder, including trailing /
+	std::string basefolder; // folder, including trailing /
 	if (i == -1)
 	{
 		#ifdef WIN32
@@ -108,27 +108,29 @@ int RESGen::MakeRES(VString &map, int fileindex, int filecount)
 	}
 	else
 	{
-		basefolder = map.Left(i + 1);
+		basefolder = map.Left(i + 1).data;
 	}
-	VString basefilename = map.Mid(i + 1, map.GetLength() - i - 5);
+	std::string basefilename = map.Mid(i + 1, map.GetLength() - i - 5);
+
+	std::string resName = basefolder + basefilename + ".res";
 
 	if (verbal)
 	{
-		printf("Creating .res file %s [%d/%d].\n", (LPCSTR)(basefolder + basefilename + ".res"), fileindex, filecount);
+		printf("Creating .res file %s [%d/%d].\n", resName.c_str(), fileindex, filecount);
 	}
 
 
 	// Check if resfile doesn't already exist
 	bool fileexists = false;
 	#ifdef WIN32
-	filehandle = FindFirstFile(basefolder + basefilename + ".res", &filedata);
+	filehandle = FindFirstFile(VString(resName.c_str()), &filedata);
 	if (filehandle != INVALID_HANDLE_VALUE)
 	{
 		FindClose(filehandle);
 		fileexists = true;
 	}
 	#else
-	if (!glob((LPCSTR)(basefolder + basefilename + ".res"), GLOB_TILDE, NULL, &globbuf))
+	if (!glob(resName.c_str(), GLOB_TILDE, NULL, &globbuf))
 	{
 		globfree(&globbuf);
 		fileexists = true;
@@ -138,7 +140,7 @@ int RESGen::MakeRES(VString &map, int fileindex, int filecount)
 	if (!overwrite && fileexists)
 	{
 		// File found, but we don't want to overwrite.
-		printf("%s already exists. Skipping file.\n", (LPCSTR)(basefolder + basefilename + ".res"));
+		printf("%s already exists. Skipping file.\n", resName.c_str());
 		return 1;
 	}
 
@@ -391,13 +393,13 @@ int RESGen::MakeRES(VString &map, int fileindex, int filecount)
 
 	// Try to find info txt and overview data
 	#ifdef WIN32
-	filehandle = FindFirstFile(basefolder + "..\\overviews\\" + basefilename + ".txt", &filedata); // try to find txt file for overview
+	filehandle = FindFirstFile(VString(basefolder.c_str()) + "..\\overviews\\" + VString(basefilename.c_str()) + ".txt", &filedata); // try to find txt file for overview
 	if (filehandle != INVALID_HANDLE_VALUE)
 	{
 		FindClose(filehandle);
 
 		// file found, but we need the tga or bmp too
-		filehandle = FindFirstFile(basefolder + "..\\overviews\\" + basefilename + ".tga", &filedata); // try to find tga file for overview
+		filehandle = FindFirstFile(VString(basefolder.c_str()) + "..\\overviews\\" + VString(basefilename.c_str()) + ".tga", &filedata); // try to find tga file for overview
 		if (filehandle != INVALID_HANDLE_VALUE)
 		{
 			FindClose(filehandle);
@@ -408,7 +410,7 @@ int RESGen::MakeRES(VString &map, int fileindex, int filecount)
 		}
 		else
 		{
-			filehandle = FindFirstFile(basefolder + "..\\overviews\\" + basefilename + ".bmp", &filedata); // try to find bmp file for overview
+			filehandle = FindFirstFile(VString(basefolder.c_str()) + "..\\overviews\\" + VString(basefilename.c_str()) + ".bmp", &filedata); // try to find bmp file for overview
 			if (filehandle != INVALID_HANDLE_VALUE)
 			{
 				FindClose(filehandle);
@@ -424,26 +426,26 @@ int RESGen::MakeRES(VString &map, int fileindex, int filecount)
 	// Please note that params are NOT expanded (tilde will be).
 	// So it might not work properly in cases where params are used
 	// The glob man page tell us to use wordexp for expansion.. However, that function does not exist.
-	if (!glob((LPCSTR)(basefolder + "../overviews/" + basefilename + ".txt"), GLOB_TILDE, NULL, &globbuf))
+	if (!glob((basefolder + "../overviews/" + basefilename + ".txt").c_str(), GLOB_TILDE, NULL, &globbuf))
 	{
 		globfree(&globbuf);
 
 		// file found, but we need the tga or bmp too
-		if (!glob((LPCSTR)(basefolder + "../overviews/" + basefilename + ".tga"), GLOB_TILDE, NULL, &globbuf))
+		if (!glob((basefolder + "../overviews/" + basefilename + ".tga").c_str(), GLOB_TILDE, NULL, &globbuf))
 		{
 			globfree(&globbuf);
 
 			// txt found too, add both files to res list
-			AddRes(basefilename, "overviews/", ".tga");
-			AddRes(basefilename, "overviews/", ".txt");
+			AddRes(VString(basefilename.c_str()), "overviews/", ".tga");
+			AddRes(VString(basefilename.c_str()), "overviews/", ".txt");
 		}
-		else if (!glob((LPCSTR)(basefolder + "../overviews/" + basefilename + ".bmp"), GLOB_TILDE, NULL, &globbuf))
+		else if (!glob((basefolder + "../overviews/" + basefilename + ".bmp").c_str(), GLOB_TILDE, NULL, &globbuf))
 		{
 			globfree(&globbuf);
 
 			// txt found too, add both files to res list
-			AddRes(basefilename, "overviews/", ".bmp");
-			AddRes(basefilename, "overviews/", ".txt");
+			AddRes(VString(basefilename.c_str()), "overviews/", ".bmp");
+			AddRes(VString(basefilename.c_str()), "overviews/", ".txt");
 		}
 	}
 	#endif
@@ -598,14 +600,14 @@ int RESGen::MakeRES(VString &map, int fileindex, int filecount)
 	if (resfile.GetCount() == 0 && rfastring.GetLength() == 0)
 	{
 		// no resources!
-		if (verbal) { printf("No resources were found for \"%s.res\".", (LPCSTR)basefilename); }
+		if (verbal) { printf("No resources were found for \"%s.res\".", basefilename.c_str()); }
 
 		if (fileexists)
 		{
 			// File exists, delete it.
 			// WHAT? No check for overwrite? No!
 			// Think of it, if the file exists we MUST be in overwrite mode to even get to this point!
-			remove(basefolder + basefilename + ".res");
+			remove(resName.c_str());
 			if (verbal)
 			{
 				printf(" Deleting existing res file.\n");
@@ -623,7 +625,7 @@ int RESGen::MakeRES(VString &map, int fileindex, int filecount)
 	}
 
 	// Collecting resfile entries is done, now write the res file.
-	if (!WriteRes(basefolder, basefilename))
+	if (!WriteRes(VString(basefolder.c_str()), VString(basefilename.c_str())))
 	{
 		return 1;
 	}
@@ -929,9 +931,9 @@ void RESGen::AddRes(VString res, const char * const prefix, const char * const s
 
 void RESGen::AddWad(const VString &wadlist, int start, int len)
 {
-	VString wadfile;
+	std::string wadfileStd = wadlist.Mid(start, len);
 
-	wadfile = wadlist.Mid(start, len);
+	VString wadfile(wadfileStd.c_str());
 
 	wadfile.StrRplChr('\\', '/'); // replace backslashes
 
