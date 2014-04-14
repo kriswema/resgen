@@ -153,7 +153,7 @@ void ListBuilder::AddFile(const VString &filename, bool checkexlist)
 
 	VString *tmp = new VString(filename);
 
-	if (tmp->CompareReverseLimitNoCase(".bsp", 4))
+	if (tmp->CompareReverseLimitNoCase(".bsp"))
 	{
 		// add file extension
 		*tmp += ".bsp";
@@ -164,7 +164,7 @@ void ListBuilder::AddFile(const VString &filename, bool checkexlist)
 		for (int i = 0; i < exlist->GetCount(); i++)
 		{
 			file_s *tmpex = exlist->GetAt(i);
-			if(!tmp->CompareReverseLimitNoCase((LPCSTR)tmpex->name, tmpex->name.GetLength()))
+			if(!tmp->CompareReverseLimitNoCase((LPCSTR)tmpex->name))
 			{
 				// make sure mapname is not longer.
 				if (tmp->GetLength() <= tmpex->name.GetLength())
@@ -210,7 +210,7 @@ void ListBuilder::PrepExList()
 	{
 		file_s *tmp = exlist->GetAt(i);
 
-		if (tmp->name.CompareReverseLimitNoCase(".bsp", 4))
+		if (tmp->name.CompareReverseLimitNoCase(".bsp"))
 		{
 			// add file extension
 			tmp->name += ".bsp";
@@ -276,7 +276,7 @@ void ListBuilder::ListDir(const VString &path)
 		else
 		{
 			// Check if the file is a .bsp
-			if (!file.CompareReverseLimitNoCase(".bsp", 4))
+			if (!file.CompareReverseLimitNoCase(".bsp"))
 			{
 				AddFile(file, true);
 			}
@@ -352,7 +352,7 @@ void ListBuilder::ListDir(const VString &path)
 				else
 				{
 					// Check if the file is a .bsp
-					if (!file.CompareReverseLimitNoCase(".bsp", 4))
+					if (!file.CompareReverseLimitNoCase(".bsp"))
 					{
 						AddFile(file, true);
 					}

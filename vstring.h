@@ -49,7 +49,7 @@ public:
 	int StrChr(char search, int start = 0) const;
 	size_t StrRChr(char search);
 	size_t StrRChr(char search, int start);
-	int CompareReverseLimitNoCase(const char *dst, int limit) const;
+	int CompareReverseLimitNoCase(const char *dst) const;
 	void Trim(char *string);
 	void Trim(char chr);
 	void Trim();

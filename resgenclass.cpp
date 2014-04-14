@@ -221,7 +221,7 @@ int RESGen::MakeRES(std::string &map, int fileindex, int filecount)
 
 				while ((seppos = value.StrChr(';', i)) != std::string::npos)
 				{
-					AddWad(value, i, seppos - i); // Add wad to reslist
+					AddWad(std::string(value.data), i, seppos - i); // Add wad to reslist
 					i = seppos + 1;
 				}
 
@@ -229,7 +229,7 @@ int RESGen::MakeRES(std::string &map, int fileindex, int filecount)
 				if (i < value.GetLength())
 				{
 					// it should be equal, there is a wadfile left!
-					AddWad(value, i, value.GetLength() - i);
+					AddWad(std::string(value.data), i, value.GetLength() - i);
 				}
 			}
 
@@ -247,7 +247,7 @@ int RESGen::MakeRES(std::string &map, int fileindex, int filecount)
 			}
 			// token has value
 
-			VString value = token;
+			std::string value(token);
 
 			// Add al 6 sky textures here
 			AddRes(value, "gfx/env/", "up.tga");
@@ -324,30 +324,30 @@ int RESGen::MakeRES(std::string &map, int fileindex, int filecount)
 
 		VString value = token; // asign token to a VString
 
-		if (!value.CompareReverseLimitNoCase(".mdl", 4))
+		if (!value.CompareReverseLimitNoCase(".mdl"))
 		{
 			// mdl file
-			AddRes(value);
+			AddRes(std::string(value.data));
 		}
-		else if (!value.CompareReverseLimitNoCase(".wav", 4))
+		else if (!value.CompareReverseLimitNoCase(".wav"))
 		{
 			// wave file
-			AddRes(value, "sound/");
+			AddRes(std::string(value.data), "sound/");
 		}
-		else if (!value.CompareReverseLimitNoCase(".spr", 4))
+		else if (!value.CompareReverseLimitNoCase(".spr"))
 		{
 			// sprite file
-			AddRes(value);
+			AddRes(std::string(value.data));
 		}
-		else if (!value.CompareReverseLimitNoCase(".bmp", 4))
+		else if (!value.CompareReverseLimitNoCase(".bmp"))
 		{
 			// bitmap file
-			AddRes(value);
+			AddRes(std::string(value.data));
 		}
-		else if (!value.CompareReverseLimitNoCase(".tga", 4))
+		else if (!value.CompareReverseLimitNoCase(".tga"))
 		{
 			// targa file
-			AddRes(value);
+			AddRes(std::string(value.data));
 		}
 
 		token = NextToken(); // exit value
@@ -436,16 +436,16 @@ int RESGen::MakeRES(std::string &map, int fileindex, int filecount)
 			globfree(&globbuf);
 
 			// txt found too, add both files to res list
-			AddRes(VString(basefilename.c_str()), "overviews/", ".tga");
-			AddRes(VString(basefilename.c_str()), "overviews/", ".txt");
+			AddRes(basefilename, "overviews/", ".tga");
+			AddRes(basefilename, "overviews/", ".txt");
 		}
 		else if (!glob((basefolder + "../overviews/" + basefilename + ".bmp").c_str(), GLOB_TILDE, NULL, &globbuf))
 		{
 			globfree(&globbuf);
 
 			// txt found too, add both files to res list
-			AddRes(VString(basefilename.c_str()), "overviews/", ".bmp");
-			AddRes(VString(basefilename.c_str()), "overviews/", ".txt");
+			AddRes(basefilename, "overviews/", ".bmp");
+			AddRes(basefilename, "overviews/", ".txt");
 		}
 	}
 	#endif
@@ -475,7 +475,7 @@ int RESGen::MakeRES(std::string &map, int fileindex, int filecount)
 					}
 
 				}
-				else if (tempres->CompareReverseLimitNoCase(".wad", 4))
+				else if (tempres->CompareReverseLimitNoCase(".wad"))
 				{
 					// not a wad file
 					if (verbal)
@@ -508,7 +508,7 @@ int RESGen::MakeRES(std::string &map, int fileindex, int filecount)
 
 				if (parseresource)
 				{
-					if (!tempres->CompareReverseLimitNoCase(".wad", 4))
+					if (!tempres->CompareReverseLimitNoCase(".wad"))
 					{
 						// Check if wad file is used
 						if (!CheckWadUse(std::string(*resources.GetAt(resfileindex)))) // We MUST have the right file
@@ -528,7 +528,7 @@ int RESGen::MakeRES(std::string &map, int fileindex, int filecount)
 							}
 						}
 					}
-					else if (!tempres->CompareReverseLimitNoCase(".mdl", 4))
+					else if (!tempres->CompareReverseLimitNoCase(".mdl"))
 					{
 						// Check model for external texture
 						if (CheckModelExtTexture(std::string(*resources.GetAt(resfileindex))))
@@ -674,7 +674,7 @@ void RESGen::BuildResourceList(std::string &respath, bool checkpak, bool sdisp, 
 
 	std::string valvepath;
 
-	if (VString(respath.c_str()).CompareReverseLimitNoCase(valveStr, 7))
+	if (VString(respath.c_str()).CompareReverseLimitNoCase(valveStr))
 	{
 		// NOT valve dir, so check it too
 		size_t slashpos = VString(respath.c_str()).StrRChr(pathSep[0], respath.length() - 2);
@@ -880,21 +880,21 @@ char * RESGen::NextValue()
 	return token;
 }
 
-void RESGen::AddRes(VString res, const char * const prefix, const char * const suffix)
+void RESGen::AddRes(std::string res, const char * const prefix, const char * const suffix)
 {
 	// Sometimes res entries start with a non alphanumeric character. Strip it.
 	while (!isalnum(res[0])) // keep stripping until a valid char is found
 	{
 		// Remove character
-		res = VString(res.Right(res.GetLength() - 1).c_str()); // Kinda slow, but usually only happens once.
+		res = res.substr(1); // Kinda slow, but usually only happens once.
 	}
 
-	res.StrRplChr('\\', '/'); // replace backslashes
+	res = replaceCharAll(res, '\\', '/');
 
 	// Add prefix and suffix
 	if (prefix)
 	{
-		res = prefix + res; // kinda slow...
+		res = std::string(prefix) + res;
 	}
 	if (suffix)
 	{
@@ -904,13 +904,13 @@ void RESGen::AddRes(VString res, const char * const prefix, const char * const s
 	if (tolower)
 	{
 		// Convert name to lowercase
-		res.MakeLower();
+		strToLower(res);
 	}
 
 	// Add file to list if it isn't in it yet.
 
 	// File not found, must be new. Add to list
-	VString *tempres = new VString(res);
+	VString *tempres = new VString(res.c_str());
 	if (!resfile.InsertSorted(tempres, RESGen_CompareVStringsFromList, false))
 	{
 		// double file found, discard
@@ -921,7 +921,7 @@ void RESGen::AddRes(VString res, const char * const prefix, const char * const s
 	// Report file found
 	if (contentdisp)
 	{
-		printf("\r%-21s\n", (LPCSTR)res); // With 21 chars, there is support for up to 999999 bsp's to parse untill the statbar might remain in screen
+		printf("\r%-21s\n", res.c_str()); // With 21 chars, there is support for up to 999999 bsp's to parse untill the statbar might remain in screen
 	}
 
 	statcount = STAT_MAX; // Make statbar print on next update
@@ -929,9 +929,9 @@ void RESGen::AddRes(VString res, const char * const prefix, const char * const s
 	return;
 }
 
-void RESGen::AddWad(const VString &wadlist, int start, int len)
+void RESGen::AddWad(const std::string &wadlist, int start, int len)
 {
-	std::string wadfile = wadlist.Mid(start, len);
+	std::string wadfile = wadlist.substr(start, len);
 
 	wadfile = replaceCharAll(wadfile, '\\', '/');
 
@@ -939,7 +939,7 @@ void RESGen::AddWad(const VString &wadlist, int start, int len)
 	wadfile = wadfile.substr(wadfile.rfind('/') + 1);
 
 	// Add file to reslist
-	AddRes(VString(wadfile.c_str()));
+	AddRes(wadfile);
 }
 
 bool RESGen::WriteRes(const VString &folder, const VString &mapname)
@@ -1046,7 +1046,7 @@ bool RESGen::LoadRfaFile(VString &filename)
 	}
 
 	// Add .rfa extention if needed
-	if (filename.CompareReverseLimitNoCase(".rfa", 4))
+	if (filename.CompareReverseLimitNoCase(".rfa"))
 	{
 		// not found, add
 		filename += ".rfa";
@@ -1154,13 +1154,13 @@ void RESGen::ListDir(const VString &path, const VString &filepath, bool reporter
 		{
 			// Check if the file is a possible resource
 			if (
-				!file.CompareReverseLimitNoCase(".mdl", 4) ||
-				!file.CompareReverseLimitNoCase(".wav", 4) ||
-				!file.CompareReverseLimitNoCase(".spr", 4) ||
-				!file.CompareReverseLimitNoCase(".bmp", 4) ||
-				!file.CompareReverseLimitNoCase(".tga", 4) ||
-				!file.CompareReverseLimitNoCase(".txt", 4) ||
-				!file.CompareReverseLimitNoCase(".wad", 4)
+				!file.CompareReverseLimitNoCase(".mdl") ||
+				!file.CompareReverseLimitNoCase(".wav") ||
+				!file.CompareReverseLimitNoCase(".spr") ||
+				!file.CompareReverseLimitNoCase(".bmp") ||
+				!file.CompareReverseLimitNoCase(".tga") ||
+				!file.CompareReverseLimitNoCase(".txt") ||
+				!file.CompareReverseLimitNoCase(".wad")
 				)
 			{
 				// resource, add to list
@@ -1179,7 +1179,7 @@ void RESGen::ListDir(const VString &path, const VString &filepath, bool reporter
 				}
 			}
 
-			if (!file.CompareReverseLimitNoCase(".pak", 4) && pakparse)
+			if (!file.CompareReverseLimitNoCase(".pak") && pakparse)
 			{
 				// get pakfilelist
 				BuildPakResourceList(path + file);
@@ -1247,13 +1247,13 @@ void RESGen::ListDir(const VString &path, const VString &filepath, bool reporter
 			{
 				// Check if the file is a possible resource
 				if (
-					!file.CompareReverseLimitNoCase(".mdl", 4) ||
-					!file.CompareReverseLimitNoCase(".wav", 4) ||
-					!file.CompareReverseLimitNoCase(".spr", 4) ||
-					!file.CompareReverseLimitNoCase(".bmp", 4) ||
-					!file.CompareReverseLimitNoCase(".tga", 4) ||
-					!file.CompareReverseLimitNoCase(".txt", 4) ||
-					!file.CompareReverseLimitNoCase(".wad", 4)
+					!file.CompareReverseLimitNoCase(".mdl") ||
+					!file.CompareReverseLimitNoCase(".wav") ||
+					!file.CompareReverseLimitNoCase(".spr") ||
+					!file.CompareReverseLimitNoCase(".bmp") ||
+					!file.CompareReverseLimitNoCase(".tga") ||
+					!file.CompareReverseLimitNoCase(".txt") ||
+					!file.CompareReverseLimitNoCase(".wad")
 					)
 				{
 					// resource, add to list
@@ -1272,7 +1272,7 @@ void RESGen::ListDir(const VString &path, const VString &filepath, bool reporter
 					}
 				}
 
-				if (!file.CompareReverseLimitNoCase(".pak", 4) && pakparse)
+				if (!file.CompareReverseLimitNoCase(".pak") && pakparse)
 				{
 					// get pakfilelist
 					BuildPakResourceList(path + file);
@@ -1415,7 +1415,7 @@ bool RESGen::LoadExludeFile(VString &listfile)
 		return false;
 	}
 
-	if (listfile.CompareReverseLimitNoCase(".rfa", 4))
+	if (listfile.CompareReverseLimitNoCase(".rfa"))
 	{
 		// .rfa extension missing, add it
 		listfile += ".rfa";

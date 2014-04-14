@@ -580,56 +580,11 @@ void VString::Trim(char *string)
 	TrimRight(string);
 }
 
-int VString::CompareReverseLimitNoCase(const char *dst, int limit) const
+int VString::CompareReverseLimitNoCase(const char *dst) const
 {
-	// first determine our maximum running length
-	const char *src = data;
-
-	{
-		int i = length - 1;
-		int j = strlen(dst) - 1;
-
-		limit--;
-
-		if (i < limit)
-		{
-			if(i != j)
-			{
-				return i - j;
-			}
-
-			limit = i;
-		}
-		if (j < limit)
-		{
-			if(i != j)
-			{
-				return i - j;
-			}
-
-			limit = j;
-		}
-
-		src += i;
-		dst += j;
-	}
-
-	while (limit >= 0)
-	{
-		int i = tolower(*src);
-		int j = tolower(*dst);
-
-		if (i != j)
-		{
-			return i - j;
-		}
-
-		src--;
-		dst--;
-		limit--;
-	}
-
-	return 0;
+	std::string str1(data);
+	std::string str2(dst);
+	return CompareStrEndNoCase(str1, str2);
 }
 
 size_t VString::StrRChr(char search)

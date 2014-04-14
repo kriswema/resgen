@@ -123,3 +123,27 @@ std::string replaceCharAll(std::string str, const char find, const char replace)
 	return result;
 }
 
+std::string strToLowerCopy(const std::string &str)
+{
+    std::string result(str);
+    std::transform(result.begin(), result.end(), result.begin(), ::tolower);
+    return result;
+}
+
+void strToLower(std::string &str)
+{
+    std::transform(str.begin(), str.end(), str.begin(), ::tolower);
+}
+
+int CompareStrEndNoCase(std::string &str, std::string &ending)
+{
+	if(str.length() < ending.length())
+	{
+		return -1;
+	}
+
+	std::string strLC = strToLowerCopy(str);
+	std::string endingLC = strToLowerCopy(ending);
+
+	return strLC.compare(str.length() - ending.length(), ending.length(), endingLC);
+}

@@ -26,4 +26,10 @@ int strrnicmp(const char *src, const char *dst, int limit);
 
 std::string replaceCharAll(std::string str, const char find, const char replace);
 
+std::string strToLowerCopy(const std::string &str);
+
+void strToLower(std::string &str);
+
+int CompareStrEndNoCase(std::string &str, std::string &ending);
+
 #endif // UTIL_H

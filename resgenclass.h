@@ -60,8 +60,8 @@ private:
 	void ListDir(const VString &path, const VString &filepath, bool reporterror);
 	char * StrTok(char *string, char delimiter);
 	bool WriteRes(const VString &folder, const VString &mapname);
-	void AddWad(const VString &wadlist, int start, int len);
-	void AddRes(VString res, const char * const prefix = NULL, const char * const suffix = NULL);
+	void AddWad(const std::string &wadlist, int start, int len);
+	void AddRes(std::string res, const char * const prefix = NULL, const char * const suffix = NULL);
 	char * NextValue();
 	char * NextToken();
 	char * LoadBSPData(const std::string &file, int * const entdatalen = NULL, LinkedList<VString *> * const texlist = NULL);
