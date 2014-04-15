@@ -18,10 +18,10 @@ EXECNAME=resgen
 #base flags that are used in any compilation
 BASE_CFLAGS=
 
-CFLAGS=$(BASE_CFLAGS) -std=c++11 -Wall -Wextra -pedantic
+#CFLAGS=$(BASE_CFLAGS) -std=c++11 -Wall -Wextra -pedantic
 
 # TODO: Switch over to as many of these as possible
-#CFLAGS=$(BASE_CFLAGS) -std=c++11 -Wall -Wextra -pedantic -Wcast-align -Wcast-qual -Wctor-dtor-privacy -Wdisabled-optimization -Wformat=2 -Winit-self -Wlogical-op -Wmissing-declarations -Wmissing-include-dirs -Wnoexcept -Wold-style-cast -Woverloaded-virtual -Wredundant-decls -Wshadow -Wsign-conversion -Wsign-promo -Wstrict-null-sentinel -Wstrict-overflow=5 -Wswitch-default -Wundef -Wno-unused
+CFLAGS=$(BASE_CFLAGS) -std=c++0x -Wall -Wextra -pedantic -Wcast-align -Wcast-qual -Wctor-dtor-privacy -Wdisabled-optimization -Wformat=2 -Winit-self -Wlogical-op -Wmissing-declarations -Wmissing-include-dirs -Wnoexcept -Wold-style-cast -Woverloaded-virtual -Wredundant-decls -Wshadow -Wsign-conversion -Wsign-promo -Wstrict-null-sentinel -Wstrict-overflow=5 -Wswitch-default -Wundef -Wno-unused
 
 #use these when debugging
 #CFLAGS=$(BASE_CFLAGS) -g -D_DEBUG
