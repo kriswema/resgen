@@ -19,6 +19,8 @@ along with RESGen; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
+#include <fstream>
+#include <sstream>
 #include <stdio.h>
 #include <string.h>
 
@@ -166,4 +168,19 @@ void rightTrim(std::string &str)
 void rightTrim(std::string &str, const std::string &trimmedChars)
 {
     str.erase(str.find_first_not_of(trimmedChars) + 1);
+}
+
+bool readFile(const std::string &filename, std::string &outStr)
+{
+	std::ifstream f(filename.c_str());
+
+    if(!f.is_open())
+    {
+        return false;
+    }
+
+	std::stringstream buffer;
+	buffer << f.rdbuf();
+	outStr = buffer.str();
+    return true;
 }

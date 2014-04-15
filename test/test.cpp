@@ -6,7 +6,6 @@
 #include "test.h"
 
 #include "../LinkedList.h"
-#include "../vstring.h"
 
 CPPUNIT_TEST_SUITE_REGISTRATION(LinkedListTest);
 

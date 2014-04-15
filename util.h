@@ -38,4 +38,6 @@ void leftTrim(std::string &str, const std::string &trimmedChars);
 void rightTrim(std::string &str);
 void rightTrim(std::string &str, const std::string &trimmedChars);
 
+bool readFile(const std::string &filename, std::string &outStr);
+
 #endif // UTIL_H

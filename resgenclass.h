@@ -34,9 +34,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <string>
 
 #include "LinkedList.h"
-#include "vstring.h"
 
-int RESGen_CompareVStringsFromList(const std::string &a, const std::string &b); // For sorting of lists
+int ICompareStrings(const std::string &a, const std::string &b); // For sorting of lists
 
 class RESGen
 {

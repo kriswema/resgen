@@ -461,11 +461,11 @@ int RESGen::MakeRES(std::string &map, int fileindex, int filecount)
 		{
 			std::string& tempres = resfile.GetAt(i);
 
-			int resfileindex = resources.Find(tempres, RESGen_CompareVStringsFromList);
+			int resfileindex = resources.Find(tempres, ICompareStrings);
 			if(resfileindex < 0)
 			{
 				// file not found - maybe it's excluded?
-				resfileindex = excludelist.Find(tempres, RESGen_CompareVStringsFromList);
+				resfileindex = excludelist.Find(tempres, ICompareStrings);
 				if(resfileindex >= 0)
 				{
 					// file found - it's an exclude
@@ -536,7 +536,7 @@ int RESGen::MakeRES(std::string &map, int fileindex, int filecount)
 							extmdltex += "T.mdl"; // add T and extention
 
 							// We can get away with this, since the model texture will be places AFTER the model
-							if (resfile.InsertSorted(extmdltex, RESGen_CompareVStringsFromList, false))
+							if (resfile.InsertSorted(extmdltex, ICompareStrings, false))
 							{
 								if (contentdisp)
 								{
@@ -560,7 +560,7 @@ int RESGen::MakeRES(std::string &map, int fileindex, int filecount)
 		{
 			std::string& tempres = resfile.GetAt(i);
 
-			int resfileindex = excludelist.Find(tempres, RESGen_CompareVStringsFromList);
+			int resfileindex = excludelist.Find(tempres, ICompareStrings);
 			if(resfileindex >= 0)
 			{
 				// file found
@@ -811,7 +811,7 @@ char * RESGen::LoadBSPData(const std::string &file, int * const entdatalen, Link
 				{
 					// No texture for any mip level, so must be in a wad
 					std::string texfile(texdata.name);
-					texlist->InsertSorted(texfile, RESGen_CompareVStringsFromList, false);
+					texlist->InsertSorted(texfile, ICompareStrings, false);
 				}
 			}
 
@@ -896,7 +896,7 @@ void RESGen::AddRes(std::string res, const char * const prefix, const char * con
 	// Add file to list if it isn't in it yet.
 
 	// File not found, must be new. Add to list
-	if (!resfile.InsertSorted(res, RESGen_CompareVStringsFromList, false))
+	if (!resfile.InsertSorted(res, ICompareStrings, false))
 	{
 		// double file found, discard
 		return;
@@ -1024,12 +1024,12 @@ bool RESGen::LoadRfaFile(std::string &filename)
 		filename += ".rfa";
 	}
 
-	VString str;
-	const bool bSuccess = str.LoadFromFile(filename.c_str());
+	std::string str;
+	const bool bSuccess = readFile(filename, str);
 
 	if(bSuccess)
 	{
-		rfastring = std::string(str.data);
+		rfastring = str;
 	}
 	else
 	{
@@ -1138,7 +1138,7 @@ void RESGen::ListDir(const std::string &path, const std::string &filepath, bool 
 				// resource, add to list
 				file = replaceCharAll(file, '\\', '/'); // replace backslashes
 
-				resources.InsertSorted(file.data, RESGen_CompareVStringsFromList, false);
+				resources.InsertSorted(file.data, ICompareStrings, false);
 
 				if (resourcedisp)
 				{
@@ -1226,7 +1226,7 @@ void RESGen::ListDir(const std::string &path, const std::string &filepath, bool 
 					// resource, add to list
 					file = replaceCharAll(file, '\\', '/'); // replace backslashes
 
-					resources.InsertSorted(file, RESGen_CompareVStringsFromList, false);
+					resources.InsertSorted(file, ICompareStrings, false);
 
 					if (resourcedisp)
 					{
@@ -1346,7 +1346,7 @@ void RESGen::BuildPakResourceList(const std::string &pakfilename)
 			// resource, add to list
 			std::string resStr = replaceCharAll(filelist[i].name, '\\', '/');
 
-			resources.InsertSorted(resStr, RESGen_CompareVStringsFromList, false);
+			resources.InsertSorted(resStr, ICompareStrings, false);
 
 			if (resourcedisp)
 			{
@@ -1406,7 +1406,7 @@ bool RESGen::LoadExludeFile(std::string &listfile)
 				// Convert backslashes to slashes
 				line = replaceCharAll(line, '\\', '/');
 				// Not a comment or empty line
-				excludelist.InsertSorted(line, RESGen_CompareVStringsFromList, false);
+				excludelist.InsertSorted(line, ICompareStrings, false);
 			}
 
 			line.clear();
@@ -1425,14 +1425,14 @@ bool RESGen::LoadExludeFile(std::string &listfile)
 			// Convert backslashes to slashes
 			line = replaceCharAll(line, '\\', '/');
 			// Not a comment or empty line
-			excludelist.InsertSorted(line, RESGen_CompareVStringsFromList, false);
+			excludelist.InsertSorted(line, ICompareStrings, false);
 		}
 	}
 
 	return true;
 }
 
-int RESGen_CompareVStringsFromList(const std::string &a, const std::string &b)
+int ICompareStrings(const std::string &a, const std::string &b)
 {
 	return strToLowerCopy(a).compare(strToLowerCopy(b));
 	//return a->CompareNoCase(*b);
@@ -1492,7 +1492,7 @@ bool RESGen::CheckWadUse(const std::string &wadfile)
 		}
 
 		std::string texture = lumpinfo.name;
-		int texloc = texturelist.Find(texture, RESGen_CompareVStringsFromList);
+		int texloc = texturelist.Find(texture, ICompareStrings);
 
 		if (texloc >= 0)
 		{

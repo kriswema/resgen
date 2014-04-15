@@ -1,7 +1,7 @@
 # RESGen v2 makefile for Linux
 
 # The compiler
-CC=g++
+CXX=g++
 
 # Include dirs + own dir
 INCLUDEDIRS=-I.
@@ -18,19 +18,17 @@ EXECNAME=resgen
 #base flags that are used in any compilation
 BASE_CFLAGS=
 
-#safe optimization
-#CFLAGS=$(BASE_CFLAGS) -w -s -march=i586 -O1
-
-#full optimization
-#CFLAGS=$(BASE_CFLAGS) -Wall -Wextra -pedantic
 CFLAGS=$(BASE_CFLAGS) -std=c++11 -Wall -Wextra -pedantic
+
+# TODO: Switch over to as many of these as possible
+#CFLAGS=$(BASE_CFLAGS) -std=c++11 -Wall -Wextra -pedantic -Wcast-align -Wcast-qual -Wctor-dtor-privacy -Wdisabled-optimization -Wformat=2 -Winit-self -Wlogical-op -Wmissing-declarations -Wmissing-include-dirs -Wnoexcept -Wold-style-cast -Woverloaded-virtual -Wredundant-decls -Wshadow -Wsign-conversion -Wsign-promo -Wstrict-null-sentinel -Wstrict-overflow=5 -Wswitch-default -Wundef -Wno-unused
 
 #use these when debugging
 #CFLAGS=$(BASE_CFLAGS) -g -D_DEBUG
 
 LDFLAGS=-lstdc++
 
-DO_CC=$(CC) $(INCLUDEDIRS) $(CFLAGS) -o $@ -c $<
+DO_CXX=$(CXX) $(INCLUDEDIRS) $(CFLAGS) -o $@ -c $<
 
 #############################################################################
 # RESGen files
@@ -46,17 +44,16 @@ debug: directories
 debug: $(BINDIR)/$(EXECNAME)
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.cpp
-	$(DO_CC)
+	$(DO_CXX)
 
 OBJ = \
 	$(OBJDIR)/listbuilder.o \
 	$(OBJDIR)/resgen.o \
 	$(OBJDIR)/resgenclass.o \
-	$(OBJDIR)/util.o \
-	$(OBJDIR)/vstring.o
+	$(OBJDIR)/util.o
 
 $(BINDIR)/$(EXECNAME) : $(OBJ)
-	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(OBJ)
+	$(CXX) $(CFLAGS) $(LDFLAGS) -o $@ $(OBJ)
 
 directories:
 	mkdir -p $(OBJDIR)

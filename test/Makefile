@@ -1,7 +1,7 @@
 # RESGen v2 makefile for Linux
 
 # The compiler
-CC=g++
+CXX=g++
 
 # Include dirs + own dir
 INCLUDEDIRS=-I. -I..
@@ -24,7 +24,7 @@ CFLAGS=$(BASE_CFLAGS) -Wall -Wextra -pedantic
 LDFLAGS=
 LDLIBS=-lstdc++ -lcppunit
 
-DO_CC=$(CC) $(INCLUDEDIRS) $(CFLAGS) -o $@ -c $<
+DO_CXX=$(CXX) $(INCLUDEDIRS) $(CFLAGS) -o $@ -c $<
 
 #############################################################################
 # RESGen files
@@ -37,18 +37,17 @@ debug: directories
 debug: $(EXECNAME)
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.cpp
-	$(DO_CC)
+	$(DO_CXX)
 
 OBJ = \
 	$(OBJDIR)/test.o \
 	$(MAIN_OBJDIR)/listbuilder.o \
 	$(MAIN_OBJDIR)/resgenclass.o \
-	$(MAIN_OBJDIR)/util.o \
-	$(MAIN_OBJDIR)/vstring.o
+	$(MAIN_OBJDIR)/util.o
 
 
 $(EXECNAME) : $(OBJ)
-	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(OBJ) $(LDLIBS)
+	$(CXX) $(CFLAGS) $(LDFLAGS) -o $@ $(OBJ) $(LDLIBS)
 
 directories:
 	mkdir -p $(OBJDIR)
