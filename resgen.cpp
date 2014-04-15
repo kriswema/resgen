@@ -478,7 +478,7 @@ int main(int argc, char* argv[])
 					}
 
 					i++; // increase i.. we used that arg.
-					config.excludelists.AddTail(new VString(argv[i]));
+					config.excludelists.AddTail(argv[i]);
 					break;
 #ifdef WIN32
 // -k
@@ -569,10 +569,9 @@ int main(int argc, char* argv[])
 	}
 
 	// Build filelist
-	LinkedList<VString *> FileList; // bsp files
-	LinkedList<VString *> ErrorList; // failed bsp files
-	LinkedList<VString *> MissingList; // bsp files with missing reources
-	VString *strtmp;
+	LinkedList<std::string> FileList; // bsp files
+	LinkedList<std::string> ErrorList; // failed bsp files
+	LinkedList<std::string> MissingList; // bsp files with missing reources
 
 	ListBuilder listbuild(&FileList, &config.excludes, config.verbal, config.searchdisp);
 #ifndef WIN32
@@ -619,8 +618,8 @@ int main(int argc, char* argv[])
 	{
 		while(config.excludelists.GetCount())
 		{
-			strtmp = config.excludelists.GetAt(0);
-			if (!resgen.LoadExludeFile(*strtmp))
+			std::string strtmp = config.excludelists.GetAt(0);
+			if (!resgen.LoadExludeFile(strtmp))
 			{
 				#ifdef WIN32
 				getexitkey(config.verbal,config.keypress);
@@ -631,11 +630,10 @@ int main(int argc, char* argv[])
 			{
 				if (config.verbal)
 				{
-					printf("Loaded resource exclude list %s\n",(LPCSTR)*strtmp);
+					printf("Loaded resource exclude list %s\n", strtmp.c_str());
 				}
 			}
 			config.excludelists.RemoveAt(0); // clean up, we don't need it after this
-			delete strtmp;
 		}
 
 		if (config.verbal) { printf("\n"); }
@@ -649,21 +647,21 @@ int main(int argc, char* argv[])
 	{
 		if (config.contentdisp) { printf("\n"); } // Make output look a bit cleaner
 
-		std::string map(FileList.GetAt(0)->data);
+		std::string map(FileList.GetAt(0));
 		int retval = resgen.MakeRES(map, i, filecount);
 		if(retval)
 		{
 			if (retval == 2)
 			{
 				// res file was made properly, but some resources were missing
-				strtmp = new VString(*FileList.GetAt(0));
+				std::string strtmp = FileList.GetAt(0);
 				MissingList.AddTail(strtmp);
 			}
 			else
 			{
 				//
 				// an error occured. List them.
-				strtmp = new VString(*FileList.GetAt(0));
+				std::string strtmp = FileList.GetAt(0);
 				ErrorList.AddTail(strtmp);
 
 				resgen.ClearResfile(); // We are not going to try and fix it, so resfile can be cleared.
@@ -671,9 +669,7 @@ int main(int argc, char* argv[])
 			}
 		}
 
-		strtmp = FileList.GetAt(0);
 		FileList.RemoveAt(0);
-		delete strtmp;
 
 		if (config.verbal) { printf("\n"); } // Make output look a bit cleaner
 
@@ -688,10 +684,9 @@ int main(int argc, char* argv[])
 		if (config.verbal) { printf("Failed to create res file(s) for:\n"); }
 		while (ErrorList.GetCount() > 0)
 		{
-			strtmp = ErrorList.GetAt(0);
-			if (config.verbal) { printf(" %s\n", (LPCSTR)*strtmp); } // only print of verbal
+			std::string strtmp = ErrorList.GetAt(0);
+			if (config.verbal) { printf(" %s\n", strtmp.c_str()); } // only print of verbal
 			ErrorList.RemoveAt(0);
-			delete strtmp;
 		}
 		if (config.verbal) { printf("\n"); }
 	}
@@ -704,10 +699,9 @@ int main(int argc, char* argv[])
 		}
 		while (MissingList.GetCount() > 0)
 		{
-			strtmp = MissingList.GetAt(0);
-			if (config.verbal) { printf(" %s\n", (LPCSTR)*strtmp); } // only print of verbal
+			std::string strtmp = MissingList.GetAt(0);
+			if (config.verbal) { printf(" %s\n", strtmp.c_str()); } // only print of verbal
 			MissingList.RemoveAt(0);
-			delete strtmp;
 		}
 		if (config.verbal) { printf("\n"); }
 	}

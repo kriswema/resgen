@@ -212,24 +212,24 @@ int RESGen::MakeRES(std::string &map, int fileindex, int filecount)
 			}
 			// token has value
 
-			VString value = token;
-			if (value.GetLength() != 0) // Don't try to parse an empty listing
+			std::string value = token;
+			if (!value.empty()) // Don't try to parse an empty listing
 			{
 				// seperate the WAD files and save
 				i = 0;
 				size_t seppos;
 
-				while ((seppos = std::string(value.data).find(';', i)) != std::string::npos)
+				while ((seppos = value.find(';', i)) != std::string::npos)
 				{
-					AddWad(std::string(value.data), i, seppos - i); // Add wad to reslist
+					AddWad(value, i, seppos - i); // Add wad to reslist
 					i = seppos + 1;
 				}
 
 				// There might be a wad file left in the list, check for it
-				if (i < value.GetLength())
+				if (static_cast<size_t>(i) < value.length())
 				{
 					// it should be equal, there is a wadfile left!
-					AddWad(std::string(value.data), i, value.GetLength() - i);
+					AddWad(value, i, value.length() - i);
 				}
 			}
 
@@ -460,7 +460,7 @@ int RESGen::MakeRES(std::string &map, int fileindex, int filecount)
 		for (i = 0; i < resfile.GetCount(); i++)
 		{
 			std::string& tempres = resfile.GetAt(i);
-			//printf("%s\n", (LPCSTR)*tempres);
+
 			int resfileindex = resources.Find(tempres, RESGen_CompareVStringsFromList);
 			if(resfileindex < 0)
 			{
@@ -559,7 +559,7 @@ int RESGen::MakeRES(std::string &map, int fileindex, int filecount)
 		for (i = 0; i < resfile.GetCount(); i++)
 		{
 			std::string& tempres = resfile.GetAt(i);
-			//printf("%s\n", (LPCSTR)*tempres);
+
 			int resfileindex = excludelist.Find(tempres, RESGen_CompareVStringsFromList);
 			if(resfileindex >= 0)
 			{
@@ -617,7 +617,7 @@ int RESGen::MakeRES(std::string &map, int fileindex, int filecount)
 	}
 
 	// Collecting resfile entries is done, now write the res file.
-	if (!WriteRes(VString(basefolder.c_str()), VString(basefilename.c_str())))
+	if (!WriteRes(basefolder, basefilename))
 	{
 		return 1;
 	}
@@ -666,7 +666,7 @@ void RESGen::BuildResourceList(std::string &respath, bool checkpak, bool sdisp, 
 
 	std::string valvepath;
 
-	if (VString(respath.c_str()).CompareReverseLimitNoCase(valveStr))
+	if(CompareStrEndNoCase(respath, valveStr))
 	{
 		// NOT valve dir, so check it too
 		size_t slashpos = respath.rfind(pathSep[0], respath.length() - 2);
@@ -694,15 +694,13 @@ void RESGen::BuildResourceList(std::string &respath, bool checkpak, bool sdisp, 
 	}
 
 	firstdir = true;
-	VString filepath = "";
-	ListDir(VString(respath.c_str()), filepath, true);
+	ListDir(respath, "", true);
 
 	// Check the valve dir too
 	if (!valvepath.empty())
 	{
 		firstdir = true;
-		filepath = "";
-		ListDir(VString(valvepath.c_str()), filepath, false);
+		ListDir(valvepath, "", false);
 	}
 
 	printf("\n");
@@ -825,7 +823,7 @@ char * RESGen::LoadBSPData(const std::string &file, int * const entdatalen, Link
 
 		for (int i = 0; i < texlist->GetCount(); i++)
 		{
-			printf("%s\n", (LPCSTR)(*texlist->GetAt(i)));
+			printf("%s\n", texlist->GetAt(i).c_str());
 		}
 		printf("\n\n");
 		//*/
@@ -928,7 +926,7 @@ void RESGen::AddWad(const std::string &wadlist, int start, int len)
 	AddRes(wadfile);
 }
 
-bool RESGen::WriteRes(const VString &folder, const VString &mapname)
+bool RESGen::WriteRes(const std::string &folder, const std::string &mapname)
 {
 	// This function writes a standard res file.
 
@@ -937,12 +935,12 @@ bool RESGen::WriteRes(const VString &folder, const VString &mapname)
 
 	if (f == NULL)
 	{
-		printf("Failed to open %s for writing.\n", (LPCSTR)(folder + mapname + ".res"));
+		printf("Failed to open %s for writing.\n", (folder + mapname + ".res").c_str());
 		return false;
 	}
 
 	// Header
-	fprintf(f, "// %s - created with RESGen v%s.\n", (LPCSTR)(mapname + ".res"), VERSION);
+	fprintf(f, "// %s - created with RESGen v%s.\n", (mapname + ".res").c_str(), VERSION);
 	fprintf(f, "// RESGen is made by Jeroen \"ShadowLord\" Bogers,\n");
 	fprintf(f, "// with serveral improvements and additions by Zero3Cool.\n");
 	fprintf(f, "// For more info go to http://resgen.hltools.com\n");
@@ -1011,23 +1009,23 @@ void RESGen::ClearExcludes()
 	}
 }
 
-bool RESGen::LoadRfaFile(VString &filename)
+bool RESGen::LoadRfaFile(std::string &filename)
 {
-	if (filename.GetLength() == 0)
+	if (filename.empty())
 	{
 		// no rfa file, ignore
 		return true;
 	}
 
 	// Add .rfa extention if needed
-	if (filename.CompareReverseLimitNoCase(".rfa"))
+	if (CompareStrEndNoCase(filename,".rfa"))
 	{
 		// not found, add
 		filename += ".rfa";
 	}
 
 	VString str;
-	const bool bSuccess = str.LoadFromFile(filename);
+	const bool bSuccess = str.LoadFromFile(filename.c_str());
 
 	if(bSuccess)
 	{
@@ -1035,7 +1033,7 @@ bool RESGen::LoadRfaFile(VString &filename)
 	}
 	else
 	{
-		printf("Error reading rfa file: \"%s\"\n", (LPCSTR)filename);
+		printf("Error reading rfa file: \"%s\"\n", filename.c_str());
 	}
 
 	return bSuccess;
@@ -1082,12 +1080,12 @@ char * RESGen::StrTok(char *string, char delimiter)
 
 #ifdef WIN32
 // Win 32 DIR parser
-void RESGen::ListDir(const VString &path, const VString &filepath, bool reporterror)
+void RESGen::ListDir(const std::string &path, const std::string &filepath, bool reporterror)
 {
 	WIN32_FIND_DATA filedata;
 
 	// add *.* for searching all files.
-	VString searchdir = path + filepath + "*.*";
+	std::string searchdir = path + filepath + "*.*";
 
 	// find first file
 	HANDLE filehandle = FindFirstFile(searchdir, &filedata);
@@ -1098,11 +1096,11 @@ void RESGen::ListDir(const VString &path, const VString &filepath, bool reporter
 		{
 			if (GetLastError() & ERROR_PATH_NOT_FOUND || GetLastError() & ERROR_FILE_NOT_FOUND)
 			{
-				printf("The directory you specified (%s) can not be found or is empty.\n", (LPCSTR)path);
+				printf("The directory you specified (%s) can not be found or is empty.\n", path.c_str());
 			}
 			else
 			{
-				printf("There was an error with the directory you specified (%s) - ERROR NO: %lu.\n", (LPCSTR)path, GetLastError());
+				printf("There was an error with the directory you specified (%s) - ERROR NO: %lu.\n", path.c_str(), GetLastError());
 			}
 		}
 		return;
@@ -1112,7 +1110,7 @@ void RESGen::ListDir(const VString &path, const VString &filepath, bool reporter
 
 	do
 	{
-		VString file = filepath + filedata.cFileName;
+		std::string file = filepath + filedata.cFileName;
 
 		// Check for directory
 		if (filedata.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
@@ -1128,27 +1126,27 @@ void RESGen::ListDir(const VString &path, const VString &filepath, bool reporter
 		{
 			// Check if the file is a possible resource
 			if (
-				!file.CompareReverseLimitNoCase(".mdl") ||
-				!file.CompareReverseLimitNoCase(".wav") ||
-				!file.CompareReverseLimitNoCase(".spr") ||
-				!file.CompareReverseLimitNoCase(".bmp") ||
-				!file.CompareReverseLimitNoCase(".tga") ||
-				!file.CompareReverseLimitNoCase(".txt") ||
-				!file.CompareReverseLimitNoCase(".wad")
+				!CompareStrEndNoCase(file, ".mdl") ||
+				!CompareStrEndNoCase(file, ".wav") ||
+				!CompareStrEndNoCase(file, ".spr") ||
+				!CompareStrEndNoCase(file, ".bmp") ||
+				!CompareStrEndNoCase(file, ".tga") ||
+				!CompareStrEndNoCase(file, ".txt") ||
+				!CompareStrEndNoCase(file, ".wad")
 				)
 			{
 				// resource, add to list
-				file.StrRplChr('\\', '/'); // replace backslashes
+				file = replaceCharAll(file, '\\', '/'); // replace backslashes
 
 				resources.InsertSorted(file.data, RESGen_CompareVStringsFromList, false);
 
 				if (resourcedisp)
 				{
-					printf("Added \"%s\" to resource list\n", (LPCSTR)file);
+					printf("Added \"%s\" to resource list\n", file.c_str());
 				}
 			}
 
-			if (!file.CompareReverseLimitNoCase(".pak") && pakparse)
+			if (!CompareStrEndNoCase(file, ".pak") && pakparse)
 			{
 				// get pakfilelist
 				BuildPakResourceList(path + file);
@@ -1163,14 +1161,14 @@ void RESGen::ListDir(const VString &path, const VString &filepath, bool reporter
 
 #else
 // Linux dir parser
-void RESGen::ListDir(const VString &path, const VString &filepath, bool reporterror)
+void RESGen::ListDir(const std::string &path, const std::string &filepath, bool reporterror)
 {
 	struct stat filestatinfo; // Force as a struct for GCC
 
-	VString searchpath = path + filepath;
+	std::string searchpath = path + filepath;
 
 	// Open the current dir
-	DIR *directory = opendir(searchpath);
+	DIR *directory = opendir(searchpath.c_str());
 
 	// Is it open?
 	if (directory == NULL)
@@ -1178,7 +1176,7 @@ void RESGen::ListDir(const VString &path, const VString &filepath, bool reporter
 		// dir cannot be opened
 		if (firstdir && reporterror)
 		{
-			printf("There was an error with the directory you specified (%s)\nDid you enter the correct directory?\n", (LPCSTR)path);
+			printf("There was an error with the directory you specified (%s)\nDid you enter the correct directory?\n", path.c_str());
 		}
 		return;
 	}
@@ -1196,9 +1194,9 @@ void RESGen::ListDir(const VString &path, const VString &filepath, bool reporter
 
 		// Do we have a dir?
 		// We follow symlinks. people shouldn't mess with symlinks in the HL folder anyways.
-		int i = stat(searchpath + direntry->d_name, &filestatinfo); // Get the info about the files the links point to
+		int i = stat((searchpath + direntry->d_name).c_str(), &filestatinfo); // Get the info about the files the links point to
 
-		VString file = filepath + direntry->d_name;
+		std::string file = filepath + direntry->d_name;
 
 		if (i == 0)
 		{
@@ -1216,27 +1214,27 @@ void RESGen::ListDir(const VString &path, const VString &filepath, bool reporter
 			{
 				// Check if the file is a possible resource
 				if (
-					!file.CompareReverseLimitNoCase(".mdl") ||
-					!file.CompareReverseLimitNoCase(".wav") ||
-					!file.CompareReverseLimitNoCase(".spr") ||
-					!file.CompareReverseLimitNoCase(".bmp") ||
-					!file.CompareReverseLimitNoCase(".tga") ||
-					!file.CompareReverseLimitNoCase(".txt") ||
-					!file.CompareReverseLimitNoCase(".wad")
+					!CompareStrEndNoCase(file, ".mdl") ||
+					!CompareStrEndNoCase(file, ".wav") ||
+					!CompareStrEndNoCase(file, ".spr") ||
+					!CompareStrEndNoCase(file, ".bmp") ||
+					!CompareStrEndNoCase(file, ".tga") ||
+					!CompareStrEndNoCase(file, ".txt") ||
+					!CompareStrEndNoCase(file, ".wad")
 					)
 				{
 					// resource, add to list
-					file.StrRplChr('\\', '/'); // replace backslashes
+					file = replaceCharAll(file, '\\', '/'); // replace backslashes
 
-					resources.InsertSorted(file.data, RESGen_CompareVStringsFromList, false);
+					resources.InsertSorted(file, RESGen_CompareVStringsFromList, false);
 
 					if (resourcedisp)
 					{
-						printf("Added \"%s\" to resource list\n", (LPCSTR)file);
+						printf("Added \"%s\" to resource list\n", file.c_str());
 					}
 				}
 
-				if (!file.CompareReverseLimitNoCase(".pak") && pakparse)
+				if (!CompareStrEndNoCase(file, ".pak") && pakparse)
 				{
 					// get pakfilelist
 					BuildPakResourceList(path + file);
@@ -1252,7 +1250,7 @@ void RESGen::ListDir(const VString &path, const VString &filepath, bool reporter
 
 #endif
 
-void RESGen::BuildPakResourceList(const VString &pakfilename)
+void RESGen::BuildPakResourceList(const std::string &pakfilename)
 {
 	// open the pak file in binary read mode
 	File pakfile(pakfilename, "rb");
@@ -1260,7 +1258,7 @@ void RESGen::BuildPakResourceList(const VString &pakfilename)
 	if (pakfile == NULL)
 	{
 		// error opening pakfile!
-		printf("Could not find pakfile \"%s\".\n", (LPCSTR)pakfilename);
+		printf("Could not find pakfile \"%s\".\n", pakfilename.c_str());
 		return;
 	}
 
@@ -1276,7 +1274,7 @@ void RESGen::BuildPakResourceList(const VString &pakfilename)
 		if (verbal)
 		{
 			printf("Reading pakfile header failed. Wrong size (%d read, %d expected).\n", retval, pakheadersize);
-			printf("Is \"%s\" a valid pakfile?\n", (LPCSTR)pakfilename);
+			printf("Is \"%s\" a valid pakfile?\n", pakfilename.c_str());
 		}
 		return;
 	}
@@ -1286,7 +1284,7 @@ void RESGen::BuildPakResourceList(const VString &pakfilename)
 	{
 		if (verbal)
 		{
-			printf("Pakfile \"%s\" does not appear to be a Half-Life pakfile (ID mismatch).\n", (LPCSTR)pakfilename);
+			printf("Pakfile \"%s\" does not appear to be a Half-Life pakfile (ID mismatch).\n", pakfilename.c_str());
 		}
 		return;
 	}
@@ -1300,7 +1298,7 @@ void RESGen::BuildPakResourceList(const VString &pakfilename)
 	{
 		if (verbal)
 		{
-			printf("Pakfile \"%s\" does not appear to be a Half-Life pakfile (invalid dirsize).\n", (LPCSTR)pakfilename);
+			printf("Pakfile \"%s\" does not appear to be a Half-Life pakfile (invalid dirsize).\n", pakfilename.c_str());
 		}
 		return;
 	}
@@ -1310,7 +1308,7 @@ void RESGen::BuildPakResourceList(const VString &pakfilename)
 	{
 		if (verbal)
 		{
-			printf("Error seeking for file list.\nPakfile \"%s\" is not a pakfile, or is corrupted.\n", (LPCSTR)pakfilename);
+			printf("Error seeking for file list.\nPakfile \"%s\" is not a pakfile, or is corrupted.\n", pakfilename.c_str());
 		}
 		return;
 	}
@@ -1321,7 +1319,7 @@ void RESGen::BuildPakResourceList(const VString &pakfilename)
 	{
 		if (verbal)
 		{
-			printf("Error seeking for file list.\nPakfile \"%s\" is not a pakfile, or is corrupted.\n", (LPCSTR)pakfilename);
+			printf("Error seeking for file list.\nPakfile \"%s\" is not a pakfile, or is corrupted.\n", pakfilename.c_str());
 		}
 		delete [] filelist;
 		return;
@@ -1329,7 +1327,7 @@ void RESGen::BuildPakResourceList(const VString &pakfilename)
 
 	if (verbal)
 	{
-		printf("Scanning pak file \"%s\" for resources (%d files in pak)\n", (LPCSTR)pakfilename, filecount);
+		printf("Scanning pak file \"%s\" for resources (%d files in pak)\n", pakfilename.c_str(), filecount);
 	}
 
 	// Read filelist for possible resources
@@ -1361,20 +1359,15 @@ void RESGen::BuildPakResourceList(const VString &pakfilename)
 	delete [] filelist;
 }
 
-bool RESGen::LoadExludeFile(VString &listfile)
+bool RESGen::LoadExludeFile(std::string &listfile)
 {
-	if (&listfile == NULL)
-	{
-		return false;
-	}
-
-	if (listfile.GetLength() <= 0)
+	if (listfile.empty())
 	{
 		// Was called without a proper argument, fail
 		return false;
 	}
 
-	if (listfile.CompareReverseLimitNoCase(".rfa"))
+	if (CompareStrEndNoCase(listfile, ".rfa"))
 	{
 		// .rfa extension missing, add it
 		listfile += ".rfa";
@@ -1387,7 +1380,7 @@ bool RESGen::LoadExludeFile(VString &listfile)
 		// Error opening file, abort
 		if (verbal)
 		{
-			printf("Error: Could not open the specified exclude list %s!\n",(LPCSTR)listfile);
+			printf("Error: Could not open the specified exclude list %s!\n", listfile.c_str());
 		}
 		return false;
 	}
@@ -1516,14 +1509,14 @@ bool RESGen::CheckWadUse(const std::string &wadfile)
 
 bool RESGen::CheckModelExtTexture(const std::string &model)
 {
-	File mdl((LPCSTR)((std::string(resourcepath)+model).c_str()), "rb");
+	File mdl(resourcepath + model, "rb");
 
 	if (!mdl)
 	{
 		// try the valve folder
 		if (!valveresourcepath.empty())
 		{
-			mdl.open((valveresourcepath + model).c_str(), "rb");
+			mdl.open(valveresourcepath + model, "rb");
 		}
 		if (!mdl)
 		{

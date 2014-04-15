@@ -44,10 +44,10 @@ struct config_s
 
 	LinkedList<file_s *> files;
 	LinkedList<file_s *> excludes; // Map exclude list - not resource!
-	LinkedList<VString *> excludelists; // Exclude resource list files - not maps!
+	LinkedList<std::string> excludelists; // Exclude resource list files - not maps!
 
 	bool overwrite; // f
-	VString rfafile;
+	std::string rfafile;
 
 	bool tolower; // f
 	bool matchcase; // f

@@ -36,13 +36,14 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #endif
 
 #include "listbuilder.h"
+#include "util.h"
 
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-ListBuilder::ListBuilder(LinkedList<VString *> *flist, LinkedList<file_s *> *excludes, bool beverbal, bool sdisp)
+ListBuilder::ListBuilder(LinkedList<std::string> *flist, LinkedList<file_s *> *excludes, bool beverbal, bool sdisp)
 	: firstdir(false)
 	, recursive(false)
 	, symlink(false)
@@ -106,13 +107,13 @@ void ListBuilder::BuildList(LinkedList<file_s *> *srclist)
 
 			// prepare folder name
 			#ifdef WIN32
-			if (file->name[file->name.GetLength() - 1] != '\\')
+			if (file->name[file->name.length() - 1] != '\\')
 			{
 				// No ending "\", add
 				file->name += "\\";
 			}
 			#else
-			if (file->name[file->name.GetLength() - 1] != '/')
+			if (file->name[file->name.length() - 1] != '/')
 			{
 				// No ending "/", add
 				file->name += "/";
@@ -125,11 +126,11 @@ void ListBuilder::BuildList(LinkedList<file_s *> *srclist)
 			{
 				if (recursive)
 				{
-					printf("Searching %s and subdirectories for bsp files...\n", (LPCSTR)file->name);
+					printf("Searching %s and subdirectories for bsp files...\n", file->name.c_str());
 				}
 				else
 				{
-					printf("Searching %s for bsp files...\n", (LPCSTR)file->name);
+					printf("Searching %s for bsp files...\n", file->name.c_str());
 				}
 			}
 
@@ -141,7 +142,7 @@ void ListBuilder::BuildList(LinkedList<file_s *> *srclist)
 
 }
 
-void ListBuilder::AddFile(const VString &filename, bool checkexlist)
+void ListBuilder::AddFile(const std::string &filename, bool checkexlist)
 {
 #ifdef _DEBUG
 	if (filename.GetLength() == 0)
@@ -151,12 +152,12 @@ void ListBuilder::AddFile(const VString &filename, bool checkexlist)
 	}
 #endif
 
-	VString *tmp = new VString(filename);
+	std::string tmp = filename;
 
-	if (tmp->CompareReverseLimitNoCase(".bsp"))
+	if (CompareStrEndNoCase(tmp, ".bsp"))
 	{
 		// add file extension
-		*tmp += ".bsp";
+		tmp += ".bsp";
 	}
 
 	if (checkexlist) // Process exceptions
@@ -164,30 +165,28 @@ void ListBuilder::AddFile(const VString &filename, bool checkexlist)
 		for (int i = 0; i < exlist->GetCount(); i++)
 		{
 			file_s *tmpex = exlist->GetAt(i);
-			if(!tmp->CompareReverseLimitNoCase((LPCSTR)tmpex->name))
+			if (!CompareStrEndNoCase(tmp, tmpex->name))
 			{
 				// make sure mapname is not longer.
-				if (tmp->GetLength() <= tmpex->name.GetLength())
+				if (tmp.length() <= tmpex->name.length())
 				{
 					// they must be equal
 					if (verbal)
 					{
-						printf ("Excluded \"%s\" from res file generation\n", (LPCSTR)*tmp);
+						printf ("Excluded \"%s\" from res file generation\n", tmp.c_str());
 					}
-					delete tmp;
 					return;
 				}
 
 				// check for folder char
-				char prechar = (*tmp)[(tmp->GetLength() - tmpex->name.GetLength()) - 1];
+				char prechar = tmp[(tmp.length() - tmpex->name.length()) - 1];
 				if (prechar == '\\' || prechar == '/')
 				{
 					// folder. They are equal
 					if (verbal)
 					{
-						printf ("Excluded \"%s\" from res file generation\n", (LPCSTR)*tmp);
+						printf ("Excluded \"%s\" from res file generation\n", tmp.c_str());
 					}
-					delete tmp;
 					return;
 				}
 			}
@@ -199,7 +198,7 @@ void ListBuilder::AddFile(const VString &filename, bool checkexlist)
 
 	if (verbal && searchdisp)
 	{
-		printf("Added \"%s\" to the map list\n", (LPCSTR)*tmp);
+		printf("Added \"%s\" to the map list\n", tmp.c_str());
 	}
 }
 
@@ -210,7 +209,7 @@ void ListBuilder::PrepExList()
 	{
 		file_s *tmp = exlist->GetAt(i);
 
-		if (tmp->name.CompareReverseLimitNoCase(".bsp"))
+		if (CompareStrEndNoCase(tmp->name, ".bsp"))
 		{
 			// add file extension
 			tmp->name += ".bsp";
@@ -228,12 +227,12 @@ void ListBuilder::SetSymLink(bool slink)
 
 #ifdef WIN32
 // Win 32 DIR parser
-void ListBuilder::ListDir(const VString &path)
+void ListBuilder::ListDir(const std::string &path)
 {
 	WIN32_FIND_DATA filedata;
 
 	// add *.* for searching all files.
-	VString searchdir = path + "*.*";
+	std::string searchdir = path + "*.*";
 
 	// find first file
 	HANDLE filehandle = FindFirstFile(searchdir, &filedata);
@@ -244,11 +243,11 @@ void ListBuilder::ListDir(const VString &path)
 		{
 			if (GetLastError() & ERROR_PATH_NOT_FOUND || GetLastError() & ERROR_FILE_NOT_FOUND)
 			{
-				printf("The directory you specified (%s) can not be found or is empty.\n", (LPCSTR)path);
+				printf("The directory you specified (%s) can not be found or is empty.\n", path.c_str());
 			}
 			else
 			{
-				printf("There was an error with the directory you specified (%s) - ERROR NO: %lu.\n", (LPCSTR)path, GetLastError());
+				printf("There was an error with the directory you specified (%s) - ERROR NO: %lu.\n", path.c_str(), GetLastError());
 			}
 		}
 		return;
@@ -258,7 +257,7 @@ void ListBuilder::ListDir(const VString &path)
 
 	do
 	{
-		VString file = path + filedata.cFileName;
+		std::string file = path + filedata.cFileName;
 
 		// Check for directory
 		if (filedata.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
@@ -276,7 +275,7 @@ void ListBuilder::ListDir(const VString &path)
 		else
 		{
 			// Check if the file is a .bsp
-			if (!file.CompareReverseLimitNoCase(".bsp"))
+			if (!CompareStrEndNoCase(file, ".bsp"))
 			{
 				AddFile(file, true);
 			}
@@ -290,19 +289,19 @@ void ListBuilder::ListDir(const VString &path)
 
 #else
 // Linux dir parser
-void ListBuilder::ListDir(const VString &path)
+void ListBuilder::ListDir(const std::string &path)
 {
 	struct stat filestatinfo; // Force as a struct for GCC
 
 	// Open the current dir
-	DIR *directory = opendir(path);
+	DIR *directory = opendir(path.c_str());
 	// Is it open?
 	if (directory == NULL)
 	{
 		// dir cannot be opened
 		if (firstdir)
 		{
-			printf("There was an error with the directory you specified (%s)\nDid you enter the correct directory?\n", (LPCSTR)path);
+			printf("There was an error with the directory you specified (%s)\nDid you enter the correct directory?\n", path.c_str());
 		}
 		return;
 	}
@@ -319,17 +318,17 @@ void ListBuilder::ListDir(const VString &path)
 		}
 
 		// Do we have a dir?
-		VString file = path + direntry->d_name;
+		std::string file = path + direntry->d_name;
 
 		int i;
 
 		if (symlink)
 		{
-			i = stat(file, &filestatinfo); // Get the info about the files the links point to
+			i = stat(file.c_str(), &filestatinfo); // Get the info about the files the links point to
 		}
 		else
 		{
-			i = lstat(file, &filestatinfo); // Get the info about the links
+			i = lstat(file.c_str(), &filestatinfo); // Get the info about the links
 		}
 
 		if (i == 0)
@@ -352,7 +351,7 @@ void ListBuilder::ListDir(const VString &path)
 				else
 				{
 					// Check if the file is a .bsp
-					if (!file.CompareReverseLimitNoCase(".bsp"))
+					if (!CompareStrEndNoCase(file, ".bsp"))
 					{
 						AddFile(file, true);
 					}

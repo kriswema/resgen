@@ -41,8 +41,8 @@ int RESGen_CompareVStringsFromList(const std::string &a, const std::string &b); 
 class RESGen
 {
 public:
-	bool LoadExludeFile(VString &listfile);
-	bool LoadRfaFile(VString &pakfilename);
+	bool LoadExludeFile(std::string &listfile);
+	bool LoadRfaFile(std::string &pakfilename);
 	void ClearTextures();
 	void ClearExcludes();
 	void ClearResources();
@@ -56,10 +56,10 @@ public:
 private:
 	bool CheckModelExtTexture(const std::string &model);
 	bool CheckWadUse(const std::string &wadfile);
-	void BuildPakResourceList(const VString &pakfile);
-	void ListDir(const VString &path, const VString &filepath, bool reporterror);
+	void BuildPakResourceList(const std::string &pakfile);
+	void ListDir(const std::string &path, const std::string &filepath, bool reporterror);
 	char * StrTok(char *string, char delimiter);
-	bool WriteRes(const VString &folder, const VString &mapname);
+	bool WriteRes(const std::string &folder, const std::string &mapname);
 	void AddWad(const std::string &wadlist, int start, int len);
 	void AddRes(std::string res, const char * const prefix = NULL, const char * const suffix = NULL);
 	char * NextValue();
