@@ -135,7 +135,7 @@ void strToLower(std::string &str)
     std::transform(str.begin(), str.end(), str.begin(), ::tolower);
 }
 
-int CompareStrEndNoCase(std::string &str, std::string &ending)
+int CompareStrEndNoCase(const std::string &str, const std::string &ending)
 {
 	if(str.length() < ending.length())
 	{

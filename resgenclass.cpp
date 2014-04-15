@@ -123,7 +123,7 @@ int RESGen::MakeRES(std::string &map, int fileindex, int filecount)
 	// Check if resfile doesn't already exist
 	bool fileexists = false;
 	#ifdef WIN32
-	filehandle = FindFirstFile(VString(resName.c_str()), &filedata);
+	filehandle = FindFirstFile(resName.c_str(), &filedata);
 	if (filehandle != INVALID_HANDLE_VALUE)
 	{
 		FindClose(filehandle);
@@ -219,7 +219,7 @@ int RESGen::MakeRES(std::string &map, int fileindex, int filecount)
 				i = 0;
 				size_t seppos;
 
-				while ((seppos = value.StrChr(';', i)) != std::string::npos)
+				while ((seppos = std::string(value.data).find(';', i)) != std::string::npos)
 				{
 					AddWad(std::string(value.data), i, seppos - i); // Add wad to reslist
 					i = seppos + 1;
@@ -322,32 +322,32 @@ int RESGen::MakeRES(std::string &map, int fileindex, int filecount)
 			return 1;
 		}
 
-		VString value = token; // asign token to a VString
+		std::string value(token);
 
-		if (!value.CompareReverseLimitNoCase(".mdl"))
+		if (!CompareStrEndNoCase(value, ".mdl"))
 		{
 			// mdl file
-			AddRes(std::string(value.data));
+			AddRes(value);
 		}
-		else if (!value.CompareReverseLimitNoCase(".wav"))
+		else if (!CompareStrEndNoCase(value, ".wav"))
 		{
 			// wave file
-			AddRes(std::string(value.data), "sound/");
+			AddRes(value, "sound/");
 		}
-		else if (!value.CompareReverseLimitNoCase(".spr"))
+		else if (!CompareStrEndNoCase(value, ".spr"))
 		{
 			// sprite file
-			AddRes(std::string(value.data));
+			AddRes(value);
 		}
-		else if (!value.CompareReverseLimitNoCase(".bmp"))
+		else if (!CompareStrEndNoCase(value, ".bmp"))
 		{
 			// bitmap file
-			AddRes(std::string(value.data));
+			AddRes(value);
 		}
-		else if (!value.CompareReverseLimitNoCase(".tga"))
+		else if (!CompareStrEndNoCase(value, ".tga"))
 		{
 			// targa file
-			AddRes(std::string(value.data));
+			AddRes(value);
 		}
 
 		token = NextToken(); // exit value
@@ -393,13 +393,13 @@ int RESGen::MakeRES(std::string &map, int fileindex, int filecount)
 
 	// Try to find info txt and overview data
 	#ifdef WIN32
-	filehandle = FindFirstFile(VString(basefolder.c_str()) + "..\\overviews\\" + VString(basefilename.c_str()) + ".txt", &filedata); // try to find txt file for overview
+	filehandle = FindFirstFile((basefolder + "..\\overviews\\" + basefilename + ".txt").c_str(), &filedata); // try to find txt file for overview
 	if (filehandle != INVALID_HANDLE_VALUE)
 	{
 		FindClose(filehandle);
 
 		// file found, but we need the tga or bmp too
-		filehandle = FindFirstFile(VString(basefolder.c_str()) + "..\\overviews\\" + VString(basefilename.c_str()) + ".tga", &filedata); // try to find tga file for overview
+		filehandle = FindFirstFile((basefolder + "..\\overviews\\" + basefilename + ".tga").c_str(), &filedata); // try to find tga file for overview
 		if (filehandle != INVALID_HANDLE_VALUE)
 		{
 			FindClose(filehandle);
@@ -410,7 +410,7 @@ int RESGen::MakeRES(std::string &map, int fileindex, int filecount)
 		}
 		else
 		{
-			filehandle = FindFirstFile(VString(basefolder.c_str()) + "..\\overviews\\" + VString(basefilename.c_str()) + ".bmp", &filedata); // try to find bmp file for overview
+			filehandle = FindFirstFile((basefolder + "..\\overviews\\" + basefilename + ".bmp").c_str(), &filedata); // try to find bmp file for overview
 			if (filehandle != INVALID_HANDLE_VALUE)
 			{
 				FindClose(filehandle);
@@ -534,7 +534,7 @@ int RESGen::MakeRES(std::string &map, int fileindex, int filecount)
 						if (CheckModelExtTexture(std::string(*resources.GetAt(resfileindex))))
 						{
 							// Uses external texture, add
-							VString *extmdltex = new VString(tempres->Left(tempres->GetLength() - 4).c_str()); // strip extention
+							VString *extmdltex = new VString(std::string(tempres->data).substr(0, tempres->GetLength() - 4).c_str()); // strip extention
 							*extmdltex += "T.mdl"; // add T and extention
 
 							// We can get away with this, since the model texture will be places AFTER the model
@@ -677,10 +677,10 @@ void RESGen::BuildResourceList(std::string &respath, bool checkpak, bool sdisp, 
 	if (VString(respath.c_str()).CompareReverseLimitNoCase(valveStr))
 	{
 		// NOT valve dir, so check it too
-		size_t slashpos = VString(respath.c_str()).StrRChr(pathSep[0], respath.length() - 2);
+		size_t slashpos = respath.rfind(pathSep[0], respath.length() - 2);
 		if (slashpos != std::string::npos)
 		{
-			valvepath = VString(respath.c_str()).Left(slashpos);
+			valvepath = respath.substr(0, slashpos);
 			valvepath += valveStr;
 		}
 		else

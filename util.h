@@ -30,6 +30,6 @@ std::string strToLowerCopy(const std::string &str);
 
 void strToLower(std::string &str);
 
-int CompareStrEndNoCase(std::string &str, std::string &ending);
+int CompareStrEndNoCase(const std::string &str, const std::string &ending);
 
 #endif // UTIL_H

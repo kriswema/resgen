@@ -377,94 +377,6 @@ int VString::CompareNoCase(const char *string) const
 	return stricmp(data, string);
 }
 
-std::string VString::Mid(int index, int count) const
-{
-	// make sure we return something sensible
-	if (index < 0) { index = 0; }
-	if (index + count > length) { count = length - index; }
-
-	if (index >= length || count <= 0)
-	{
-		// this will result in an empty string.
-		return "";
-	}
-
-	if (index == 0 && count == length)
-	{
-		// They want the entire string...
-		return std::string(data);
-	}
-
-	char *tmp = new char [count + 1];
-	memcpy(tmp, &data[index], count);
-	tmp[count] = 0; // terminating null
-	VString retstr(tmp);
-	delete [] tmp;
-	return std::string(retstr.data);
-}
-
-std::string VString::Mid(int index) const
-{
-	return Mid(index, length - index);
-}
-
-std::string VString::Left(int count) const
-{
-	//return std::string(data).substr(0, count);
-	
-	if (count <= 0)
-	{
-		return std::string();
-	}
-
-	if (count >= length)
-	{
-		return std::string(data);
-	}
-
-	char *tmp = new char [count + 1];
-	memcpy(tmp, data, count);
-	tmp[count] = 0; // terminating null
-
-	std::string retstr(tmp);
-	delete [] tmp;
-	return retstr;
-}
-
-std::string VString::Right(int count) const
-{
-	if (count <= 0)
-	{
-		return std::string();
-	}
-	if (count >= length)
-	{
-		return std::string(data);
-	}
-
-	char *tmp = new char [count + 1];
-	memcpy(tmp, &data[length - count], count + 1);
-
-	std::string retstr(tmp);
-	delete [] tmp;
-	return retstr;
-}
-
-void VString::MakeLower()
-{
-	#ifdef WIN32
-	_strlwr(data);
-	#else
-	// Linux doesn't have strupr/strlwr
-	int i;
-
-	for (i=0; i < length; i++)
-	{
-		data[i] = tolower(data[i]);
-	}
-	#endif
-}
-
 void VString::TrimLeft()
 {
 	// search until no whitespace char is found
@@ -585,27 +497,6 @@ int VString::CompareReverseLimitNoCase(const char *dst) const
 	std::string str1(data);
 	std::string str2(dst);
 	return CompareStrEndNoCase(str1, str2);
-}
-
-size_t VString::StrRChr(char search)
-{
-	return std::string(data).rfind(search);
-}
-
-size_t VString::StrRChr(char search, int start)
-{
-	if (start == -1)
-	{
-		start = length;
-	}
-
-	return std::string(data).rfind(search, start);
-}
-
-int VString::StrChr(char search, int start) const
-{
-	std::string s = data;
-	return s.find(search, start);
 }
 
 void VString::StrRplChr(const char find, const char replace)
