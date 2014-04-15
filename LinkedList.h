@@ -60,16 +60,16 @@ template <class T>
 class LinkedList
 {
 public:
-	typedef int (*comparefunc)(T, T);
+	typedef int (*comparefunc)(const T&, const T&);
 
 	LinkedList();
 	virtual ~LinkedList();
 
-	int Find(T compdata, comparefunc compare);
+	int Find(const T &compdata, comparefunc compare);
 	bool InsertSorted(T info, comparefunc compare, bool doublesallowed);
 	void InsertAt(T info, int index);
 	void RemoveAt(int index);
-	T GetAt(int index);
+	T& GetAt(int index);
 	void AddHead(T info);
 	void AddTail(T info);
 
@@ -212,7 +212,7 @@ LinkedList<T>::~LinkedList()
 }
 
 template <class T>
-int LinkedList<T>::Find(T compdata, comparefunc compare)
+int LinkedList<T>::Find(const T &compdata, comparefunc compare)
 {
 	// If the list is sorted, this function will preform a LOT faster.
 	// Please note you have to use the SAME function for sorting as for finding
@@ -460,7 +460,7 @@ void LinkedList<T>::RemoveAt(int index)
 }
 
 template <class T>
-T LinkedList<T>::GetAt(int index)
+T& LinkedList<T>::GetAt(int index)
 {
 #ifndef LL_SINGLETHREAD
 	ReadLock readLock(this);

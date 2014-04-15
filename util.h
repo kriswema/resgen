@@ -32,4 +32,10 @@ void strToLower(std::string &str);
 
 int CompareStrEndNoCase(const std::string &str, const std::string &ending);
 
+void leftTrim(std::string &str);
+void leftTrim(std::string &str, const std::string &trimmedChars);
+
+void rightTrim(std::string &str);
+void rightTrim(std::string &str, const std::string &trimmedChars);
+
 #endif // UTIL_H

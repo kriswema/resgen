@@ -459,7 +459,7 @@ int RESGen::MakeRES(std::string &map, int fileindex, int filecount)
 		//printf("\nStarting resource check:\n");
 		for (i = 0; i < resfile.GetCount(); i++)
 		{
-			VString *tempres = resfile.GetAt(i);
+			std::string& tempres = resfile.GetAt(i);
 			//printf("%s\n", (LPCSTR)*tempres);
 			int resfileindex = resources.Find(tempres, RESGen_CompareVStringsFromList);
 			if(resfileindex < 0)
@@ -471,16 +471,16 @@ int RESGen::MakeRES(std::string &map, int fileindex, int filecount)
 					// file found - it's an exclude
 					if (contentdisp)
 					{
-						printf("Resource is excluded: %s\n", (LPCSTR)*tempres);
+						printf("Resource is excluded: %s\n", tempres.c_str());
 					}
 
 				}
-				else if (tempres->CompareReverseLimitNoCase(".wad"))
+				else if (CompareStrEndNoCase(tempres, ".wad"))
 				{
 					// not a wad file
 					if (verbal)
 					{
-						printf("Resource file not found: %s\n", (LPCSTR)*tempres);
+						printf("Resource file not found: %s\n", tempres.c_str());
 					}
 					status = 2; // res file might not be complete
 				}
@@ -489,13 +489,12 @@ int RESGen::MakeRES(std::string &map, int fileindex, int filecount)
 					// wad file is not critical, so no status change
 					if (contentdisp)
 					{
-						printf("Resource file not found: %s\n", (LPCSTR)*tempres);
+						printf("Resource file not found: %s\n", tempres.c_str());
 					}
 				}
 
 				// remove file from list
 				resfile.RemoveAt(i);
-				delete tempres;
 				i = i - 1; // Next has become current. Don't skip it!
 			}
 			else
@@ -503,51 +502,45 @@ int RESGen::MakeRES(std::string &map, int fileindex, int filecount)
 				if (matchcase)
 				{
 					// match case
-					*tempres = *resources.GetAt(resfileindex);
+					tempres = resources.GetAt(resfileindex);
 				}
 
 				if (parseresource)
 				{
-					if (!tempres->CompareReverseLimitNoCase(".wad"))
+					if (!CompareStrEndNoCase(tempres, ".wad"))
 					{
 						// Check if wad file is used
-						if (!CheckWadUse(std::string(*resources.GetAt(resfileindex)))) // We MUST have the right file
+						if (!CheckWadUse(resources.GetAt(resfileindex))) // We MUST have the right file
 						{
 							// Wad is NOT being used
 							if (contentdisp)
 							{
-								printf("WAD file not used: %s\n", (LPCSTR)*tempres);
+								printf("WAD file not used: %s\n", tempres.c_str());
 							}
 
 							if(!preservewads)
 							{
 								// remove file from list
 								resfile.RemoveAt(i);
-								delete tempres;
 								i = i - 1; // Next has become current. Don't skip it!
 							}
 						}
 					}
-					else if (!tempres->CompareReverseLimitNoCase(".mdl"))
+					else if (!CompareStrEndNoCase(tempres, ".mdl"))
 					{
 						// Check model for external texture
-						if (CheckModelExtTexture(std::string(*resources.GetAt(resfileindex))))
+						if (CheckModelExtTexture(resources.GetAt(resfileindex)))
 						{
 							// Uses external texture, add
-							VString *extmdltex = new VString(std::string(tempres->data).substr(0, tempres->GetLength() - 4).c_str()); // strip extention
-							*extmdltex += "T.mdl"; // add T and extention
+							std::string extmdltex = tempres.substr(0, tempres.length() - 4); // strip extention
+							extmdltex += "T.mdl"; // add T and extention
 
 							// We can get away with this, since the model texture will be places AFTER the model
-							if (!resfile.InsertSorted(extmdltex, RESGen_CompareVStringsFromList, false))
-							{
-								// Hmmm, weird, already in res file.. Oh well, can't complain!
-								delete extmdltex;
-							}
-							else
+							if (resfile.InsertSorted(extmdltex, RESGen_CompareVStringsFromList, false))
 							{
 								if (contentdisp)
 								{
-									printf("MDL texture file added: %s\n", (LPCSTR)*extmdltex);
+									printf("MDL texture file added: %s\n", extmdltex.c_str());
 								}
 							}
 
@@ -565,7 +558,7 @@ int RESGen::MakeRES(std::string &map, int fileindex, int filecount)
 		//printf("\nStarting exclude check:\n");
 		for (i = 0; i < resfile.GetCount(); i++)
 		{
-			VString *tempres = resfile.GetAt(i);
+			std::string& tempres = resfile.GetAt(i);
 			//printf("%s\n", (LPCSTR)*tempres);
 			int resfileindex = excludelist.Find(tempres, RESGen_CompareVStringsFromList);
 			if(resfileindex >= 0)
@@ -573,12 +566,11 @@ int RESGen::MakeRES(std::string &map, int fileindex, int filecount)
 				// file found
 				if (contentdisp)
 				{
-					printf("Resource is excluded: %s\n", (LPCSTR)*tempres);
+					printf("Resource is excluded: %s\n", tempres.c_str());
 				}
 
 				// remove file from list
 				resfile.RemoveAt(i);
-				delete tempres;
 				i = i - 1; // Next has become current. Don't skip it!
 			}
 		}
@@ -592,7 +584,7 @@ int RESGen::MakeRES(std::string &map, int fileindex, int filecount)
 			status = 2; // res file might not be complete
 			for (i = 0; i < texturelist.GetCount(); i++)
 			{
-				printf("Texture not found in wad files: %s\n", (LPCSTR)*texturelist.GetAt(i));
+				printf("Texture not found in wad files: %s\n", texturelist.GetAt(i).c_str());
 			}
 		}
 	}
@@ -716,7 +708,7 @@ void RESGen::BuildResourceList(std::string &respath, bool checkpak, bool sdisp, 
 	printf("\n");
 }
 
-char * RESGen::LoadBSPData(const std::string &file, int * const entdatalen, LinkedList<VString *> * const texlist)
+char * RESGen::LoadBSPData(const std::string &file, int * const entdatalen, LinkedList<std::string> * const texlist)
 {
 	// first open the file.
 	File bsp(file, "rb"); // read in binary mode.
@@ -820,12 +812,8 @@ char * RESGen::LoadBSPData(const std::string &file, int * const entdatalen, Link
 				if (texdata.offsets[0] == 0 && texdata.offsets[1] == 0 && texdata.offsets[2] == 0 && texdata.offsets[3] == 0)
 				{
 					// No texture for any mip level, so must be in a wad
-					VString *texfile = new VString(texdata.name);
-					if (!texlist->InsertSorted(texfile, RESGen_CompareVStringsFromList, false))
-					{
-						// double detected
-						delete texfile;
-					}
+					std::string texfile(texdata.name);
+					texlist->InsertSorted(texfile, RESGen_CompareVStringsFromList, false);
 				}
 			}
 
@@ -910,11 +898,9 @@ void RESGen::AddRes(std::string res, const char * const prefix, const char * con
 	// Add file to list if it isn't in it yet.
 
 	// File not found, must be new. Add to list
-	VString *tempres = new VString(res.c_str());
-	if (!resfile.InsertSorted(tempres, RESGen_CompareVStringsFromList, false))
+	if (!resfile.InsertSorted(res, RESGen_CompareVStringsFromList, false))
 	{
 		// double file found, discard
-		delete tempres;
 		return;
 	}
 
@@ -966,8 +952,8 @@ bool RESGen::WriteRes(const VString &folder, const VString &mapname)
 	// Resources
 	for (int i = 0; i < resfile.GetCount(); i++)
 	{
-		VString *vtemp = resfile.GetAt(i);
-		fprintf(f, "%s\n", (LPCSTR)*vtemp);
+		std::string &vtemp = resfile.GetAt(i);
+		fprintf(f, "%s\n", vtemp.c_str());
 	}
 
 	// RFA file, if needed
@@ -986,10 +972,7 @@ void RESGen::ClearResfile()
 
 	while (resfile.GetCount() > 0)
 	{
-		// remove from list AND clean up memory from VString
-		VString *temp = resfile.GetAt(0);
 		resfile.RemoveAt(0);
-		delete temp;
 	}
 }
 
@@ -1000,10 +983,7 @@ void RESGen::ClearTextures()
 
 	while (texturelist.GetCount() > 0)
 	{
-		// remove from list AND clean up memory from VString
-		VString *temp = texturelist.GetAt(0);
 		texturelist.RemoveAt(0);
-		delete temp;
 	}
 }
 
@@ -1015,10 +995,7 @@ void RESGen::ClearResources()
 
 	while (resources.GetCount() > 0)
 	{
-		// remove from list AND clean up memory from VString
-		VString *temp = resources.GetAt(0);
 		resources.RemoveAt(0);
-		delete temp;
 	}
 }
 
@@ -1030,10 +1007,7 @@ void RESGen::ClearExcludes()
 
 	while (excludelist.GetCount() > 0)
 	{
-		// remove from list AND clean up memory from VString
-		VString *temp = excludelist.GetAt(0);
 		excludelist.RemoveAt(0);
-		delete temp;
 	}
 }
 
@@ -1166,12 +1140,7 @@ void RESGen::ListDir(const VString &path, const VString &filepath, bool reporter
 				// resource, add to list
 				file.StrRplChr('\\', '/'); // replace backslashes
 
-				VString *tmp = new VString(file);
-				if (!resources.InsertSorted(tmp, RESGen_CompareVStringsFromList, false))
-				{
-					// double detected
-					delete tmp;
-				}
+				resources.InsertSorted(file.data, RESGen_CompareVStringsFromList, false);
 
 				if (resourcedisp)
 				{
@@ -1259,12 +1228,7 @@ void RESGen::ListDir(const VString &path, const VString &filepath, bool reporter
 					// resource, add to list
 					file.StrRplChr('\\', '/'); // replace backslashes
 
-					VString *tmp = new VString(file);
-					if (!resources.InsertSorted(tmp, RESGen_CompareVStringsFromList, false))
-					{
-						// double detected
-						delete tmp;
-					}
+					resources.InsertSorted(file.data, RESGen_CompareVStringsFromList, false);
 
 					if (resourcedisp)
 					{
@@ -1382,18 +1346,13 @@ void RESGen::BuildPakResourceList(const VString &pakfilename)
 			)
 		{
 			// resource, add to list
-			VString *tmp = new VString(filelist[i].name);
-			tmp->StrRplChr('\\', '/'); // replace backslashes
+			std::string resStr = replaceCharAll(filelist[i].name, '\\', '/');
 
-			if (!resources.InsertSorted(tmp, RESGen_CompareVStringsFromList, false))
-			{
-				// double detected
-				delete tmp;
-			}
+			resources.InsertSorted(resStr, RESGen_CompareVStringsFromList, false);
 
 			if (resourcedisp)
 			{
-				printf("Added \"%s\" to resource list\n", (LPCSTR)*tmp);
+				printf("Added \"%s\" to resource list\n", resStr.c_str());
 			}
 		}
 	}
@@ -1436,78 +1395,54 @@ bool RESGen::LoadExludeFile(VString &listfile)
 	checkforexcludes = true; // We want to check for excludes
 
 	// loop to read file.. each line is an exclude
-	VString *line = new VString;
+	std::string line;
 	char linebuf[1024]; // optimal size for VString allocs
 	while (fgets(linebuf, 1024, f))
 	{
-		*line += linebuf;
-		if (line->GetAt(line->GetLength()-1) == '\n')
+		line += linebuf;
+		if (line[line.length() - 1] == '\n')
 		{
-			line->SetAt(line->GetLength()-1, 0); // delete \n
-			line->Trim(); // Trim spaces
+			line[line.length() - 1] = 0; // delete \n
+			leftTrim(line);
 			#ifndef WIN32
-			line->TrimRight('\r'); // forces linux compatibility
-			line->TrimRight(); // remove remaining whitespace
+			rightTrim(line);
 			#endif
-			if (line->CompareLimit("//", 2) && line->GetLength() != 0)
+			
+			if (line.compare(0, 2, "//") && line.length() != 0)
 			{
 				// Convert backslashes to slashes
-				line->StrRplChr('\\', '/');
+				line = replaceCharAll(line, '\\', '/');
 				// Not a comment or empty line
-				if (!excludelist.InsertSorted(line, RESGen_CompareVStringsFromList, false))
-				{
-					// double detected
-					line->Empty();
-				}
-				else
-				{
-					line = new VString;
-				}
+				excludelist.InsertSorted(line, RESGen_CompareVStringsFromList, false);
 			}
-			else
-			{
-				// Clear comment
-				line->Empty();
-			}
+
+			line.clear();
 		}
 	}
 
-	if (line->GetLength() > 0)
+	if (line.length() > 0)
 	{
-		line->SetAt(line->GetLength()-1, 0); // delete \n
-		line->Trim(); // Trim spaces
+		line[line.length() - 1] = 0; // delete \n
+		leftTrim(line);
 		#ifndef WIN32
-		line->TrimRight('\r'); // forces linux compatibility
-		line->TrimRight(); // remove remaining whitespace
+		rightTrim(line);
 		#endif
-		if (line->CompareLimit("//", 2) && line->GetLength() != 0)
+		if (line.compare(0, 2, "//") && line.length() != 0)
 		{
 			// Convert backslashes to slashes
-			line->StrRplChr('\\', '/');
+			line = replaceCharAll(line, '\\', '/');
 			// Not a comment or empty line
-			if (!excludelist.InsertSorted(line, RESGen_CompareVStringsFromList, false))
-			{
-				// double detected
-				delete line;
-			}
+			excludelist.InsertSorted(line, RESGen_CompareVStringsFromList, false);
 		}
-		else
-		{
-			// Clean up comment
-			delete line;
-		}
-	}
-	else
-	{
-		delete line; // clean up
 	}
 
 	return true;
 }
 
-int RESGen_CompareVStringsFromList(VString *a, VString *b)
+int RESGen_CompareVStringsFromList(const std::string &a, const std::string &b)
 {
-	return a->CompareNoCase(*b);
+	return strToLowerCopy(a).compare(strToLowerCopy(b));
+	//return a->CompareNoCase(*b);
 }
 
 bool RESGen::CheckWadUse(const std::string &wadfile)
@@ -1563,8 +1498,8 @@ bool RESGen::CheckWadUse(const std::string &wadfile)
 			return false;
 		}
 
-		VString texture = lumpinfo.name;
-		int texloc = texturelist.Find(&texture, RESGen_CompareVStringsFromList);
+		std::string texture = lumpinfo.name;
+		int texloc = texturelist.Find(texture, RESGen_CompareVStringsFromList);
 
 		if (texloc >= 0)
 		{
@@ -1572,9 +1507,7 @@ bool RESGen::CheckWadUse(const std::string &wadfile)
 			retval = true;
 
 			// update texture list
-			VString *texstring = texturelist.GetAt(texloc);
 			texturelist.RemoveAt(texloc);
-			delete texstring;
 		}
 	}
 

@@ -10,7 +10,7 @@
 
 CPPUNIT_TEST_SUITE_REGISTRATION(LinkedListTest);
 
-int compareFunc(int* a, int* b)
+int compareFunc(int* const& a, int* const& b)
 {
 	return *a - *b;
 }

@@ -147,3 +147,23 @@ int CompareStrEndNoCase(const std::string &str, const std::string &ending)
 
 	return strLC.compare(str.length() - ending.length(), ending.length(), endingLC);
 }
+
+void leftTrim(std::string &str)
+{
+    leftTrim(str, " \n\r\t");
+}
+
+void leftTrim(std::string &str, const std::string &trimmedChars)
+{
+    str.erase(0, str.find_first_not_of(trimmedChars));
+}
+
+void rightTrim(std::string &str)
+{
+    rightTrim(str, " \n\r\t");
+}
+
+void rightTrim(std::string &str, const std::string &trimmedChars)
+{
+    str.erase(str.find_first_not_of(trimmedChars) + 1);
+}
