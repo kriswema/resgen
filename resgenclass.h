@@ -26,9 +26,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #if !defined(AFX_RESGENCLASS_H__5EDE8CED_D2D4_4D20_846F_5A1034433CDD__INCLUDED_)
 #define AFX_RESGENCLASS_H__5EDE8CED_D2D4_4D20_846F_5A1034433CDD__INCLUDED_
 
-#if _MSC_VER > 1000
 #pragma once
-#endif // _MSC_VER > 1000
 
 #include <cstddef>
 #include <string>
@@ -59,11 +57,11 @@ private:
 	void ListDir(const std::string &path, const std::string &filepath, bool reporterror);
 	char * StrTok(char *string, char delimiter);
 	bool WriteRes(const std::string &folder, const std::string &mapname);
-	void AddWad(const std::string &wadlist, int start, int len);
+	void AddWad(const std::string &wadlist, size_t start, size_t len);
 	void AddRes(std::string res, const char * const prefix = NULL, const char * const suffix = NULL);
 	char * NextValue();
 	char * NextToken();
-	char * LoadBSPData(const std::string &file, int * const entdatalen = NULL, LinkedList<std::string> * const texlist = NULL);
+	char * LoadBSPData(const std::string &file, size_t * const entdatalen = NULL, LinkedList<std::string> * const texlist = NULL);
 
 	std::string valveresourcepath;
 	std::string resourcepath;
@@ -147,14 +145,14 @@ private:
 	{
 		int pakid;
 		int diroffset;
-		int dirsize;
+		size_t dirsize;
 	};
 
 	struct fileinfo_s
 	{
 		char name[56];
 		int fileoffset;
-		int filelen;
+		size_t filelen;
 	};
 	struct texdata_s
 	{
@@ -165,7 +163,7 @@ private:
 	struct lumpinfo_s
 	{
 		int fileofs;
-		int filelen;
+		size_t filelen;
 	};
 	struct bsp_header
 	{

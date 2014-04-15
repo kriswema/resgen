@@ -69,60 +69,11 @@ FILE* File::operator->()
 }
 
 
-int strrnicmp(const char *src, const char *dst, int limit)
-{
-	// derived from VString function
-	// first determine our maximum running length
-	int i = strlen(src) - 1;
-	int j = strlen(dst) - 1;
-
-	limit--;
-
-	if (i < limit)
-	{
-        if (i != j)
-        {
-            return i - j;
-        }
-
-		limit = i;
-	}
-	if (j < limit)
-	{
-        if (i != j)
-        {
-            return i - j;
-        }
-
-		limit = j;
-	}
-
-	src = src + i;
-	dst = dst + j;
-
-	while (limit >= 0)
-	{
-		i = tolower(*src);
-		j = tolower(*dst);
-
-        if (i != j)
-        {
-            return i - j;
-        }
-
-		src--;
-		dst--;
-		limit--;
-	}
-
-	return 0;
-}
-
 std::string replaceCharAll(std::string str, const char find, const char replace)
 {
-	std::string result = str;
-	std::replace(result.begin(), result.end(), find, replace);
-	return result;
+    std::string result = str;
+    std::replace(result.begin(), result.end(), find, replace);
+    return result;
 }
 
 std::string strToLowerCopy(const std::string &str)
@@ -139,15 +90,15 @@ void strToLower(std::string &str)
 
 int CompareStrEndNoCase(const std::string &str, const std::string &ending)
 {
-	if(str.length() < ending.length())
-	{
-		return -1;
-	}
+    if(str.length() < ending.length())
+    {
+        return -1;
+    }
 
-	std::string strLC = strToLowerCopy(str);
-	std::string endingLC = strToLowerCopy(ending);
+    std::string strLC = strToLowerCopy(str);
+    std::string endingLC = strToLowerCopy(ending);
 
-	return strLC.compare(str.length() - ending.length(), ending.length(), endingLC);
+    return strLC.compare(str.length() - ending.length(), ending.length(), endingLC);
 }
 
 void leftTrim(std::string &str)
@@ -172,15 +123,15 @@ void rightTrim(std::string &str, const std::string &trimmedChars)
 
 bool readFile(const std::string &filename, std::string &outStr)
 {
-	std::ifstream f(filename.c_str());
+    std::ifstream f(filename.c_str());
 
     if(!f.is_open())
     {
         return false;
     }
 
-	std::stringstream buffer;
-	buffer << f.rdbuf();
-	outStr = buffer.str();
+    std::stringstream buffer;
+    buffer << f.rdbuf();
+    outStr = buffer.str();
     return true;
 }

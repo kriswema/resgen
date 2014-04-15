@@ -91,14 +91,14 @@ int RESGen::MakeRES(std::string &map, int fileindex, int filecount)
 	#endif
 
 	// Create basefilename
-	int i = map.rfind('/'); // Linux style path
-	if (i == -1)
+	size_t lastSlashIndex = map.rfind('/'); // Linux style path
+	if (lastSlashIndex == std::string::npos)
 	{
-		i = map.rfind('\\'); // windows style path
+		lastSlashIndex = map.rfind('\\'); // windows style path
 	}
 
 	std::string basefolder; // folder, including trailing /
-	if (i == -1)
+	if (lastSlashIndex == std::string::npos)
 	{
 		#ifdef WIN32
 		basefolder = ".\\";
@@ -108,9 +108,9 @@ int RESGen::MakeRES(std::string &map, int fileindex, int filecount)
 	}
 	else
 	{
-		basefolder = map.substr(0, i + 1);
+		basefolder = map.substr(0, lastSlashIndex + 1);
 	}
-	std::string basefilename = map.substr(i + 1, map.length() - i - 5);
+	std::string basefilename = map.substr(lastSlashIndex + 1, map.length() - lastSlashIndex - 5);
 
 	std::string resName = basefolder + basefilename + ".res";
 
@@ -151,7 +151,7 @@ int RESGen::MakeRES(std::string &map, int fileindex, int filecount)
 	ClearTextures();
 
 	// first, get the enity data
-	int entdatalen; // Length of entity data
+	size_t entdatalen; // Length of entity data
 	char *entdata = LoadBSPData(map, &entdatalen, &texturelist);
 	if (entdata == NULL)
 	{
@@ -172,7 +172,7 @@ int RESGen::MakeRES(std::string &map, int fileindex, int filecount)
 	}
 
 	// Look for first block end (we do not need to parse the ather blocks vor skyname or wad info)
-	size_t milen = ((size_t)strstr(mistart+1, "}") - (size_t)mistart) + 1;
+	size_t milen = static_cast<size_t>(strstr(mistart+1, "}") - mistart) + 1;
 
 	char *mapinfo = new char [milen + 1];
 	memcpy(mapinfo, mistart, milen);
@@ -216,7 +216,7 @@ int RESGen::MakeRES(std::string &map, int fileindex, int filecount)
 			if (!value.empty()) // Don't try to parse an empty listing
 			{
 				// seperate the WAD files and save
-				i = 0;
+				size_t i = 0;
 				size_t seppos;
 
 				while ((seppos = value.find(';', i)) != std::string::npos)
@@ -366,13 +366,14 @@ int RESGen::MakeRES(std::string &map, int fileindex, int filecount)
 			statcount = 0;
 
 			// Calculate the percentage completed of the current file.
-			int percentage = (((token-entdata)+1) * 101) / entdatalen; // Make the length one too long.
+			size_t progress = static_cast<size_t>(token - entdata);
+			size_t percentage = ((progress + 1) * 101) / entdatalen; // Make the length one too long.
 			if (percentage > 100)
 			{
 				 // Make sure we don;t go over 100%
 				percentage = 100;
 			}
-			printf("\r(%d%%) [%d/%d]", percentage, fileindex, filecount);
+			printf("\r(%zu%%) [%d/%d]", percentage, fileindex, filecount);
 		}
 		else
 		{
@@ -457,7 +458,7 @@ int RESGen::MakeRES(std::string &map, int fileindex, int filecount)
 	if (checkforresources)
 	{
 		//printf("\nStarting resource check:\n");
-		for (i = 0; i < resfile.GetCount(); i++)
+		for (int i = 0; i < resfile.GetCount(); i++)
 		{
 			std::string& tempres = resfile.GetAt(i);
 
@@ -556,7 +557,7 @@ int RESGen::MakeRES(std::string &map, int fileindex, int filecount)
 	if (checkforexcludes)
 	{
 		//printf("\nStarting exclude check:\n");
-		for (i = 0; i < resfile.GetCount(); i++)
+		for (int i = 0; i < resfile.GetCount(); i++)
 		{
 			std::string& tempres = resfile.GetAt(i);
 
@@ -582,7 +583,7 @@ int RESGen::MakeRES(std::string &map, int fileindex, int filecount)
 		if (texturelist.GetCount() > 0)
 		{
 			status = 2; // res file might not be complete
-			for (i = 0; i < texturelist.GetCount(); i++)
+			for (int i = 0; i < texturelist.GetCount(); i++)
 			{
 				printf("Texture not found in wad files: %s\n", texturelist.GetAt(i).c_str());
 			}
@@ -706,7 +707,7 @@ void RESGen::BuildResourceList(std::string &respath, bool checkpak, bool sdisp, 
 	printf("\n");
 }
 
-char * RESGen::LoadBSPData(const std::string &file, int * const entdatalen, LinkedList<std::string> * const texlist)
+char * RESGen::LoadBSPData(const std::string &file, size_t * const entdatalen, LinkedList<std::string> * const texlist)
 {
 	// first open the file.
 	File bsp(file, "rb"); // read in binary mode.
@@ -744,7 +745,7 @@ char * RESGen::LoadBSPData(const std::string &file, int * const entdatalen, Link
 	char *entdata = new char [header.ent_header.filelen + 1];
 
 	fseek(bsp, header.ent_header.fileofs, SEEK_SET);
-	if ((int)fread(entdata, header.ent_header.filelen, 1, bsp) != 1)
+	if (fread(entdata, header.ent_header.filelen, 1, bsp) != 1)
 	{
 		// not the right ammount of data was read
 		delete [] entdata;
@@ -756,7 +757,7 @@ char * RESGen::LoadBSPData(const std::string &file, int * const entdatalen, Link
 	{
 		// Load names of external textures
 		fseek(bsp, header.tex_header.fileofs, SEEK_SET); // go to start of texture data
-		int texcount;
+		size_t texcount;
 
 		if (fread(&texcount, sizeof(int), 1, bsp) != 1) // first we want to know the number of files.
 		{
@@ -766,20 +767,12 @@ char * RESGen::LoadBSPData(const std::string &file, int * const entdatalen, Link
 			return NULL;
 		}
 
-		if (texcount < 0)
-		{
-			// File corrupted
-			delete [] entdata;
-			printf("Error opening \"%s\". Corrupt BSP textures.\n", file.c_str());
-			return NULL;
-		}
-
 		if (texcount > 0)
 		{
 			// Textures available, read all offsets
 			char *offsets = new char [sizeof(int) * texcount];
 
-			int i = fread(offsets, sizeof(int), texcount, bsp);
+			size_t i = fread(offsets, sizeof(int), texcount, bsp);
 
 			if (i != texcount) // load texture offsets
 			{
@@ -913,7 +906,7 @@ void RESGen::AddRes(std::string res, const char * const prefix, const char * con
 	return;
 }
 
-void RESGen::AddWad(const std::string &wadlist, int start, int len)
+void RESGen::AddWad(const std::string &wadlist, size_t start, size_t len)
 {
 	std::string wadfile = wadlist.substr(start, len);
 
@@ -1264,9 +1257,9 @@ void RESGen::BuildPakResourceList(const std::string &pakfilename)
 
 	// Check a pakfile for resources
 	// get the header
-	int pakheadersize = sizeof(pakheader_s);
+	size_t pakheadersize = sizeof(pakheader_s);
 	pakheader_s pakheader;
-	int retval = fread((void *)&pakheader, 1, pakheadersize, pakfile);
+	size_t retval = fread(&pakheader, 1, pakheadersize, pakfile);
 
 	if (retval != pakheadersize)
 	{
@@ -1290,8 +1283,8 @@ void RESGen::BuildPakResourceList(const std::string &pakfilename)
 	}
 
 	// count the number of files in the pak
-	int fileinfosize = sizeof(fileinfo_s);
-	int filecount = pakheader.dirsize / fileinfosize;
+	size_t fileinfosize = sizeof(fileinfo_s);
+	size_t filecount = pakheader.dirsize / fileinfosize;
 
 	// re-verify integrity of header
 	if (pakheader.dirsize % fileinfosize != 0 || filecount == 0)
@@ -1331,16 +1324,16 @@ void RESGen::BuildPakResourceList(const std::string &pakfilename)
 	}
 
 	// Read filelist for possible resources
-	for (int i = 0; i < filecount; i++)
+	for (size_t i = 0; i < filecount; i++)
 	{
 		if (
-			!strrnicmp(filelist[i].name, ".mdl", 4) ||
-			!strrnicmp(filelist[i].name, ".wav", 4) ||
-			!strrnicmp(filelist[i].name, ".spr", 4) ||
-			!strrnicmp(filelist[i].name, ".bmp", 4) ||
-			!strrnicmp(filelist[i].name, ".tga", 4) ||
-			!strrnicmp(filelist[i].name, ".txt", 4) ||
-			!strrnicmp(filelist[i].name, ".wad", 4)
+			!CompareStrEndNoCase(filelist[i].name, ".mdl") ||
+			!CompareStrEndNoCase(filelist[i].name, ".wav") ||
+			!CompareStrEndNoCase(filelist[i].name, ".spr") ||
+			!CompareStrEndNoCase(filelist[i].name, ".bmp") ||
+			!CompareStrEndNoCase(filelist[i].name, ".tga") ||
+			!CompareStrEndNoCase(filelist[i].name, ".txt") ||
+			!CompareStrEndNoCase(filelist[i].name, ".wad")
 			)
 		{
 			// resource, add to list
@@ -1435,7 +1428,6 @@ bool RESGen::LoadExludeFile(std::string &listfile)
 int ICompareStrings(const std::string &a, const std::string &b)
 {
 	return strToLowerCopy(a).compare(strToLowerCopy(b));
-	//return a->CompareNoCase(*b);
 }
 
 bool RESGen::CheckWadUse(const std::string &wadfile)

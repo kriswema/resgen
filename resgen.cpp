@@ -230,8 +230,8 @@ int main(int argc, char* argv[])
 		if (argstr[0] == '-')
 		{
 			// cmdline switch(es)
-			int arglen = strlen(argstr);
-			for (int j = 1; j < arglen; j++)
+			size_t arglen = strlen(argstr);
+			for (size_t j = 1; j < arglen; j++)
 			{
 				switch (argstr[j])
 				{

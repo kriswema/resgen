@@ -22,8 +22,6 @@ private:
 	FILE* fileHandle;
 };
 
-int strrnicmp(const char *src, const char *dst, int limit);
-
 std::string replaceCharAll(std::string str, const char find, const char replace);
 
 std::string strToLowerCopy(const std::string &str);
