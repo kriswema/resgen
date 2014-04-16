@@ -66,6 +66,7 @@ public:
 	virtual ~LinkedList();
 
 	int Find(const T &compdata, comparefunc compare);
+	void Clear();
 	bool InsertSorted(T info, comparefunc compare, bool doublesallowed);
 	void InsertAt(T info, int index);
 	void RemoveAt(int index);
@@ -269,6 +270,19 @@ int LinkedList<T>::Find(const T &compdata, comparefunc compare)
 	}
 
 	return -1; // not found
+}
+
+template <class T>
+void LinkedList<T>::Clear()
+{
+#ifndef LL_SINGLETHREAD
+	WriteLock writeLock(this);
+#endif
+
+	while(GetCount() > 0)
+	{
+		RemoveAt(0);
+	}
 }
 
 template <class T>

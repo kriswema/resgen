@@ -659,9 +659,6 @@ int main(int argc, char* argv[])
 				// an error occured. List them.
 				std::string strtmp = FileList.GetAt(0);
 				ErrorList.AddTail(strtmp);
-
-				resgen.ClearResfile(); // We are not going to try and fix it, so resfile can be cleared.
-				resgen.ClearTextures(); // Also clear texture list.
 			}
 		}
 

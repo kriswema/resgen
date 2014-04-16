@@ -63,10 +63,6 @@ RESGen::RESGen()
 
 RESGen::~RESGen()
 {
-	// Clean up
-	ClearResfile();
-	ClearResources();
-	ClearExcludes();
 }
 
 void RESGen::SetParams(bool beverbal, bool statline, bool overwrt, bool lcase, bool mcase, bool prsresource, bool preservewads_, bool cdisp)
@@ -145,10 +141,10 @@ int RESGen::MakeRES(std::string &map, int fileindex, int filecount)
 	}
 
 	// Clear the resfile list to be sure (SHOULD be empty)
-	ClearResfile();
+	resfile.Clear();
 
 	// Clear the texture list to be sure (SHOULD be empty)
-	ClearTextures();
+	texturelist.Clear();
 
 	// first, get the enity data
 	size_t entdatalen; // Length of entity data
@@ -607,8 +603,8 @@ int RESGen::MakeRES(std::string &map, int fileindex, int filecount)
 	}
 
 	// File written successfully. We can safely erase the resfile and texture list
-	ClearResfile();
-	ClearTextures();
+	resfile.Clear();
+	texturelist.Clear();
 
 	return status;
 }
@@ -619,7 +615,7 @@ void RESGen::BuildResourceList(std::string &respath, bool checkpak, bool sdisp, 
 	resourcedisp = rdisp;
 	pakparse = checkpak;
 
-	ClearResources(); // clear the current list first
+	resources.Clear();
 
 	if (respath.empty())
 	{
@@ -929,52 +925,6 @@ bool RESGen::WriteRes(const std::string &folder, const std::string &mapname)
 	}
 
 	return true;
-}
-
-void RESGen::ClearResfile()
-{
-	// RESGen calls this function internally with MakeRes, so normally there is no need to run this.
-	// You might want to use it or if you are running a lot of code after creating the resfile.
-
-	while (resfile.GetCount() > 0)
-	{
-		resfile.RemoveAt(0);
-	}
-}
-
-void RESGen::ClearTextures()
-{
-	// RESGen calls this function internally with MakeRes, so normally there is no need to run this.
-	// You might want to use it or if you are running a lot of code after creating the resfile.
-
-	while (texturelist.GetCount() > 0)
-	{
-		texturelist.RemoveAt(0);
-	}
-}
-
-void RESGen::ClearResources()
-{
-	// RESGen calls this function internally when it is destructed.
-	// You might want to use it if you want to clear the resourcelist if you don't want to use resourcechecking anymore.
-	checkforresources = false;
-
-	while (resources.GetCount() > 0)
-	{
-		resources.RemoveAt(0);
-	}
-}
-
-void RESGen::ClearExcludes()
-{
-	// RESGen calls this function internally when it is destructed.
-	// You might want to use it if you want to clear the excludelist if you don't want to use exludes anymore.
-	checkforexcludes = false;
-
-	while (excludelist.GetCount() > 0)
-	{
-		excludelist.RemoveAt(0);
-	}
 }
 
 bool RESGen::LoadRfaFile(std::string &filename)
