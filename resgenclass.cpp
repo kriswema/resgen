@@ -152,7 +152,7 @@ int RESGen::MakeRES(std::string &map, int fileindex, int filecount)
 
 	// first, get the enity data
 	size_t entdatalen; // Length of entity data
-	char *entdata = LoadBSPData(map, &entdatalen, &texturelist);
+	std::unique_ptr<char[]> entdata = LoadBSPData(map, &entdatalen, &texturelist);
 	if (entdata == NULL)
 	{
 		// error. return
@@ -163,28 +163,25 @@ int RESGen::MakeRES(std::string &map, int fileindex, int filecount)
 	char *mistart;
 
 	// Look for first entity block
-	if ((mistart = strstr(entdata, "{")) == NULL)
+	if ((mistart = strstr(entdata.get(), "{")) == NULL)
 	{
 		// Something wrong with bsp entity data
 		printf("Error parsing \"%s\". Entity data not in recognized text format.\n", map.c_str());
-		delete [] entdata; // Clean up entiy data!
 		return 1;
 	}
 
 	// Look for first block end (we do not need to parse the ather blocks vor skyname or wad info)
 	size_t milen = static_cast<size_t>(strstr(mistart+1, "}") - mistart) + 1;
 
-	char *mapinfo = new char [milen + 1];
-	memcpy(mapinfo, mistart, milen);
+	std::unique_ptr<char[]> mapinfo(new char [milen + 1]);
+	memcpy(mapinfo.get(), mistart, milen);
 	mapinfo[milen] = 0; // terminating NULL
 
 	// parse map info. We use StrTok for this...
-	char *token = StrTok(mapinfo, '\"');
+	char *token = StrTok(mapinfo.get(), '\"');
 	if (!token)
 	{
 			printf("Error parsing \"%s\". No map information found.\n", map.c_str());
-			delete [] mapinfo; // clean up mapinfo
-			delete [] entdata; // Clean up entiy data!
 			return 1;
 	}
 
@@ -192,8 +189,6 @@ int RESGen::MakeRES(std::string &map, int fileindex, int filecount)
 	if (!token)
 	{
 			printf("Error parsing \"%s\". Entity data is corrupt.\n", map.c_str());
-			delete [] mapinfo; // clean up mapinfo
-			delete [] entdata; // Clean up entiy data!
 			return 1;
 	}
 
@@ -206,8 +201,6 @@ int RESGen::MakeRES(std::string &map, int fileindex, int filecount)
 			if (!token)
 			{
 				printf("Error parsing \"%s\" for WADs. Entity data is corrupt.\n", map.c_str());
-				delete [] mapinfo; // clean up mapinfo
-				delete [] entdata; // Clean up entiy data!
 				return 1;
 			}
 			// token has value
@@ -241,8 +234,6 @@ int RESGen::MakeRES(std::string &map, int fileindex, int filecount)
 			if (!token)
 			{
 				printf("Error parsing \"%s\" skies. Entity data is corrupt.\n", map.c_str());
-				delete [] mapinfo; // clean up mapinfo
-				delete [] entdata; // Clean up entiy data!
 				return 1;
 			}
 			// token has value
@@ -264,8 +255,6 @@ int RESGen::MakeRES(std::string &map, int fileindex, int filecount)
 			if (!token)
 			{
 				printf("Error parsing \"%s\" for map data. Entity data is corrupt.\n", map.c_str());
-				delete [] mapinfo; // clean up mapinfo
-				delete [] entdata; // Clean up entiy data!
 				return 1;
 			}
 		}
@@ -275,8 +264,6 @@ int RESGen::MakeRES(std::string &map, int fileindex, int filecount)
 		if (!token)
 		{
 			printf("Error parsing \"%s\". Keys/values not alligned.\n", map.c_str());
-			delete [] mapinfo; // clean up mapinfo
-			delete [] entdata; // Clean up entiy data!
 			return 1;
 		}
 		// token is 'empty'
@@ -286,7 +273,7 @@ int RESGen::MakeRES(std::string &map, int fileindex, int filecount)
 		// No statbar - this is way too fast for it to even show up.
 	}
 
-	delete [] mapinfo; // clean up mapinfo
+	mapinfo.reset();
 
 
 	statcount = STAT_MAX; // make statbar print at once
@@ -294,11 +281,10 @@ int RESGen::MakeRES(std::string &map, int fileindex, int filecount)
 
 	// parse the entity data. We use StrTok for this...
 	// Note that we reparse the mapinfo.
-	token = StrTok(entdata, '\"');
+	token = StrTok(entdata.get(), '\"');
 	if (!token)
 	{
 			printf("Error parsing \"%s\". No initial key.\n", map.c_str());
-			delete [] entdata; // Clean up entity data!
 			return 1;
 	}
 
@@ -307,7 +293,6 @@ int RESGen::MakeRES(std::string &map, int fileindex, int filecount)
 	if (!token)
 	{
 			printf("Error parsing \"%s\". First key not found.\n", map.c_str());
-			delete [] entdata; // Clean up entity data!
 			return 1;
 	}
 
@@ -318,7 +303,6 @@ int RESGen::MakeRES(std::string &map, int fileindex, int filecount)
 		if (!token)
 		{
 			printf("\rError parsing \"%s\". Key to value transition failed.\n", map.c_str());
-			delete [] entdata; // Clean up entity data!
 			return 1;
 		}
 
@@ -354,7 +338,6 @@ int RESGen::MakeRES(std::string &map, int fileindex, int filecount)
 		if (!token)
 		{
 			printf("\rError parsing \"%s\". Could not move on to next key.\n", map.c_str());
-			delete [] entdata; // Clean up entiy data!
 			return 1;
 		}
 		// token is 'empty'
@@ -366,7 +349,7 @@ int RESGen::MakeRES(std::string &map, int fileindex, int filecount)
 			statcount = 0;
 
 			// Calculate the percentage completed of the current file.
-			size_t progress = static_cast<size_t>(token - entdata);
+			size_t progress = static_cast<size_t>(token - entdata.get());
 			size_t percentage = ((progress + 1) * 101) / entdatalen; // Make the length one too long.
 			if (percentage > 100)
 			{
@@ -384,13 +367,13 @@ int RESGen::MakeRES(std::string &map, int fileindex, int filecount)
 		token = StrTok(NULL, '\"'); // try next key
 	}
 
-	delete [] entdata; // clean up bsp entity data
-
 	if (statusline)
 	{
 		// erase statusline
 		printf("\r%-21s\r", ""); // easier to adjust length this way
 	}
+
+	entdata.reset();
 
 	// Try to find info txt and overview data
 	#ifdef WIN32
@@ -707,7 +690,7 @@ void RESGen::BuildResourceList(std::string &respath, bool checkpak, bool sdisp, 
 	printf("\n");
 }
 
-char * RESGen::LoadBSPData(const std::string &file, size_t * const entdatalen, LinkedList<std::string> * const texlist)
+std::unique_ptr<char[]> RESGen::LoadBSPData(const std::string &file, size_t * const entdatalen, LinkedList<std::string> * const texlist)
 {
 	// first open the file.
 	File bsp(file, "rb"); // read in binary mode.
@@ -742,13 +725,12 @@ char * RESGen::LoadBSPData(const std::string &file, size_t * const entdatalen, L
 	}
 
 	// read entity data
-	char *entdata = new char [header.ent_header.filelen + 1];
+	std::unique_ptr<char[]> entdata(new char[header.ent_header.filelen + 1]);
 
 	fseek(bsp, header.ent_header.fileofs, SEEK_SET);
-	if (fread(entdata, header.ent_header.filelen, 1, bsp) != 1)
+	if (fread(entdata.get(), header.ent_header.filelen, 1, bsp) != 1)
 	{
 		// not the right ammount of data was read
-		delete [] entdata;
 		printf("Error opening \"%s\". BSP file corrupt.\n", file.c_str());
 		return NULL;
 	}
@@ -762,7 +744,6 @@ char * RESGen::LoadBSPData(const std::string &file, size_t * const entdatalen, L
 		if (fread(&texcount, sizeof(int), 1, bsp) != 1) // first we want to know the number of files.
 		{
 			// header NOT read properly!
-			delete [] entdata;
 			printf("Error opening \"%s\". Corrupt texture header.\n", file.c_str());
 			return NULL;
 		}
@@ -770,16 +751,14 @@ char * RESGen::LoadBSPData(const std::string &file, size_t * const entdatalen, L
 		if (texcount > 0)
 		{
 			// Textures available, read all offsets
-			char *offsets = new char [sizeof(int) * texcount];
+			std::unique_ptr<char[]> offsets(new char[sizeof(int) * texcount]);
 
-			size_t i = fread(offsets, sizeof(int), texcount, bsp);
+			size_t i = fread(offsets.get(), sizeof(int), texcount, bsp);
 
 			if (i != texcount) // load texture offsets
 			{
 				// header NOT read properly!
 				printf("Error opening \"%s\". Corrupt texture data.\n  read: %d, expect: %d\n", file.c_str(), i, texcount);
-				delete [] entdata;
-				delete [] offsets;
 				return NULL;
 			}
 
@@ -793,8 +772,6 @@ char * RESGen::LoadBSPData(const std::string &file, size_t * const entdatalen, L
 				if (fread(&texdata, sizeof(texdata_s), 1, bsp) != 1)
 				{
 					// header NOT read properly!
-					delete [] entdata;
-					delete [] offsets;
 					printf("Error opening \"%s\". Corrupt BSP file.\n", file.c_str());
 					return NULL;
 				}
@@ -807,8 +784,6 @@ char * RESGen::LoadBSPData(const std::string &file, size_t * const entdatalen, L
 					texlist->InsertSorted(texfile, ICompareStrings, false);
 				}
 			}
-
-			delete [] offsets; // done!
 		}
 
 		/*
@@ -823,7 +798,7 @@ char * RESGen::LoadBSPData(const std::string &file, size_t * const entdatalen, L
 	}
 
 	// add terminating NULL for entity data
-	entdata[header.ent_header.filelen] = 0;
+	entdata.get()[header.ent_header.filelen] = 0;
 
 	if (entdatalen)
 	{
@@ -1306,15 +1281,14 @@ void RESGen::BuildPakResourceList(const std::string &pakfilename)
 		return;
 	}
 
-	fileinfo_s *filelist = new fileinfo_s [filecount];
-	retval = fread(filelist, 1, pakheader.dirsize, pakfile);
+	std::unique_ptr<fileinfo_s[]> filelist(new fileinfo_s[filecount]);
+	retval = fread(filelist.get(), 1, pakheader.dirsize, pakfile);
 	if (retval != pakheader.dirsize)
 	{
 		if (verbal)
 		{
 			printf("Error seeking for file list.\nPakfile \"%s\" is not a pakfile, or is corrupted.\n", pakfilename.c_str());
 		}
-		delete [] filelist;
 		return;
 	}
 
@@ -1347,9 +1321,6 @@ void RESGen::BuildPakResourceList(const std::string &pakfilename)
 			}
 		}
 	}
-
-	// clean up
-	delete [] filelist;
 }
 
 bool RESGen::LoadExludeFile(std::string &listfile)

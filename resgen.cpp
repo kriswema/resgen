@@ -288,11 +288,11 @@ int main(int argc, char* argv[])
 						break;
 					}
 
-					file_s *file = new file_s;
-					file->folder = true;
-					file->recursive = false;
+					file_s file;
+					file.folder = true;
+					file.recursive = false;
 					i++; // increase i.. we used that arg.
-					file->name = argv[i];
+					file.name = argv[i];
 
 					config.files.AddTail(file); // add to linked list
 					break;
@@ -318,11 +318,11 @@ int main(int argc, char* argv[])
 						break;
 					}
 
-					file_s *file = new file_s;
-					file->folder = true;
-					file->recursive = true;
+					file_s file;
+					file.folder = true;
+					file.recursive = true;
 					i++; // increase i.. we used that arg.
-					file->name = argv[i];
+					file.name = argv[i];
 
 					config.files.AddTail(file); // add to linked list
 					break;
@@ -348,11 +348,11 @@ int main(int argc, char* argv[])
 						break;
 					}
 
-					file_s *file = new file_s;
-					file->folder = false;
-					file->recursive = false;
+					file_s file;
+					file.folder = false;
+					file.recursive = false;
 					i++; // increase i.. we used that arg.
-					file->name = argv[i];
+					file.name = argv[i];
 
 					config.files.AddTail(file); // add to linked list
 					break;
@@ -378,11 +378,11 @@ int main(int argc, char* argv[])
 						break;
 					}
 
-					file_s *file = new file_s;
-					file->folder = false;
-					file->recursive = false;
+					file_s file;
+					file.folder = false;
+					file.recursive = false;
 					i++; // increase i.. we used that arg.
-					file->name = argv[i];
+					file.name = argv[i];
 
 					config.excludes.AddTail(file); // add to linked list
 					break;
@@ -500,10 +500,10 @@ int main(int argc, char* argv[])
 		else
 		{
 			// not a switch. Assume it's a map.
-			file_s *file = new file_s;
-			file->folder = false;
-			file->recursive = false;
-			file->name = argv[i];
+			file_s file;
+			file.folder = false;
+			file.recursive = false;
+			file.name = argv[i];
 
 			config.files.AddTail(file); // add to linked list
 		}
@@ -582,17 +582,13 @@ int main(int argc, char* argv[])
 	// clean up config.files, we don't need it anymore
 	while (config.files.GetCount() > 0)
 	{
-		file_s *file = config.files.GetAt(0);
 		config.files.RemoveAt(0);
-		delete file;
 	}
 
 	// Clean up config.exludes, we don't need it anymore
 	while (config.excludes.GetCount() > 0)
 	{
-		file_s *file = config.excludes.GetAt(0);
 		config.excludes.RemoveAt(0);
-		delete file;
 	}
 
 	if (config.verbal) { printf("\n"); } // Make output look a bit cleaner

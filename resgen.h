@@ -41,8 +41,8 @@ struct config_s
 	bool resourcedisp; // f
 	bool contentdisp; // f
 
-	LinkedList<file_s *> files;
-	LinkedList<file_s *> excludes; // Map exclude list - not resource!
+	LinkedList<file_s> files;
+	LinkedList<file_s> excludes; // Map exclude list - not resource!
 	LinkedList<std::string> excludelists; // Exclude resource list files - not maps!
 
 	bool overwrite; // f

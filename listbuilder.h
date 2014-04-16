@@ -43,12 +43,12 @@ public:
 #ifndef WIN32
 	void SetSymLink(bool slink);
 #endif
-	void BuildList(LinkedList<file_s *> *srclist);
-	ListBuilder(LinkedList<std::string> *flist, LinkedList<file_s *> *excludes, bool beverbal, bool sdisp);
+	void BuildList(LinkedList<file_s> *srclist);
+	ListBuilder(LinkedList<std::string> *flist, LinkedList<file_s> *excludes, bool beverbal, bool sdisp);
 	virtual ~ListBuilder();
 
 private:
-	LinkedList<file_s *> * exlist;
+	LinkedList<file_s> * exlist;
 	bool firstdir;
 	void ListDir(const std::string &path);
 	bool recursive;

@@ -43,7 +43,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-ListBuilder::ListBuilder(LinkedList<std::string> *flist, LinkedList<file_s *> *excludes, bool beverbal, bool sdisp)
+ListBuilder::ListBuilder(LinkedList<std::string> *flist, LinkedList<file_s> *excludes, bool beverbal, bool sdisp)
 	: firstdir(false)
 	, recursive(false)
 	, symlink(false)
@@ -67,7 +67,7 @@ ListBuilder::~ListBuilder()
 
 }
 
-void ListBuilder::BuildList(LinkedList<file_s *> *srclist)
+void ListBuilder::BuildList(LinkedList<file_s> *srclist)
 {
 #ifdef _DEBUG
 	if (srclist == NULL)
@@ -94,12 +94,12 @@ void ListBuilder::BuildList(LinkedList<file_s *> *srclist)
 	// walk entries and take appropritate actions.
 	for (int i = 0; i < srclist->GetCount(); i++)
 	{
-		file_s *file = srclist->GetAt(i);
+		file_s &file = srclist->GetAt(i);
 
-		if (file->folder == false)
+		if (file.folder == false)
 		{
 			// single file processing
-			AddFile(file->name, false);
+			AddFile(file.name, false);
 		}
 		else
 		{
@@ -107,36 +107,36 @@ void ListBuilder::BuildList(LinkedList<file_s *> *srclist)
 
 			// prepare folder name
 			#ifdef WIN32
-			if (file->name[file->name.length() - 1] != '\\')
+			if (file.name[file.name.length() - 1] != '\\')
 			{
 				// No ending "\", add
-				file->name += "\\";
+				file.name += "\\";
 			}
 			#else
-			if (file->name[file->name.length() - 1] != '/')
+			if (file.name[file.name.length() - 1] != '/')
 			{
 				// No ending "/", add
-				file->name += "/";
+				file.name += "/";
 			}
 			#endif
 
-			recursive = file->recursive;
+			recursive = file.recursive;
 
 			if (verbal)
 			{
 				if (recursive)
 				{
-					printf("Searching %s and subdirectories for bsp files...\n", file->name.c_str());
+					printf("Searching %s and subdirectories for bsp files...\n", file.name.c_str());
 				}
 				else
 				{
-					printf("Searching %s for bsp files...\n", file->name.c_str());
+					printf("Searching %s for bsp files...\n", file.name.c_str());
 				}
 			}
 
 			firstdir = true;
 
-			ListDir(file->name);
+			ListDir(file.name);
 		}
 	}
 
@@ -164,11 +164,11 @@ void ListBuilder::AddFile(const std::string &filename, bool checkexlist)
 	{
 		for (int i = 0; i < exlist->GetCount(); i++)
 		{
-			file_s *tmpex = exlist->GetAt(i);
-			if (!CompareStrEndNoCase(tmp, tmpex->name))
+			file_s &tmpex = exlist->GetAt(i);
+			if (!CompareStrEndNoCase(tmp, tmpex.name))
 			{
 				// make sure mapname is not longer.
-				if (tmp.length() <= tmpex->name.length())
+				if (tmp.length() <= tmpex.name.length())
 				{
 					// they must be equal
 					if (verbal)
@@ -179,7 +179,7 @@ void ListBuilder::AddFile(const std::string &filename, bool checkexlist)
 				}
 
 				// check for folder char
-				char prechar = tmp[(tmp.length() - tmpex->name.length()) - 1];
+				char prechar = tmp[(tmp.length() - tmpex.name.length()) - 1];
 				if (prechar == '\\' || prechar == '/')
 				{
 					// folder. They are equal
@@ -207,12 +207,12 @@ void ListBuilder::PrepExList()
 	// Prepares Exceptionlist by adding .bsp to filenames that need it
 	for (int i = 0; i < exlist->GetCount(); i++)
 	{
-		file_s *tmp = exlist->GetAt(i);
+		file_s &tmp = exlist->GetAt(i);
 
-		if (CompareStrEndNoCase(tmp->name, ".bsp"))
+		if (CompareStrEndNoCase(tmp.name, ".bsp"))
 		{
 			// add file extension
-			tmp->name += ".bsp";
+			tmp.name += ".bsp";
 		}
 	}
 }

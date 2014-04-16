@@ -29,6 +29,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #pragma once
 
 #include <cstddef>
+#include <memory>
 #include <string>
 
 #include "LinkedList.h"
@@ -61,7 +62,7 @@ private:
 	void AddRes(std::string res, const char * const prefix = NULL, const char * const suffix = NULL);
 	char * NextValue();
 	char * NextToken();
-	char * LoadBSPData(const std::string &file, size_t * const entdatalen = NULL, LinkedList<std::string> * const texlist = NULL);
+	std::unique_ptr<char[]> LoadBSPData(const std::string &file, size_t * const entdatalen = NULL, LinkedList<std::string> * const texlist = NULL);
 
 	std::string valveresourcepath;
 	std::string resourcepath;
