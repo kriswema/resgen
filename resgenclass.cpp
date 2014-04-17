@@ -148,7 +148,7 @@ int RESGen::MakeRES(std::string &map, int fileindex, int filecount)
 
 	// first, get the enity data
 	size_t entdatalen; // Length of entity data
-	std::unique_ptr<char[]> entdata = LoadBSPData(map, &entdatalen, &texturelist);
+	std::unique_ptr<char[]> entdata = LoadBSPData(map, entdatalen, texturelist);
 	if (entdata == NULL)
 	{
 		// error. return
@@ -516,7 +516,7 @@ int RESGen::MakeRES(std::string &map, int fileindex, int filecount)
 							extmdltex += "T.mdl"; // add T and extention
 
 							// We can get away with this, since the model texture will be places AFTER the model
-							if (resfile.InsertSorted(extmdltex, ICompareStrings, false))
+							if (resfile.InsertSorted(extmdltex, ICompareStrings))
 							{
 								if (contentdisp)
 								{
@@ -686,7 +686,7 @@ void RESGen::BuildResourceList(std::string &respath, bool checkpak, bool sdisp, 
 	printf("\n");
 }
 
-std::unique_ptr<char[]> RESGen::LoadBSPData(const std::string &file, size_t * const entdatalen, LinkedList<std::string> * const texlist)
+std::unique_ptr<char[]> RESGen::LoadBSPData(const std::string &file, size_t & entdatalen, LinkedList<std::string> & texlist)
 {
 	// first open the file.
 	File bsp(file, "rb"); // read in binary mode.
@@ -777,7 +777,7 @@ std::unique_ptr<char[]> RESGen::LoadBSPData(const std::string &file, size_t * co
 				{
 					// No texture for any mip level, so must be in a wad
 					std::string texfile(texdata.name);
-					texlist->InsertSorted(texfile, ICompareStrings, false);
+					texlist.InsertSorted(texfile, ICompareStrings);
 				}
 			}
 		}
@@ -785,9 +785,9 @@ std::unique_ptr<char[]> RESGen::LoadBSPData(const std::string &file, size_t * co
 		/*
 		printf("\n\nTextures found:\n");
 
-		for (int i = 0; i < texlist->GetCount(); i++)
+		for (int i = 0; i < texlist.GetCount(); i++)
 		{
-			printf("%s\n", texlist->GetAt(i).c_str());
+			printf("%s\n", texlist.GetAt(i).c_str());
 		}
 		printf("\n\n");
 		//*/
@@ -796,10 +796,7 @@ std::unique_ptr<char[]> RESGen::LoadBSPData(const std::string &file, size_t * co
 	// add terminating NULL for entity data
 	entdata.get()[header.ent_header.filelen] = 0;
 
-	if (entdatalen)
-	{
-		*entdatalen = header.ent_header.filelen;
-	}
+	entdatalen = header.ent_header.filelen;
 
 	#ifdef _DEBUG
 	// Debug write entity data to file
@@ -860,7 +857,7 @@ void RESGen::AddRes(std::string res, const char * const prefix, const char * con
 	// Add file to list if it isn't in it yet.
 
 	// File not found, must be new. Add to list
-	if (!resfile.InsertSorted(res, ICompareStrings, false))
+	if (!resfile.InsertSorted(res, ICompareStrings))
 	{
 		// double file found, discard
 		return;
@@ -1056,7 +1053,7 @@ void RESGen::ListDir(const std::string &path, const std::string &filepath, bool 
 				// resource, add to list
 				file = replaceCharAll(file, '\\', '/'); // replace backslashes
 
-				resources.InsertSorted(file.data, ICompareStrings, false);
+				resources.InsertSorted(file.data, ICompareStrings);
 
 				if (resourcedisp)
 				{
@@ -1144,7 +1141,7 @@ void RESGen::ListDir(const std::string &path, const std::string &filepath, bool 
 					// resource, add to list
 					file = replaceCharAll(file, '\\', '/'); // replace backslashes
 
-					resources.InsertSorted(file, ICompareStrings, false);
+					resources.InsertSorted(file, ICompareStrings);
 
 					if (resourcedisp)
 					{
@@ -1263,7 +1260,7 @@ void RESGen::BuildPakResourceList(const std::string &pakfilename)
 			// resource, add to list
 			std::string resStr = replaceCharAll(filelist[i].name, '\\', '/');
 
-			resources.InsertSorted(resStr, ICompareStrings, false);
+			resources.InsertSorted(resStr, ICompareStrings);
 
 			if (resourcedisp)
 			{
@@ -1320,7 +1317,7 @@ bool RESGen::LoadExludeFile(std::string &listfile)
 				// Convert backslashes to slashes
 				line = replaceCharAll(line, '\\', '/');
 				// Not a comment or empty line
-				excludelist.InsertSorted(line, ICompareStrings, false);
+				excludelist.InsertSorted(line, ICompareStrings);
 			}
 
 			line.clear();
@@ -1339,7 +1336,7 @@ bool RESGen::LoadExludeFile(std::string &listfile)
 			// Convert backslashes to slashes
 			line = replaceCharAll(line, '\\', '/');
 			// Not a comment or empty line
-			excludelist.InsertSorted(line, ICompareStrings, false);
+			excludelist.InsertSorted(line, ICompareStrings);
 		}
 	}
 

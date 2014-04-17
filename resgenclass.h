@@ -58,7 +58,7 @@ private:
 	void AddRes(std::string res, const char * const prefix = NULL, const char * const suffix = NULL);
 	char * NextValue();
 	char * NextToken();
-	std::unique_ptr<char[]> LoadBSPData(const std::string &file, size_t * const entdatalen = NULL, LinkedList<std::string> * const texlist = NULL);
+	std::unique_ptr<char[]> LoadBSPData(const std::string &file, size_t & entdatalen, LinkedList<std::string> & texlist);
 
 	std::string valveresourcepath;
 	std::string resourcepath;

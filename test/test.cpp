@@ -208,16 +208,16 @@ void LinkedListTest::testFindInvalid()
 void LinkedListTest::testInsertSorted()
 {
 	LinkedList<int*> list;
-	CPPUNIT_ASSERT(list.InsertSorted(&a, compareFunc, false));
+	CPPUNIT_ASSERT(list.InsertSorted(&a, compareFunc));
     CPPUNIT_ASSERT(list.GetCount() == 1);
     CPPUNIT_ASSERT(list.GetAt(0) == &a);
 
-	CPPUNIT_ASSERT(list.InsertSorted(&b, compareFunc, false));
+	CPPUNIT_ASSERT(list.InsertSorted(&b, compareFunc));
     CPPUNIT_ASSERT(list.GetCount() == 2);
     CPPUNIT_ASSERT(list.GetAt(0) == &a);
     CPPUNIT_ASSERT(list.GetAt(1) == &b);
 
-	CPPUNIT_ASSERT(list.InsertSorted(&c, compareFunc, false));
+	CPPUNIT_ASSERT(list.InsertSorted(&c, compareFunc));
     CPPUNIT_ASSERT(list.GetCount() == 3);
     CPPUNIT_ASSERT(list.GetAt(0) == &c);
     CPPUNIT_ASSERT(list.GetAt(1) == &a);

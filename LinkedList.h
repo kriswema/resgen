@@ -67,7 +67,7 @@ public:
 
 	int Find(const T &compdata, comparefunc compare);
 	void Clear();
-	bool InsertSorted(T info, comparefunc compare, bool doublesallowed);
+	bool InsertSorted(T info, comparefunc compare);
 	void InsertAt(T info, int index);
 	void RemoveAt(int index);
 	T& GetAt(int index);
@@ -286,7 +286,7 @@ void LinkedList<T>::Clear()
 }
 
 template <class T>
-bool LinkedList<T>::InsertSorted(T info, comparefunc compare, bool doublesallowed)
+bool LinkedList<T>::InsertSorted(T info, comparefunc compare)
 {
 #ifndef LL_SINGLETHREAD
 	WriteLock writeLock(this);
@@ -331,13 +331,6 @@ bool LinkedList<T>::InsertSorted(T info, comparefunc compare, bool doublesallowe
 			}
 			else
 			{
-				if (doublesallowed)
-				{
-					InsertAt(info, pivot);
-					sortfunc = compare; // restore sortfunc
-					return true; // Done
-				}
-
 				return false; // doubles not allowed
 			}
 		}
