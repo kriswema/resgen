@@ -55,11 +55,32 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
+/*
+void InsertSorted(std::vector<std::string> &container, const std::string &element)
+{
+	for(std::vector<std::string>::iterator it = container.begin(); it != container.end(); ++it)
+	{
+		if(ICompareStrings(element, *it) >= 0)
+		{
+			container.insert(i, element);
+		}
+	}
+}
+*/
+std::vector<std::string>::iterator findStringNoCase(std::vector<std::string> &vec, const std::string &element)
+{
+	for(std::vector<std::string>::iterator it = vec.begin(); it != vec.end(); ++it)
+	{
+		if(ICompareStrings(*it, element) == 0)
+		{
+			return it;
+		}
+	}
+
+	return vec.end();
+}
+
 RESGen::RESGen()
-	: resources(ICompareStrings)
-	, resfile(ICompareStrings)
-	, texturelist(ICompareStrings)
-	, excludelist(ICompareStrings)
 {
 	checkforresources = false;
 	checkforexcludes = false;
@@ -145,10 +166,10 @@ int RESGen::MakeRES(std::string &map, int fileindex, size_t filecount)
 	}
 
 	// Clear the resfile list to be sure (SHOULD be empty)
-	resfile.Clear();
+	resfile.clear();
 
 	// Clear the texture list to be sure (SHOULD be empty)
-	texturelist.Clear();
+	texturelist.clear();
 
 	// first, get the enity data
 	size_t entdatalen; // Length of entity data
@@ -442,30 +463,34 @@ int RESGen::MakeRES(std::string &map, int fileindex, size_t filecount)
 	if (checkforresources)
 	{
 		//printf("\nStarting resource check:\n");
-		for (int i = 0; i < resfile.GetCount(); i++)
-		{
-			std::string& tempres = resfile.GetAt(i);
+		std::vector<std::string>::iterator it = resfile.begin();
 
-			int resfileindex = resources.Find(tempres);
-			if(resfileindex < 0)
+		while(it != resfile.end())
+		{
+			bool bErase = false;
+
+			std::vector<std::string>::iterator resfileit = findStringNoCase(resources, *it);
+
+			if(resfileit == resources.end())
 			{
 				// file not found - maybe it's excluded?
-				resfileindex = excludelist.Find(tempres);
-				if(resfileindex >= 0)
+				resfileit = findStringNoCase(excludelist, *it);
+
+				if(resfileit != excludelist.end())
 				{
 					// file found - it's an exclude
 					if (contentdisp)
 					{
-						printf("Resource is excluded: %s\n", tempres.c_str());
+						printf("Resource is excluded: %s\n", it->c_str());
 					}
 
 				}
-				else if (CompareStrEndNoCase(tempres, ".wad"))
+				else if (CompareStrEndNoCase(*it, ".wad"))
 				{
 					// not a wad file
 					if (verbal)
 					{
-						printf("Resource file not found: %s\n", tempres.c_str());
+						printf("Resource file not found: %s\n", it->c_str());
 					}
 					status = 2; // res file might not be complete
 				}
@@ -474,65 +499,71 @@ int RESGen::MakeRES(std::string &map, int fileindex, size_t filecount)
 					// wad file is not critical, so no status change
 					if (contentdisp)
 					{
-						printf("Resource file not found: %s\n", tempres.c_str());
+						printf("Resource file not found: %s\n", it->c_str());
 					}
 				}
 
-				// remove file from list
-				resfile.RemoveAt(i);
-				i = i - 1; // Next has become current. Don't skip it!
+				bErase = true;
 			}
 			else
 			{
 				if (matchcase)
 				{
 					// match case
-					tempres = resources.GetAt(resfileindex);
+					*it = *resfileit;
 				}
 
 				if (parseresource)
 				{
-					if (!CompareStrEndNoCase(tempres, ".wad"))
+					if (!CompareStrEndNoCase(*it, ".wad"))
 					{
 						// Check if wad file is used
-						if (!CheckWadUse(resources.GetAt(resfileindex))) // We MUST have the right file
+						if (!CheckWadUse(*resfileit)) // We MUST have the right file
 						{
 							// Wad is NOT being used
 							if (contentdisp)
 							{
-								printf("WAD file not used: %s\n", tempres.c_str());
+								printf("WAD file not used: %s\n", it->c_str());
 							}
 
 							if(!preservewads)
 							{
-								// remove file from list
-								resfile.RemoveAt(i);
-								i = i - 1; // Next has become current. Don't skip it!
+								bErase = true;
 							}
 						}
 					}
-					else if (!CompareStrEndNoCase(tempres, ".mdl"))
+					else if (!CompareStrEndNoCase(*it, ".mdl"))
 					{
 						// Check model for external texture
-						if (CheckModelExtTexture(resources.GetAt(resfileindex)))
+						if (CheckModelExtTexture(*resfileit))
 						{
 							// Uses external texture, add
-							std::string extmdltex = tempres.substr(0, tempres.length() - 4); // strip extention
+							std::string extmdltex = it->substr(0, it->length() - 4); // strip extention
 							extmdltex += "T.mdl"; // add T and extention
 
-							// We can get away with this, since the model texture will be places AFTER the model
-							if (resfile.InsertSorted(extmdltex))
+							if(findStringNoCase(resfile, extmdltex) == resfile.end())
 							{
+								// We can get away with this, since the model texture will be places AFTER the model
+								resfile.push_back(extmdltex);
+
 								if (contentdisp)
 								{
 									printf("MDL texture file added: %s\n", extmdltex.c_str());
 								}
 							}
-
 						}
 					}
 
 				}
+			}
+
+			if(bErase)
+			{
+				it = resfile.erase(it);
+			}
+			else
+			{
+				++it;
 			}
 		}
 	}
@@ -541,22 +572,22 @@ int RESGen::MakeRES(std::string &map, int fileindex, size_t filecount)
 	if (checkforexcludes)
 	{
 		//printf("\nStarting exclude check:\n");
-		for (int i = 0; i < resfile.GetCount(); i++)
+		std::vector<std::string>::iterator it = resfile.begin();
+		while(it != resfile.end())
 		{
-			std::string& tempres = resfile.GetAt(i);
-
-			int resfileindex = excludelist.Find(tempres);
-			if(resfileindex >= 0)
+			if(findStringNoCase(excludelist, *it) != excludelist.end())
 			{
 				// file found
 				if (contentdisp)
 				{
-					printf("Resource is excluded: %s\n", tempres.c_str());
+					printf("Resource is excluded: %s\n", it->c_str());
 				}
 
-				// remove file from list
-				resfile.RemoveAt(i);
-				i = i - 1; // Next has become current. Don't skip it!
+				it = resfile.erase(it);
+			}
+			else
+			{
+				++it;
 			}
 		}
 	}
@@ -564,17 +595,17 @@ int RESGen::MakeRES(std::string &map, int fileindex, size_t filecount)
 	// Give a list of missing textures
 	if (parseresource && checkforresources && verbal)
 	{
-		if (texturelist.GetCount() > 0)
+		if (!texturelist.empty())
 		{
 			status = 2; // res file might not be complete
-			for (int i = 0; i < texturelist.GetCount(); i++)
+			for (size_t i = 0; i < texturelist.size(); i++)
 			{
-				printf("Texture not found in wad files: %s\n", texturelist.GetAt(i).c_str());
+				printf("Texture not found in wad files: %s\n", texturelist[i].c_str());
 			}
 		}
 	}
 
-	if (resfile.GetCount() == 0 && rfastring.empty())
+	if (resfile.empty() && rfastring.empty())
 	{
 		// no resources!
 		if (verbal) { printf("No resources were found for \"%s.res\".", basefilename.c_str()); }
@@ -601,6 +632,8 @@ int RESGen::MakeRES(std::string &map, int fileindex, size_t filecount)
 		return status;
 	}
 
+	std::sort(resfile.begin(), resfile.end(), StringLessThanNoCase);
+
 	// Collecting resfile entries is done, now write the res file.
 	if (!WriteRes(basefolder, basefilename))
 	{
@@ -608,8 +641,8 @@ int RESGen::MakeRES(std::string &map, int fileindex, size_t filecount)
 	}
 
 	// File written successfully. We can safely erase the resfile and texture list
-	resfile.Clear();
-	texturelist.Clear();
+	resfile.clear();
+	texturelist.clear();
 
 	return status;
 }
@@ -620,7 +653,7 @@ void RESGen::BuildResourceList(std::string &respath, bool checkpak, bool sdisp, 
 	resourcedisp = rdisp;
 	pakparse = checkpak;
 
-	resources.Clear();
+	resources.clear();
 
 	if (respath.empty())
 	{
@@ -691,7 +724,7 @@ void RESGen::BuildResourceList(std::string &respath, bool checkpak, bool sdisp, 
 	printf("\n");
 }
 
-std::unique_ptr<char[]> RESGen::LoadBSPData(const std::string &file, size_t & entdatalen, LinkedList<std::string> & texlist)
+std::unique_ptr<char[]> RESGen::LoadBSPData(const std::string &file, size_t & entdatalen, std::vector<std::string> & texlist)
 {
 	// first open the file.
 	File bsp(file, "rb"); // read in binary mode.
@@ -782,12 +815,13 @@ std::unique_ptr<char[]> RESGen::LoadBSPData(const std::string &file, size_t & en
 				{
 					// No texture for any mip level, so must be in a wad
 					std::string texfile(texdata.name);
-					texlist.InsertSorted(texfile);
+					texlist.push_back(texfile);
 				}
 			}
 		}
 
 		/*
+		// TODO: Sort
 		printf("\n\nTextures found:\n");
 
 		for (int i = 0; i < texlist.GetCount(); i++)
@@ -862,11 +896,13 @@ void RESGen::AddRes(std::string res, const char * const prefix, const char * con
 	// Add file to list if it isn't in it yet.
 
 	// File not found, must be new. Add to list
-	if (!resfile.InsertSorted(res))
+	if(findStringNoCase(resfile, res) != resfile.end())
 	{
 		// double file found, discard
 		return;
 	}
+
+	resfile.push_back(res);
 
 	// Report file found
 	if (contentdisp)
@@ -911,12 +947,12 @@ bool RESGen::WriteRes(const std::string &folder, const std::string &mapname)
 	fprintf(f, "// with serveral improvements and additions by Zero3Cool.\n");
 	fprintf(f, "// For more info go to http://resgen.hltools.com\n");
 
-	fprintf(f, "\n// .res entries (%d):\n", resfile.GetCount());
+	fprintf(f, "\n// .res entries (%d):\n", resfile.size());
 
 	// Resources
-	for (int i = 0; i < resfile.GetCount(); i++)
+	for (size_t i = 0; i < resfile.size(); i++)
 	{
-		std::string &vtemp = resfile.GetAt(i);
+		std::string &vtemp = resfile[i];
 		fprintf(f, "%s\n", vtemp.c_str());
 	}
 
@@ -1058,7 +1094,7 @@ void RESGen::ListDir(const std::string &path, const std::string &filepath, bool 
 				// resource, add to list
 				file = replaceCharAll(file, '\\', '/'); // replace backslashes
 
-				resources.InsertSorted(file.data);
+				resources.push_back(file.data);
 
 				if (resourcedisp)
 				{
@@ -1146,7 +1182,7 @@ void RESGen::ListDir(const std::string &path, const std::string &filepath, bool 
 					// resource, add to list
 					file = replaceCharAll(file, '\\', '/'); // replace backslashes
 
-					resources.InsertSorted(file);
+					resources.push_back(file);
 
 					if (resourcedisp)
 					{
@@ -1265,7 +1301,7 @@ void RESGen::BuildPakResourceList(const std::string &pakfilename)
 			// resource, add to list
 			std::string resStr = replaceCharAll(filelist[i].name, '\\', '/');
 
-			resources.InsertSorted(resStr);
+			resources.push_back(resStr);
 
 			if (resourcedisp)
 			{
@@ -1322,7 +1358,7 @@ bool RESGen::LoadExludeFile(std::string &listfile)
 				// Convert backslashes to slashes
 				line = replaceCharAll(line, '\\', '/');
 				// Not a comment or empty line
-				excludelist.InsertSorted(line);
+				excludelist.push_back(line);
 			}
 
 			line.clear();
@@ -1341,7 +1377,7 @@ bool RESGen::LoadExludeFile(std::string &listfile)
 			// Convert backslashes to slashes
 			line = replaceCharAll(line, '\\', '/');
 			// Not a comment or empty line
-			excludelist.InsertSorted(line);
+			excludelist.push_back(line);
 		}
 	}
 
@@ -1402,15 +1438,16 @@ bool RESGen::CheckWadUse(const std::string &wadfile)
 		}
 
 		std::string texture = lumpinfo.name;
-		int texloc = texturelist.Find(texture);
 
-		if (texloc >= 0)
+		std::vector<std::string>::iterator it = findStringNoCase(texturelist, texture);
+
+		if(it != texturelist.end())
 		{
 			// found a texture, so wad is used
 			retval = true;
 
 			// update texture list
-			texturelist.RemoveAt(texloc);
+			texturelist.erase(it);
 		}
 	}
 

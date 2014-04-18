@@ -31,8 +31,11 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <cstddef>
 #include <memory>
 #include <string>
+#include <vector>
 
 #include "LinkedList.h"
+
+std::vector<std::string>::iterator findStringNoCase(std::vector<std::string> &vec, const std::string &element);
 
 class RESGen
 {
@@ -56,7 +59,7 @@ private:
 	void AddRes(std::string res, const char * const prefix = NULL, const char * const suffix = NULL);
 	char * NextValue();
 	char * NextToken();
-	std::unique_ptr<char[]> LoadBSPData(const std::string &file, size_t & entdatalen, LinkedList<std::string> & texlist);
+	std::unique_ptr<char[]> LoadBSPData(const std::string &file, size_t & entdatalen, std::vector<std::string> & texlist);
 
 	std::string valveresourcepath;
 	std::string resourcepath;
@@ -69,10 +72,10 @@ private:
 	bool firstdir;
 	char * strtok_nexttoken;
 	int statcount; // statusbar counter
-	LinkedList<std::string> resources;
-	LinkedList<std::string> resfile;
-	LinkedList<std::string> texturelist;
-	LinkedList<std::string> excludelist;
+	std::vector<std::string> resources;
+	std::vector<std::string> resfile;
+	std::vector<std::string> texturelist;
+	std::vector<std::string> excludelist;
 	bool verbal;
 	bool statusline;
 	bool overwrite;
