@@ -43,10 +43,14 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-ListBuilder::ListBuilder(LinkedList<std::string> *flist, LinkedList<file_s> *excludes, bool beverbal, bool sdisp)
-	: firstdir(false)
+ListBuilder::ListBuilder(LinkedList<std::string> *flist, std::vector<file_s> &excludes, bool beverbal, bool sdisp)
+	: exlist(excludes)
+	, firstdir(false)
 	, recursive(false)
 	, symlink(false)
+	, searchdisp(sdisp)
+	, verbal(beverbal)
+	, filelist(flist)
 {
 #ifdef _DEBUG
 	if (flist == NULL)
@@ -55,11 +59,6 @@ ListBuilder::ListBuilder(LinkedList<std::string> *flist, LinkedList<file_s> *exc
 		return;
 	}
 #endif
-
-	filelist = flist;
-	verbal = beverbal;
-	searchdisp = sdisp;
-	exlist = excludes;
 }
 
 ListBuilder::~ListBuilder()
@@ -67,24 +66,12 @@ ListBuilder::~ListBuilder()
 
 }
 
-void ListBuilder::BuildList(LinkedList<file_s> *srclist)
+void ListBuilder::BuildList(std::vector<file_s> &srclist)
 {
 #ifdef _DEBUG
-	if (srclist == NULL)
-	{
-		printf("P_ERROR (ListBuilder::BuildList): No source list.\n");
-		return;
-	}
-
-	if (srclist->GetCount() == 0)
+	if (srclist.empty())
 	{
 		printf("P_ERROR (ListBuilder::BuildList): Source list empty.\n");
-		return;
-	}
-
-	if (exlist == NULL)
-	{
-		printf("P_ERROR (ListBuilder::BuildList): No exlucdes list.\n");
 		return;
 	}
 #endif
@@ -92,9 +79,9 @@ void ListBuilder::BuildList(LinkedList<file_s> *srclist)
 	PrepExList();
 
 	// walk entries and take appropritate actions.
-	for (int i = 0; i < srclist->GetCount(); i++)
+	for (size_t i = 0; i < srclist.size(); i++)
 	{
-		file_s &file = srclist->GetAt(i);
+		file_s &file = srclist[i];
 
 		if (file.folder == false)
 		{
@@ -162,9 +149,9 @@ void ListBuilder::AddFile(const std::string &filename, bool checkexlist)
 
 	if (checkexlist) // Process exceptions
 	{
-		for (int i = 0; i < exlist->GetCount(); i++)
+		for (size_t i = 0; i < exlist.size(); i++)
 		{
-			file_s &tmpex = exlist->GetAt(i);
+			file_s &tmpex = exlist[i];
 			if (!CompareStrEndNoCase(tmp, tmpex.name))
 			{
 				// make sure mapname is not longer.
@@ -205,9 +192,9 @@ void ListBuilder::AddFile(const std::string &filename, bool checkexlist)
 void ListBuilder::PrepExList()
 {
 	// Prepares Exceptionlist by adding .bsp to filenames that need it
-	for (int i = 0; i < exlist->GetCount(); i++)
+	for (size_t i = 0; i < exlist.size(); i++)
 	{
-		file_s &tmp = exlist->GetAt(i);
+		file_s &tmp = exlist[i];
 
 		if (CompareStrEndNoCase(tmp.name, ".bsp"))
 		{

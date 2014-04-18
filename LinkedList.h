@@ -62,17 +62,18 @@ class LinkedList
 public:
 	typedef int (*comparefunc)(const T&, const T&);
 
-	LinkedList();
+	LinkedList(comparefunc compareFn_ = NULL);
 	virtual ~LinkedList();
 
-	int Find(const T &compdata, comparefunc compare);
+	int Find(const T &compdata);
 	void Clear();
-	bool InsertSorted(T info, comparefunc compare);
+	bool InsertSorted(T info);
 	void InsertAt(T info, int index);
 	void RemoveAt(int index);
 	T& GetAt(int index);
 	void AddHead(T info);
 	void AddTail(T info);
+	void SetCompareFunction(comparefunc compareFn_);
 
 	 // Returns the numer of nodes in the list
 	int GetCount() const;
@@ -150,7 +151,8 @@ private:
 #endif
 #endif
 
-	comparefunc sortfunc;
+	comparefunc compareFn;
+	bool bSorted;
 
 	int count; // number of nodes in the list
 	node *head; // Pointer to the head (start) of the list
@@ -161,14 +163,15 @@ private:
 };
 
 template <class T>
-LinkedList<T>::LinkedList()
+LinkedList<T>::LinkedList(comparefunc compareFn_)
+	: compareFn(compareFn_)
 {
+	bSorted = false;
 	count = 0;
 	lastget = -1;
 	lastnode = NULL;
 	head = NULL;
 	tail = NULL;
-	sortfunc = NULL; // we are NOT sorted
 
 	// set up thread safety
 #ifndef LL_SINGLETHREAD
@@ -213,7 +216,7 @@ LinkedList<T>::~LinkedList()
 }
 
 template <class T>
-int LinkedList<T>::Find(const T &compdata, comparefunc compare)
+int LinkedList<T>::Find(const T &compdata)
 {
 	// If the list is sorted, this function will preform a LOT faster.
 	// Please note you have to use the SAME function for sorting as for finding
@@ -223,7 +226,7 @@ int LinkedList<T>::Find(const T &compdata, comparefunc compare)
 	ReadLock readLock(this);
 #endif
 
-	if (sortfunc == compare)
+	if (bSorted)
 	{
 		// Returns -1 if not found, or the index of the found file
 		//
@@ -239,7 +242,7 @@ int LinkedList<T>::Find(const T &compdata, comparefunc compare)
 		{
 			int pivot = (end-begin)/2+begin; // at least equal to begin and always smaller then end
 
-			int result = compare(compdata, GetNodeAt(pivot)->data);
+			int result = compareFn(compdata, GetNodeAt(pivot)->data);
 			if (result < 0)
 			{
 				// if string is here, it should be before the current
@@ -262,7 +265,7 @@ int LinkedList<T>::Find(const T &compdata, comparefunc compare)
 		// do slow search, try every entry until found
 		for (int i = 0; i < count; i++)
 		{
-			if (!compare(compdata, GetNodeAt(i)->data))
+			if (!compareFn(compdata, GetNodeAt(i)->data))
 			{
 				return i;
 			}
@@ -286,70 +289,70 @@ void LinkedList<T>::Clear()
 }
 
 template <class T>
-bool LinkedList<T>::InsertSorted(T info, comparefunc compare)
+bool LinkedList<T>::InsertSorted(T info)
 {
 #ifndef LL_SINGLETHREAD
 	WriteLock writeLock(this);
 #endif
 
-	// Inserts item in list, while preserving sorting
-	if (sortfunc == compare && count >= 1) // if there is 1 item list is inherently sorted
-	{
-		int begin = 0;
-		int end = count - 1;
-
-		// attempt to find the string
-		while (begin <= end) // this should never evaluate to false
-		{
-			const int pivot = ((end - begin) / 2) + begin; // at least equal to begin and always smaller then end
-
-			const int result = compare(info, GetNodeAt(pivot)->data);
-
-			if (result < 0)
-			{
-				// if string is here, it should be before the current
-				end = pivot - 1;
-				if (end < begin)
-				{
-					// search ended and nothing found. insert element at pivot (will be placed in front)
-					InsertAt(info, pivot);
-					sortfunc = compare; // restore sortfunc
-					return true;
-				}
-			}
-			else if (result > 0)
-			{
-				// if string is here, it should be after the current
-				begin = pivot + 1;
-				if (end < begin)
-				{
-					// search ended and nothing found. insert element after pivot
-					InsertAt(info, pivot + 1);
-					sortfunc = compare; // restore sortfunc
-					return true;
-				}
-			}
-			else
-			{
-				return false; // doubles not allowed
-			}
-		}
-
-		return false; // Should never occur, unless there is a bug
-	}
-	else if (count == 0)
+	if (count == 0)
 	{
 		AddTail(info); // Just add as tail
 
-		sortfunc = compare; // only 1 item, so we are sorted
+		bSorted = true;
 
 		return true; // list was not sorted
 	}
-	else
+
+	if(!bSorted)
 	{
 		// List is not sorted, so we cannot insert sorted
 		return false;
 	}
+
+	// Inserts item in list, while preserving sorting
+	int begin = 0;
+	int end = count - 1;
+
+	// attempt to find the string
+	while (begin <= end) // this should never evaluate to false
+	{
+		const int pivot = ((end - begin) / 2) + begin; // at least equal to begin and always smaller then end
+
+		const int result = compareFn(info, GetNodeAt(pivot)->data);
+
+		if (result < 0)
+		{
+			// if string is here, it should be before the current
+			end = pivot - 1;
+			if (end < begin)
+			{
+				// search ended and nothing found. insert element at pivot (will be placed in front)
+				InsertAt(info, pivot);
+				bSorted = true;
+				return true;
+			}
+		}
+		else if (result > 0)
+		{
+			// if string is here, it should be after the current
+			begin = pivot + 1;
+			if (end < begin)
+			{
+				// search ended and nothing found. insert element after pivot
+				InsertAt(info, pivot + 1);
+				bSorted = true;
+				return true;
+			}
+		}
+		else
+		{
+			return false; // doubles not allowed
+		}
+	}
+
+	assert(false);
+	return false;
 }
 
 template <class T>
@@ -380,7 +383,7 @@ void LinkedList<T>::InsertAt(T info, int index)
 #ifndef LL_SINGLETHREAD
 	WriteLock writeLock(this);
 #endif
-	sortfunc = NULL; // Not sorted anymore
+	bSorted = false;
 
 	temp->data = info; // set data
 
@@ -497,7 +500,7 @@ void LinkedList<T>::AddHead(T info)
 	WriteLock writeLock(this);
 #endif
 
-	sortfunc = NULL; // Not sorted anymore
+	bSorted = false;
 
 	temp->data = info; // set data
 
@@ -535,7 +538,7 @@ void LinkedList<T>::AddTail(T info)
 	WriteLock writeLock(this);
 #endif
 
-	sortfunc = NULL; // Not sorted anymore
+	bSorted = false;
 
 	temp->data = info; // set data
 
@@ -552,6 +555,12 @@ void LinkedList<T>::AddTail(T info)
 
 	tail = temp;
 	count++;
+}
+
+template <class T>
+void LinkedList<T>::SetCompareFunction(comparefunc compareFn_)
+{
+	compareFn = compareFn_;
 }
 
 template <class T>

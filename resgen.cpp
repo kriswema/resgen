@@ -90,6 +90,12 @@ xxxxxxxxxxxxx xx xxxxxxx
 #include "listbuilder.h"
 #include "resgenclass.h"
 #include "resgen.h"
+#include "util.h"
+
+config_s::config_s()
+	: excludelists(NULL)
+{
+}
 
 #ifdef WIN32
 void getexitkey(bool verbal, bool keypress)
@@ -294,7 +300,7 @@ int main(int argc, char* argv[])
 					i++; // increase i.. we used that arg.
 					file.name = argv[i];
 
-					config.files.AddTail(file); // add to linked list
+					config.files.push_back(file); // add to linked list
 					break;
 				}
 // -r
@@ -324,7 +330,7 @@ int main(int argc, char* argv[])
 					i++; // increase i.. we used that arg.
 					file.name = argv[i];
 
-					config.files.AddTail(file); // add to linked list
+					config.files.push_back(file); // add to linked list
 					break;
 				}
 // -f
@@ -354,7 +360,7 @@ int main(int argc, char* argv[])
 					i++; // increase i.. we used that arg.
 					file.name = argv[i];
 
-					config.files.AddTail(file); // add to linked list
+					config.files.push_back(file); // add to linked list
 					break;
 				}
 // -x
@@ -384,7 +390,7 @@ int main(int argc, char* argv[])
 					i++; // increase i.. we used that arg.
 					file.name = argv[i];
 
-					config.excludes.AddTail(file); // add to linked list
+					config.excludes.push_back(file); // add to linked list
 					break;
 				}
 // -o
@@ -505,7 +511,7 @@ int main(int argc, char* argv[])
 			file.recursive = false;
 			file.name = argv[i];
 
-			config.files.AddTail(file); // add to linked list
+			config.files.push_back(file); // add to linked list
 		}
 	}
 
@@ -552,7 +558,7 @@ int main(int argc, char* argv[])
 	}
 
 	// check if we have anything to do
-	if (config.files.GetCount() == 0)
+	if (config.files.empty())
 	{
 		showhelp();
 
@@ -569,27 +575,21 @@ int main(int argc, char* argv[])
 	}
 
 	// Build filelist
-	LinkedList<std::string> FileList; // bsp files
-	LinkedList<std::string> ErrorList; // failed bsp files
-	LinkedList<std::string> MissingList; // bsp files with missing reources
+	LinkedList<std::string> FileList(NULL); // bsp files
+	LinkedList<std::string> ErrorList(NULL); // failed bsp files
+	LinkedList<std::string> MissingList(NULL); // bsp files with missing reources
 
-	ListBuilder listbuild(&FileList, &config.excludes, config.verbal, config.searchdisp);
+	ListBuilder listbuild(&FileList, config.excludes, config.verbal, config.searchdisp);
 #ifndef WIN32
 	listbuild.SetSymLink(config.symlink);
 #endif
-	listbuild.BuildList(&config.files);
+	listbuild.BuildList(config.files);
 
 	// clean up config.files, we don't need it anymore
-	while (config.files.GetCount() > 0)
-	{
-		config.files.RemoveAt(0);
-	}
+	config.files.clear();
 
 	// Clean up config.exludes, we don't need it anymore
-	while (config.excludes.GetCount() > 0)
-	{
-		config.excludes.RemoveAt(0);
-	}
+	config.excludes.clear();
 
 	if (config.verbal) { printf("\n"); } // Make output look a bit cleaner
 

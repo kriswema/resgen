@@ -56,6 +56,10 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 //////////////////////////////////////////////////////////////////////
 
 RESGen::RESGen()
+	: resources(ICompareStrings)
+	, resfile(ICompareStrings)
+	, texturelist(ICompareStrings)
+	, excludelist(ICompareStrings)
 {
 	checkforresources = false;
 	checkforexcludes = false;
@@ -441,11 +445,11 @@ int RESGen::MakeRES(std::string &map, int fileindex, int filecount)
 		{
 			std::string& tempres = resfile.GetAt(i);
 
-			int resfileindex = resources.Find(tempres, ICompareStrings);
+			int resfileindex = resources.Find(tempres);
 			if(resfileindex < 0)
 			{
 				// file not found - maybe it's excluded?
-				resfileindex = excludelist.Find(tempres, ICompareStrings);
+				resfileindex = excludelist.Find(tempres);
 				if(resfileindex >= 0)
 				{
 					// file found - it's an exclude
@@ -516,7 +520,7 @@ int RESGen::MakeRES(std::string &map, int fileindex, int filecount)
 							extmdltex += "T.mdl"; // add T and extention
 
 							// We can get away with this, since the model texture will be places AFTER the model
-							if (resfile.InsertSorted(extmdltex, ICompareStrings))
+							if (resfile.InsertSorted(extmdltex))
 							{
 								if (contentdisp)
 								{
@@ -540,7 +544,7 @@ int RESGen::MakeRES(std::string &map, int fileindex, int filecount)
 		{
 			std::string& tempres = resfile.GetAt(i);
 
-			int resfileindex = excludelist.Find(tempres, ICompareStrings);
+			int resfileindex = excludelist.Find(tempres);
 			if(resfileindex >= 0)
 			{
 				// file found
@@ -777,7 +781,7 @@ std::unique_ptr<char[]> RESGen::LoadBSPData(const std::string &file, size_t & en
 				{
 					// No texture for any mip level, so must be in a wad
 					std::string texfile(texdata.name);
-					texlist.InsertSorted(texfile, ICompareStrings);
+					texlist.InsertSorted(texfile);
 				}
 			}
 		}
@@ -857,7 +861,7 @@ void RESGen::AddRes(std::string res, const char * const prefix, const char * con
 	// Add file to list if it isn't in it yet.
 
 	// File not found, must be new. Add to list
-	if (!resfile.InsertSorted(res, ICompareStrings))
+	if (!resfile.InsertSorted(res))
 	{
 		// double file found, discard
 		return;
@@ -1053,7 +1057,7 @@ void RESGen::ListDir(const std::string &path, const std::string &filepath, bool 
 				// resource, add to list
 				file = replaceCharAll(file, '\\', '/'); // replace backslashes
 
-				resources.InsertSorted(file.data, ICompareStrings);
+				resources.InsertSorted(file.data);
 
 				if (resourcedisp)
 				{
@@ -1141,7 +1145,7 @@ void RESGen::ListDir(const std::string &path, const std::string &filepath, bool 
 					// resource, add to list
 					file = replaceCharAll(file, '\\', '/'); // replace backslashes
 
-					resources.InsertSorted(file, ICompareStrings);
+					resources.InsertSorted(file);
 
 					if (resourcedisp)
 					{
@@ -1260,7 +1264,7 @@ void RESGen::BuildPakResourceList(const std::string &pakfilename)
 			// resource, add to list
 			std::string resStr = replaceCharAll(filelist[i].name, '\\', '/');
 
-			resources.InsertSorted(resStr, ICompareStrings);
+			resources.InsertSorted(resStr);
 
 			if (resourcedisp)
 			{
@@ -1317,7 +1321,7 @@ bool RESGen::LoadExludeFile(std::string &listfile)
 				// Convert backslashes to slashes
 				line = replaceCharAll(line, '\\', '/');
 				// Not a comment or empty line
-				excludelist.InsertSorted(line, ICompareStrings);
+				excludelist.InsertSorted(line);
 			}
 
 			line.clear();
@@ -1336,16 +1340,11 @@ bool RESGen::LoadExludeFile(std::string &listfile)
 			// Convert backslashes to slashes
 			line = replaceCharAll(line, '\\', '/');
 			// Not a comment or empty line
-			excludelist.InsertSorted(line, ICompareStrings);
+			excludelist.InsertSorted(line);
 		}
 	}
 
 	return true;
-}
-
-int ICompareStrings(const std::string &a, const std::string &b)
-{
-	return strToLowerCopy(a).compare(strToLowerCopy(b));
 }
 
 bool RESGen::CheckWadUse(const std::string &wadfile)
@@ -1402,7 +1401,7 @@ bool RESGen::CheckWadUse(const std::string &wadfile)
 		}
 
 		std::string texture = lumpinfo.name;
-		int texloc = texturelist.Find(texture, ICompareStrings);
+		int texloc = texturelist.Find(texture);
 
 		if (texloc >= 0)
 		{

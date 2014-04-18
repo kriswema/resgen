@@ -38,4 +38,6 @@ void rightTrim(std::string &str, const std::string &trimmedChars);
 
 bool readFile(const std::string &filename, std::string &outStr);
 
+int ICompareStrings(const std::string &a, const std::string &b);
+
 #endif // UTIL_H

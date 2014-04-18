@@ -25,12 +25,16 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #define VERSION "2.0.3"
 #endif
 
+#include <vector>
+
 #include "LinkedList.h"
 
 struct file_s;
 
 struct config_s
 {
+	config_s();
+
 	bool help; // f
 	bool credits ; // f
 	bool warranty; // f
@@ -41,8 +45,8 @@ struct config_s
 	bool resourcedisp; // f
 	bool contentdisp; // f
 
-	LinkedList<file_s> files;
-	LinkedList<file_s> excludes; // Map exclude list - not resource!
+	std::vector<file_s> files;
+	std::vector<file_s> excludes; // Map exclude list - not resource!
 	LinkedList<std::string> excludelists; // Exclude resource list files - not maps!
 
 	bool overwrite; // f

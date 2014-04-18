@@ -16,6 +16,7 @@ int compareFunc(int* const& a, int* const& b)
 
 void LinkedListTest::setUp()
 {
+	list1.SetCompareFunction(compareFunc);
     a = 3;
     b = 5;
     c = -1;
@@ -30,13 +31,13 @@ void LinkedListTest::tearDown()
 
 void LinkedListTest::testEmptyList()
 {
-    LinkedList<int*> list;
+    LinkedList<int*> list(compareFunc);
     CPPUNIT_ASSERT(list.GetCount() == 0);
 }
 
 void LinkedListTest::testAddHeadSingle()
 {
-    LinkedList<int*> list;
+    LinkedList<int*> list(compareFunc);
     int a = 3;
 	list.AddHead(&a);
     
@@ -46,7 +47,7 @@ void LinkedListTest::testAddHeadSingle()
 
 void LinkedListTest::testAddHeadMultiple()
 {
-    LinkedList<int*> list;
+    LinkedList<int*> list(compareFunc);
     int a = 3;
     int b = 5;
     int c = -1;
@@ -62,7 +63,7 @@ void LinkedListTest::testAddHeadMultiple()
 
 void LinkedListTest::testAddTailSingle()
 {
-    LinkedList<int*> list;
+    LinkedList<int*> list(compareFunc);
     int a = 3;
 	list.AddTail(&a);
     
@@ -80,7 +81,7 @@ void LinkedListTest::testAddTailMultiple()
 
 void LinkedListTest::testGetAtInvalid()
 {
-    LinkedList<int*> list;
+    LinkedList<int*> list(compareFunc);
     int a = 3;
 	list.AddTail(&a);
     
@@ -90,7 +91,7 @@ void LinkedListTest::testGetAtInvalid()
 
 void LinkedListTest::testInsertAtStart()
 {
-    LinkedList<int*> list;
+    LinkedList<int*> list(compareFunc);
     int a = 3;
     int b = 5;
     int c = -1;
@@ -118,7 +119,7 @@ void LinkedListTest::testInsertAtMiddle()
 
 void LinkedListTest::testInsertAtEnd()
 {
-    LinkedList<int*> list;
+    LinkedList<int*> list(compareFunc);
     int a = 3;
     int b = 5;
     int c = -1;
@@ -134,7 +135,7 @@ void LinkedListTest::testInsertAtEnd()
 
 void LinkedListTest::testInsertAtInvalid()
 {
-    LinkedList<int*> list;
+    LinkedList<int*> list(compareFunc);
     int a = 3;
     int b = 5;
     int c = -1;
@@ -193,31 +194,31 @@ void LinkedListTest::testFind()
 	int a2 = 3;
 	int b2 = 5;
 	int c2 = -1;
-	CPPUNIT_ASSERT(list1.Find(&a2, compareFunc) == 0);
-	CPPUNIT_ASSERT(list1.Find(&b2, compareFunc) == 1);
-	CPPUNIT_ASSERT(list1.Find(&c2, compareFunc) == 2);
+	CPPUNIT_ASSERT(list1.Find(&a2) == 0);
+	CPPUNIT_ASSERT(list1.Find(&b2) == 1);
+	CPPUNIT_ASSERT(list1.Find(&c2) == 2);
 }
 
 void LinkedListTest::testFindInvalid()
 {
 	// Use different addresses to make sure find is comparing by value
 	int invalid = 4;
-	CPPUNIT_ASSERT(list1.Find(&invalid, compareFunc) < 0);
+	CPPUNIT_ASSERT(list1.Find(&invalid) < 0);
 }
 
 void LinkedListTest::testInsertSorted()
 {
-	LinkedList<int*> list;
-	CPPUNIT_ASSERT(list.InsertSorted(&a, compareFunc));
+    LinkedList<int*> list(compareFunc);
+	CPPUNIT_ASSERT(list.InsertSorted(&a));
     CPPUNIT_ASSERT(list.GetCount() == 1);
     CPPUNIT_ASSERT(list.GetAt(0) == &a);
 
-	CPPUNIT_ASSERT(list.InsertSorted(&b, compareFunc));
+	CPPUNIT_ASSERT(list.InsertSorted(&b));
     CPPUNIT_ASSERT(list.GetCount() == 2);
     CPPUNIT_ASSERT(list.GetAt(0) == &a);
     CPPUNIT_ASSERT(list.GetAt(1) == &b);
 
-	CPPUNIT_ASSERT(list.InsertSorted(&c, compareFunc));
+	CPPUNIT_ASSERT(list.InsertSorted(&c));
     CPPUNIT_ASSERT(list.GetCount() == 3);
     CPPUNIT_ASSERT(list.GetAt(0) == &c);
     CPPUNIT_ASSERT(list.GetAt(1) == &a);
