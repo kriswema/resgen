@@ -138,6 +138,6 @@ bool readFile(const std::string &filename, std::string &outStr)
 
 int ICompareStrings(const std::string &a, const std::string &b)
 {
-	return strToLowerCopy(a).compare(strToLowerCopy(b));
+    return strToLowerCopy(a).compare(strToLowerCopy(b));
 }
 

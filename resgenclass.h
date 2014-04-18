@@ -40,7 +40,7 @@ public:
 	bool LoadExludeFile(std::string &listfile);
 	bool LoadRfaFile(std::string &pakfilename);
 	void BuildResourceList(std::string &respath, bool checkpak, bool fdisp, bool rdisp);
-	int MakeRES(std::string &map, int fileindex, int filecount);
+	int MakeRES(std::string &map, int fileindex, size_t filecount);
 	void SetParams(bool beverbal, bool statline, bool overwrt, bool lcase, bool mcase, bool prsresource, bool preservewads, bool cdisp);
 	RESGen();
 	virtual ~RESGen();

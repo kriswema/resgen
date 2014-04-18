@@ -43,7 +43,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-ListBuilder::ListBuilder(LinkedList<std::string> *flist, std::vector<file_s> &excludes, bool beverbal, bool sdisp)
+ListBuilder::ListBuilder(std::vector<std::string> *flist, std::vector<file_s> &excludes, bool beverbal, bool sdisp)
 	: exlist(excludes)
 	, firstdir(false)
 	, recursive(false)
@@ -181,7 +181,7 @@ void ListBuilder::AddFile(const std::string &filename, bool checkexlist)
 	}
 
 	// file can be added to filelist
-	filelist->AddTail(tmp);
+	filelist->push_back(tmp);
 
 	if (verbal && searchdisp)
 	{

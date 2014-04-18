@@ -81,7 +81,7 @@ void RESGen::SetParams(bool beverbal, bool statline, bool overwrt, bool lcase, b
 	contentdisp = cdisp;
 }
 
-int RESGen::MakeRES(std::string &map, int fileindex, int filecount)
+int RESGen::MakeRES(std::string &map, int fileindex, size_t filecount)
 {
 	#ifdef WIN32
 	WIN32_FIND_DATA filedata;
@@ -116,7 +116,7 @@ int RESGen::MakeRES(std::string &map, int fileindex, int filecount)
 
 	if (verbal)
 	{
-		printf("Creating .res file %s [%d/%d].\n", resName.c_str(), fileindex, filecount);
+		printf("Creating .res file %s [%d/%zu].\n", resName.c_str(), fileindex, filecount);
 	}
 
 
@@ -219,7 +219,7 @@ int RESGen::MakeRES(std::string &map, int fileindex, int filecount)
 				}
 
 				// There might be a wad file left in the list, check for it
-				if (static_cast<size_t>(i) < value.length())
+				if (i < value.length())
 				{
 					// it should be equal, there is a wadfile left!
 					AddWad(value, i, value.length() - i);
@@ -300,6 +300,7 @@ int RESGen::MakeRES(std::string &map, int fileindex, int filecount)
 	{
 		// Move from key to value
 		token = NextValue();
+
 		if (!token)
 		{
 			printf("\rError parsing \"%s\". Key to value transition failed.\n", map.c_str());
@@ -356,7 +357,7 @@ int RESGen::MakeRES(std::string &map, int fileindex, int filecount)
 				 // Make sure we don;t go over 100%
 				percentage = 100;
 			}
-			printf("\r(%zu%%) [%d/%d]", percentage, fileindex, filecount);
+			printf("\r(%zu%%) [%d/%zu]", percentage, fileindex, filecount);
 		}
 		else
 		{

@@ -92,11 +92,6 @@ xxxxxxxxxxxxx xx xxxxxxx
 #include "resgen.h"
 #include "util.h"
 
-config_s::config_s()
-	: excludelists(NULL)
-{
-}
-
 #ifdef WIN32
 void getexitkey(bool verbal, bool keypress)
 {
@@ -484,7 +479,7 @@ int main(int argc, char* argv[])
 					}
 
 					i++; // increase i.. we used that arg.
-					config.excludelists.AddTail(argv[i]);
+					config.excludelists.push_back(argv[i]);
 					break;
 #ifdef WIN32
 // -k
@@ -575,9 +570,9 @@ int main(int argc, char* argv[])
 	}
 
 	// Build filelist
-	LinkedList<std::string> FileList(NULL); // bsp files
-	LinkedList<std::string> ErrorList(NULL); // failed bsp files
-	LinkedList<std::string> MissingList(NULL); // bsp files with missing reources
+	std::vector<std::string> FileList; // bsp files
+	std::vector<std::string> ErrorList; // failed bsp files
+	std::vector<std::string> MissingList; // bsp files with missing reources
 
 	ListBuilder listbuild(&FileList, config.excludes, config.verbal, config.searchdisp);
 #ifndef WIN32
@@ -610,12 +605,15 @@ int main(int argc, char* argv[])
 	}
 
 	// Load all resource exclude lists
-	if (config.excludelists.GetCount())
+	if (!config.excludelists.empty())
 	{
-		while(config.excludelists.GetCount())
+		for(
+			std::vector<std::string>::iterator it(config.excludelists.begin());
+			it != config.excludelists.end();
+			++it
+		)
 		{
-			std::string strtmp = config.excludelists.GetAt(0);
-			if (!resgen.LoadExludeFile(strtmp))
+			if (!resgen.LoadExludeFile(*it))
 			{
 				#ifdef WIN32
 				getexitkey(config.verbal,config.keypress);
@@ -626,11 +624,12 @@ int main(int argc, char* argv[])
 			{
 				if (config.verbal)
 				{
-					printf("Loaded resource exclude list %s\n", strtmp.c_str());
+					printf("Loaded resource exclude list %s\n", it->c_str());
 				}
 			}
-			config.excludelists.RemoveAt(0); // clean up, we don't need it after this
 		}
+
+		config.excludelists.clear();
 
 		if (config.verbal) { printf("\n"); }
 	}
@@ -638,31 +637,29 @@ int main(int argc, char* argv[])
 	resgen.BuildResourceList(config.resource_path, config.checkpak, config.searchdisp, config.resourcedisp);
 
 	int i = 1;
-	int filecount = FileList.GetCount();
-	while (FileList.GetCount() > 0)
+	size_t filecount = FileList.size();
+	while (FileList.size() > 0)
 	{
 		if (config.contentdisp) { printf("\n"); } // Make output look a bit cleaner
 
-		std::string map(FileList.GetAt(0));
+		std::string map(FileList[0]);
 		int retval = resgen.MakeRES(map, i, filecount);
 		if(retval)
 		{
 			if (retval == 2)
 			{
 				// res file was made properly, but some resources were missing
-				std::string strtmp = FileList.GetAt(0);
-				MissingList.AddTail(strtmp);
+				MissingList.push_back(FileList[0]);
 			}
 			else
 			{
 				//
 				// an error occured. List them.
-				std::string strtmp = FileList.GetAt(0);
-				ErrorList.AddTail(strtmp);
+				ErrorList.push_back(FileList[0]);
 			}
 		}
 
-		FileList.RemoveAt(0);
+		FileList.erase(FileList.begin());
 
 		if (config.verbal) { printf("\n"); } // Make output look a bit cleaner
 
@@ -670,16 +667,16 @@ int main(int argc, char* argv[])
 	}
 
 	// clean up errors
-	int errorcount = ErrorList.GetCount();
-	int missingcount = MissingList.GetCount();
+	size_t errorcount = ErrorList.size();
+	size_t missingcount = MissingList.size();
 	if (errorcount)
 	{
 		if (config.verbal) { printf("Failed to create res file(s) for:\n"); }
-		while (ErrorList.GetCount() > 0)
+		while (!ErrorList.empty())
 		{
-			std::string strtmp = ErrorList.GetAt(0);
+			std::string strtmp = ErrorList[0];
 			if (config.verbal) { printf(" %s\n", strtmp.c_str()); } // only print of verbal
-			ErrorList.RemoveAt(0);
+			ErrorList.erase(ErrorList.begin());
 		}
 		if (config.verbal) { printf("\n"); }
 	}
@@ -690,19 +687,19 @@ int main(int argc, char* argv[])
 			printf("Because one or more required files were not found in your installation,\n");
 			printf("the following map(s) might be missing resources:\n");
 		}
-		while (MissingList.GetCount() > 0)
+		while (!MissingList.empty())
 		{
-			std::string strtmp = MissingList.GetAt(0);
+			std::string strtmp = MissingList[0];
 			if (config.verbal) { printf(" %s\n", strtmp.c_str()); } // only print of verbal
-			MissingList.RemoveAt(0);
+			MissingList.erase(MissingList.begin());
 		}
 		if (config.verbal) { printf("\n"); }
 	}
 
-	printf("Done creating res file(s)! %d map(s) were processed", filecount - errorcount);
+	printf("Done creating res file(s)! %zu map(s) were processed", filecount - errorcount);
 	if (errorcount)
 	{
-		printf(", skipped %d due to errors.\n", errorcount);
+		printf(", skipped %zu due to errors.\n", errorcount);
 	}
 	else
 	{
@@ -711,7 +708,7 @@ int main(int argc, char* argv[])
 
 	if (missingcount)
 	{
-		printf("%d map(s) might be missing resources.\n", missingcount);
+		printf("%zu map(s) might be missing resources.\n", missingcount);
 	}
 	// res files made.. exit
 

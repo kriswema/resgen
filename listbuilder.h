@@ -28,9 +28,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #pragma once
 
+#include <string>
 #include <vector>
-
-#include "LinkedList.h"
 
 struct file_s
 {
@@ -46,7 +45,7 @@ public:
 	void SetSymLink(bool slink);
 #endif
 	void BuildList(std::vector<file_s> &srclist);
-	ListBuilder(LinkedList<std::string> *flist, std::vector<file_s> &excludes, bool beverbal, bool sdisp);
+	ListBuilder(std::vector<std::string> *flist, std::vector<file_s> &excludes, bool beverbal, bool sdisp);
 	virtual ~ListBuilder();
 
 private:
@@ -61,7 +60,7 @@ private:
 	void AddFile(const std::string &filename, bool checkexlist);
 	bool searchdisp;
 	bool verbal;
-	LinkedList<std::string> * filelist;
+	std::vector<std::string> * filelist;
 };
 
 #endif // !defined(AFX_LISTBUILDER_H__EBF81BE5_23F6_426C_82E6_F5EB2AEDE98F__INCLUDED_)
