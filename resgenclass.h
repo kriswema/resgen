@@ -78,7 +78,7 @@ private:
 	std::map<std::string, std::string> resources;
 	std::map<std::string, std::string> resfile;
 	std::vector<std::string> texturelist;
-	std::vector<StringKey> excludelist;
+	std::map<std::string, std::string> excludelist;
 	bool verbal;
 	bool statusline;
 	bool overwrite;

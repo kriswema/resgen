@@ -500,7 +500,7 @@ int RESGen::MakeRES(std::string &map, int fileindex, size_t filecount)
 			if(resourceIt == resources.end())
 			{
 				// file not found - maybe it's excluded?
-				if(findStringNoCaseSorted(excludelist, it->first) != excludelist.end())
+				if(excludelist.find(it->first) != excludelist.end())
 				{
 					// file found - it's an exclude
 					if (contentdisp)
@@ -606,7 +606,7 @@ int RESGen::MakeRES(std::string &map, int fileindex, size_t filecount)
 		std::map<std::string, std::string>::iterator it = resfile.begin();
 		while(it != resfile.end())
 		{
-			if(findStringNoCaseSorted(excludelist, it->first) != excludelist.end())
+			if(excludelist.find(it->first) != excludelist.end())
 			{
 				// file found
 				if (contentdisp)
@@ -1399,18 +1399,15 @@ bool RESGen::LoadExludeFile(std::string &listfile)
 		line += linebuf;
 		if (line[line.length() - 1] == '\n')
 		{
-			line[line.length() - 1] = 0; // delete \n
 			leftTrim(line);
-			#ifndef WIN32
 			rightTrim(line);
-			#endif
 			
 			if (line.compare(0, 2, "//") && line.length() != 0)
 			{
 				// Convert backslashes to slashes
 				line = replaceCharAll(line, '\\', '/');
 				// Not a comment or empty line
-				excludelist.push_back(StringKey(line));
+				excludelist[strToLowerCopy(line)] = line;
 			}
 
 			line.clear();
@@ -1419,21 +1416,17 @@ bool RESGen::LoadExludeFile(std::string &listfile)
 
 	if (line.length() > 0)
 	{
-		line[line.length() - 1] = 0; // delete \n
 		leftTrim(line);
-		#ifndef WIN32
 		rightTrim(line);
-		#endif
+
 		if (line.compare(0, 2, "//") && line.length() != 0)
 		{
 			// Convert backslashes to slashes
 			line = replaceCharAll(line, '\\', '/');
 			// Not a comment or empty line
-			excludelist.push_back(StringKey(line));
+			excludelist[strToLowerCopy(line)] = line;
 		}
 	}
-
-	std::sort(excludelist.begin(), excludelist.end(), StringKeyLessThan);
 
 	return true;
 }
