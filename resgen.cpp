@@ -98,7 +98,7 @@ void getexitkey(bool verbal, bool keypress)
 	if (verbal && keypress)
 	{
 		printf("Press any key to exit");
-		_getch();
+		_kbhit();
 	}
 }
 #endif
@@ -696,10 +696,10 @@ int main(int argc, char* argv[])
 		if (config.verbal) { printf("\n"); }
 	}
 
-	printf("Done creating res file(s)! %zu map(s) were processed", filecount - errorcount);
+	printf("Done creating res file(s)! " SIZE_T_SPECIFIER " map(s) were processed", filecount - errorcount);
 	if (errorcount)
 	{
-		printf(", skipped %zu due to errors.\n", errorcount);
+		printf(", skipped " SIZE_T_SPECIFIER " due to errors.\n", errorcount);
 	}
 	else
 	{
@@ -708,7 +708,7 @@ int main(int argc, char* argv[])
 
 	if (missingcount)
 	{
-		printf("%zu map(s) might be missing resources.\n", missingcount);
+		printf(SIZE_T_SPECIFIER " map(s) might be missing resources.\n", missingcount);
 	}
 	// res files made.. exit
 

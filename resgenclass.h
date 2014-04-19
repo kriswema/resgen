@@ -37,7 +37,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 std::vector<std::string>::iterator findStringNoCase(std::vector<std::string> &vec, const std::string &element);
 std::vector<StringKey>::iterator findStringNoCase(std::vector<StringKey> &vec, const StringKey &element);
-bool hasStringKey(const std::vector<StringKey> &vec, const StringKey &element);
+std::vector<StringKey>::iterator findStringNoCaseSorted(std::vector<StringKey> &vec, const StringKey &element);
 
 class RESGen
 {
@@ -77,7 +77,7 @@ private:
 	std::vector<StringKey> resources;
 	std::vector<std::string> resfile;
 	std::vector<std::string> texturelist;
-	std::vector<std::string> excludelist;
+	std::vector<StringKey> excludelist;
 	bool verbal;
 	bool statusline;
 	bool overwrite;

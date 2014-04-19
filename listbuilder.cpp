@@ -47,7 +47,9 @@ ListBuilder::ListBuilder(std::vector<std::string> *flist, std::vector<file_s> &e
 	: exlist(excludes)
 	, firstdir(false)
 	, recursive(false)
+#ifndef WIN32
 	, symlink(false)
+#endif
 	, searchdisp(sdisp)
 	, verbal(beverbal)
 	, filelist(flist)
@@ -132,7 +134,7 @@ void ListBuilder::BuildList(std::vector<file_s> &srclist)
 void ListBuilder::AddFile(const std::string &filename, bool checkexlist)
 {
 #ifdef _DEBUG
-	if (filename.GetLength() == 0)
+	if (filename.length() == 0)
 	{
 		printf("P_ERROR (ListBuilder::AddFile): No file name.\n");
 		return;
@@ -222,7 +224,7 @@ void ListBuilder::ListDir(const std::string &path)
 	std::string searchdir = path + "*.*";
 
 	// find first file
-	HANDLE filehandle = FindFirstFile(searchdir, &filedata);
+	HANDLE filehandle = FindFirstFile(searchdir.c_str(), &filedata);
 
 	if (filehandle == INVALID_HANDLE_VALUE)
 	{

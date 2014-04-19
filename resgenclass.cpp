@@ -55,18 +55,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-/*
-void InsertSorted(std::vector<std::string> &container, const std::string &element)
-{
-	for(std::vector<std::string>::iterator it = container.begin(); it != container.end(); ++it)
-	{
-		if(ICompareStrings(element, *it) >= 0)
-		{
-			container.insert(i, element);
-		}
-	}
-}
-*/
 std::vector<std::string>::iterator findStringNoCase(std::vector<std::string> &vec, const std::string &element)
 {
 	for(std::vector<std::string>::iterator it = vec.begin(); it != vec.end(); ++it)
@@ -93,9 +81,19 @@ std::vector<StringKey>::iterator findStringNoCase(std::vector<StringKey> &vec, c
 	return vec.end();
 }
 
-bool hasStringKey(const std::vector<StringKey> &vec, const StringKey &element)
+std::vector<StringKey>::iterator findStringNoCaseSorted(std::vector<StringKey> &vec, const StringKey &element)
 {
-	return std::binary_search(vec.begin(), vec.end(), element, StringKeyLessThan);
+	std::vector<StringKey>::iterator it = std::lower_bound(vec.begin(), vec.end(), element, StringKeyLessThan);
+
+	if(
+		(it == vec.end())
+	||	(it->lower > element.lower)
+	)
+	{
+		return vec.end();
+	}
+
+	return it;
 }
 
 RESGen::RESGen()
@@ -155,7 +153,7 @@ int RESGen::MakeRES(std::string &map, int fileindex, size_t filecount)
 
 	if (verbal)
 	{
-		printf("Creating .res file %s [%d/%zu].\n", resName.c_str(), fileindex, filecount);
+		printf("Creating .res file %s [%d/" SIZE_T_SPECIFIER "].\n", resName.c_str(), fileindex, filecount);
 	}
 
 
@@ -396,7 +394,7 @@ int RESGen::MakeRES(std::string &map, int fileindex, size_t filecount)
 				 // Make sure we don;t go over 100%
 				percentage = 100;
 			}
-			printf("\r(%zu%%) [%d/%zu]", percentage, fileindex, filecount);
+			printf("\r(" SIZE_T_SPECIFIER "%%) [%d/" SIZE_T_SPECIFIER "]", percentage, fileindex, filecount);
 		}
 		else
 		{
@@ -484,13 +482,6 @@ int RESGen::MakeRES(std::string &map, int fileindex, size_t filecount)
 	{
 		std::sort(resources.begin(), resources.end(), StringKeyLessThan);
 
-		/*
-		for(size_t i = 0; i < resources.size(); i++)
-		{
-			printf("%s\n", resources[i].str.c_str());
-		}
-		*/
-
 		//printf("\nStarting resource check:\n");
 		std::vector<std::string>::iterator it = resfile.begin();
 
@@ -498,12 +489,12 @@ int RESGen::MakeRES(std::string &map, int fileindex, size_t filecount)
 		{
 			bool bErase = false;
 
-			std::vector<StringKey>::iterator resfileit = findStringNoCase(resources, *it);
+			std::vector<StringKey>::iterator resfileit = findStringNoCaseSorted(resources, *it);
 
 			if(resfileit == resources.end())
 			{
 				// file not found - maybe it's excluded?
-				if(findStringNoCase(excludelist, *it) != excludelist.end())
+				if(findStringNoCaseSorted(excludelist, *it) != excludelist.end())
 				{
 					// file found - it's an exclude
 					if (contentdisp)
@@ -606,7 +597,7 @@ int RESGen::MakeRES(std::string &map, int fileindex, size_t filecount)
 		std::vector<std::string>::iterator it = resfile.begin();
 		while(it != resfile.end())
 		{
-			if(findStringNoCase(excludelist, *it) != excludelist.end())
+			if(findStringNoCaseSorted(excludelist, *it) != excludelist.end())
 			{
 				// file found
 				if (contentdisp)
@@ -1081,7 +1072,7 @@ void RESGen::ListDir(const std::string &path, const std::string &filepath, bool 
 	std::string searchdir = path + filepath + "*.*";
 
 	// find first file
-	HANDLE filehandle = FindFirstFile(searchdir, &filedata);
+	HANDLE filehandle = FindFirstFile(searchdir.c_str(), &filedata);
 
 	if (filehandle == INVALID_HANDLE_VALUE)
 	{
@@ -1131,7 +1122,7 @@ void RESGen::ListDir(const std::string &path, const std::string &filepath, bool 
 				// resource, add to list
 				file = replaceCharAll(file, '\\', '/'); // replace backslashes
 
-				resources.push_back(StringKey(file.data));
+				resources.push_back(StringKey(file));
 
 				if (resourcedisp)
 				{
@@ -1367,10 +1358,7 @@ bool RESGen::LoadExludeFile(std::string &listfile)
 	if (f == NULL)
 	{
 		// Error opening file, abort
-		if (verbal)
-		{
-			printf("Error: Could not open the specified exclude list %s!\n", listfile.c_str());
-		}
+		printf("Error: Could not open the specified exclude list %s!\n", listfile.c_str());
 		return false;
 	}
 
@@ -1395,7 +1383,7 @@ bool RESGen::LoadExludeFile(std::string &listfile)
 				// Convert backslashes to slashes
 				line = replaceCharAll(line, '\\', '/');
 				// Not a comment or empty line
-				excludelist.push_back(line);
+				excludelist.push_back(StringKey(line));
 			}
 
 			line.clear();
@@ -1414,9 +1402,11 @@ bool RESGen::LoadExludeFile(std::string &listfile)
 			// Convert backslashes to slashes
 			line = replaceCharAll(line, '\\', '/');
 			// Not a comment or empty line
-			excludelist.push_back(line);
+			excludelist.push_back(StringKey(line));
 		}
 	}
+
+	std::sort(excludelist.begin(), excludelist.end(), StringKeyLessThan);
 
 	return true;
 }

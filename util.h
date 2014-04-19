@@ -1,6 +1,12 @@
 #ifndef UTIL_H
 #define UTIL_H
 
+#ifdef WIN32
+#define SIZE_T_SPECIFIER    "%Iu"
+#else
+#define SIZE_T_SPECIFIER    "%zu"
+#endif
+
 #include <algorithm>
 #include <string>
 

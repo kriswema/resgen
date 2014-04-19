@@ -55,7 +55,14 @@ void File::close()
 void File::open(const std::string& fileName, const std::string& mode)
 {
     close();
+#ifdef WIN32
+    if(fopen_s(&fileHandle, fileName.c_str(), mode.c_str()))
+    {
+        fileHandle = NULL;
+    }
+#else
     fileHandle = fopen(fileName.c_str(), mode.c_str());
+#endif
 }
 
 File::operator FILE*()
@@ -118,7 +125,7 @@ void rightTrim(std::string &str)
 
 void rightTrim(std::string &str, const std::string &trimmedChars)
 {
-    str.erase(str.find_first_not_of(trimmedChars) + 1);
+    str.erase(str.find_last_not_of(trimmedChars) + 1);
 }
 
 bool readFile(const std::string &filename, std::string &outStr)
