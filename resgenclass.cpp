@@ -80,6 +80,24 @@ std::vector<std::string>::iterator findStringNoCase(std::vector<std::string> &ve
 	return vec.end();
 }
 
+std::vector<StringKey>::iterator findStringNoCase(std::vector<StringKey> &vec, const StringKey &element)
+{
+	for(std::vector<StringKey>::iterator it = vec.begin(); it != vec.end(); ++it)
+	{
+		if(it->lower == element.lower)
+		{
+			return it;
+		}
+	}
+
+	return vec.end();
+}
+
+bool hasStringKey(const std::vector<StringKey> &vec, const StringKey &element)
+{
+	return std::binary_search(vec.begin(), vec.end(), element, StringKeyLessThan);
+}
+
 RESGen::RESGen()
 {
 	checkforresources = false;
@@ -459,9 +477,20 @@ int RESGen::MakeRES(std::string &map, int fileindex, size_t filecount)
 	// Resource list has been made.
 	int status = 0; // RES status, 0 means ok, 2 means missing resource
 
+	std::vector<std::string> extraResources;
+
 	// Check for resources on disk
 	if (checkforresources)
 	{
+		std::sort(resources.begin(), resources.end(), StringKeyLessThan);
+
+		/*
+		for(size_t i = 0; i < resources.size(); i++)
+		{
+			printf("%s\n", resources[i].str.c_str());
+		}
+		*/
+
 		//printf("\nStarting resource check:\n");
 		std::vector<std::string>::iterator it = resfile.begin();
 
@@ -469,14 +498,12 @@ int RESGen::MakeRES(std::string &map, int fileindex, size_t filecount)
 		{
 			bool bErase = false;
 
-			std::vector<std::string>::iterator resfileit = findStringNoCase(resources, *it);
+			std::vector<StringKey>::iterator resfileit = findStringNoCase(resources, *it);
 
 			if(resfileit == resources.end())
 			{
 				// file not found - maybe it's excluded?
-				resfileit = findStringNoCase(excludelist, *it);
-
-				if(resfileit != excludelist.end())
+				if(findStringNoCase(excludelist, *it) != excludelist.end())
 				{
 					// file found - it's an exclude
 					if (contentdisp)
@@ -510,7 +537,7 @@ int RESGen::MakeRES(std::string &map, int fileindex, size_t filecount)
 				if (matchcase)
 				{
 					// match case
-					*it = *resfileit;
+					*it = resfileit->str;
 				}
 
 				if (parseresource)
@@ -518,7 +545,7 @@ int RESGen::MakeRES(std::string &map, int fileindex, size_t filecount)
 					if (!CompareStrEndNoCase(*it, ".wad"))
 					{
 						// Check if wad file is used
-						if (!CheckWadUse(*resfileit)) // We MUST have the right file
+						if (!CheckWadUse(resfileit->str)) // We MUST have the right file
 						{
 							// Wad is NOT being used
 							if (contentdisp)
@@ -535,16 +562,18 @@ int RESGen::MakeRES(std::string &map, int fileindex, size_t filecount)
 					else if (!CompareStrEndNoCase(*it, ".mdl"))
 					{
 						// Check model for external texture
-						if (CheckModelExtTexture(*resfileit))
+						if (CheckModelExtTexture(resfileit->str))
 						{
 							// Uses external texture, add
 							std::string extmdltex = it->substr(0, it->length() - 4); // strip extention
 							extmdltex += "T.mdl"; // add T and extention
 
-							if(findStringNoCase(resfile, extmdltex) == resfile.end())
+							if(
+								(findStringNoCase(resfile, extmdltex) == resfile.end())
+							&&	(findStringNoCase(extraResources, extmdltex) == extraResources.end())
+							)
 							{
-								// We can get away with this, since the model texture will be places AFTER the model
-								resfile.push_back(extmdltex);
+								extraResources.push_back(extmdltex);
 
 								if (contentdisp)
 								{
@@ -566,6 +595,8 @@ int RESGen::MakeRES(std::string &map, int fileindex, size_t filecount)
 				++it;
 			}
 		}
+
+		resfile.insert(resfile.end(), extraResources.begin(), extraResources.end());
 	}
 
 	// Check if resource has to be excluded
@@ -632,7 +663,7 @@ int RESGen::MakeRES(std::string &map, int fileindex, size_t filecount)
 		return status;
 	}
 
-	std::sort(resfile.begin(), resfile.end(), StringLessThanNoCase);
+	std::sort(resfile.begin(), resfile.end(), StringKeyLessThan);
 
 	// Collecting resfile entries is done, now write the res file.
 	if (!WriteRes(basefolder, basefilename))
@@ -962,6 +993,12 @@ bool RESGen::WriteRes(const std::string &folder, const std::string &mapname)
 		fprintf(f, "\n// Added .res content:\n%s\n", rfastring.c_str());
 	}
 
+	/*
+	printf("resources: %d\n", resources.size());
+	printf("resfile: %d\n", resfile.size());
+	printf("texturelist: %d\n", texturelist.size());
+	printf("excludelist: %d\n", excludelist.size());
+	*/
 	return true;
 }
 
@@ -1094,7 +1131,7 @@ void RESGen::ListDir(const std::string &path, const std::string &filepath, bool 
 				// resource, add to list
 				file = replaceCharAll(file, '\\', '/'); // replace backslashes
 
-				resources.push_back(file.data);
+				resources.push_back(StringKey(file.data));
 
 				if (resourcedisp)
 				{
@@ -1182,7 +1219,7 @@ void RESGen::ListDir(const std::string &path, const std::string &filepath, bool 
 					// resource, add to list
 					file = replaceCharAll(file, '\\', '/'); // replace backslashes
 
-					resources.push_back(file);
+					resources.push_back(StringKey(file));
 
 					if (resourcedisp)
 					{
@@ -1301,7 +1338,7 @@ void RESGen::BuildPakResourceList(const std::string &pakfilename)
 			// resource, add to list
 			std::string resStr = replaceCharAll(filelist[i].name, '\\', '/');
 
-			resources.push_back(resStr);
+			resources.push_back(StringKey(resStr));
 
 			if (resourcedisp)
 			{

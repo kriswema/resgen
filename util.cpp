@@ -145,3 +145,8 @@ bool StringLessThanNoCase(const std::string &a, const std::string &b)
 {
     return strToLowerCopy(a).compare(strToLowerCopy(b)) < 0;
 }
+
+bool StringKeyLessThan(const StringKey &a, const StringKey &b)
+{
+    return a.lower < b.lower;
+}

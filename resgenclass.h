@@ -33,9 +33,11 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <string>
 #include <vector>
 
-#include "LinkedList.h"
+#include "util.h"
 
 std::vector<std::string>::iterator findStringNoCase(std::vector<std::string> &vec, const std::string &element);
+std::vector<StringKey>::iterator findStringNoCase(std::vector<StringKey> &vec, const StringKey &element);
+bool hasStringKey(const std::vector<StringKey> &vec, const StringKey &element);
 
 class RESGen
 {
@@ -72,7 +74,7 @@ private:
 	bool firstdir;
 	char * strtok_nexttoken;
 	int statcount; // statusbar counter
-	std::vector<std::string> resources;
+	std::vector<StringKey> resources;
 	std::vector<std::string> resfile;
 	std::vector<std::string> texturelist;
 	std::vector<std::string> excludelist;

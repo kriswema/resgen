@@ -42,4 +42,26 @@ int ICompareStrings(const std::string &a, const std::string &b);
 
 bool StringLessThanNoCase(const std::string &a, const std::string &b);
 
+struct StringKey
+{
+	StringKey(const std::string &str_)
+		: str(str_)
+		, lower(strToLowerCopy(str_))
+	{
+	}
+
+	std::string str;
+	std::string lower;
+};
+
+struct SortByLower : public std::binary_function<StringKey, StringKey, bool>
+{
+	bool operator()(const StringKey &a, const StringKey &b)
+	{
+		return a.lower < b.lower;
+	}
+};
+
+bool StringKeyLessThan(const StringKey &a, const StringKey &b);
+
 #endif // UTIL_H
