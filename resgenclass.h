@@ -76,7 +76,7 @@ private:
 	char * strtok_nexttoken;
 	int statcount; // statusbar counter
 	std::map<std::string, std::string> resources;
-	std::vector<std::string> resfile;
+	std::map<std::string, std::string> resfile;
 	std::vector<std::string> texturelist;
 	std::vector<StringKey> excludelist;
 	bool verbal;

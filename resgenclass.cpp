@@ -489,32 +489,32 @@ int RESGen::MakeRES(std::string &map, int fileindex, size_t filecount)
 	if (checkforresources)
 	{
 		//printf("\nStarting resource check:\n");
-		std::vector<std::string>::iterator it = resfile.begin();
+		std::map<std::string, std::string>::iterator it = resfile.begin();
 
 		while(it != resfile.end())
 		{
 			bool bErase = false;
 
-			std::map<std::string, std::string>::iterator resourceIt = resources.find(strToLowerCopy(*it));
+			std::map<std::string, std::string>::iterator resourceIt = resources.find(it->first);
 
 			if(resourceIt == resources.end())
 			{
 				// file not found - maybe it's excluded?
-				if(findStringNoCaseSorted(excludelist, *it) != excludelist.end())
+				if(findStringNoCaseSorted(excludelist, it->first) != excludelist.end())
 				{
 					// file found - it's an exclude
 					if (contentdisp)
 					{
-						printf("Resource is excluded: %s\n", it->c_str());
+						printf("Resource is excluded: %s\n", it->second.c_str());
 					}
 
 				}
-				else if (CompareStrEndNoCase(*it, ".wad"))
+				else if (CompareStrEndNoCase(it->first, ".wad"))
 				{
 					// not a wad file
 					if (verbal)
 					{
-						printf("Resource file not found: %s\n", it->c_str());
+						printf("Resource file not found: %s\n", it->second.c_str());
 					}
 					status = 2; // res file might not be complete
 				}
@@ -523,7 +523,7 @@ int RESGen::MakeRES(std::string &map, int fileindex, size_t filecount)
 					// wad file is not critical, so no status change
 					if (contentdisp)
 					{
-						printf("Resource file not found: %s\n", it->c_str());
+						printf("Resource file not found: %s\n", it->second.c_str());
 					}
 				}
 
@@ -534,12 +534,12 @@ int RESGen::MakeRES(std::string &map, int fileindex, size_t filecount)
 				if (matchcase)
 				{
 					// match case
-					*it = resourceIt->second;
+					it->second = resourceIt->second;
 				}
 
 				if (parseresource)
 				{
-					if (!CompareStrEndNoCase(*it, ".wad"))
+					if (!CompareStrEndNoCase(it->first, ".wad"))
 					{
 						// Check if wad file is used
 						if (!CheckWadUse(resourceIt->second)) // We MUST have the right file
@@ -547,7 +547,7 @@ int RESGen::MakeRES(std::string &map, int fileindex, size_t filecount)
 							// Wad is NOT being used
 							if (contentdisp)
 							{
-								printf("WAD file not used: %s\n", it->c_str());
+								printf("WAD file not used: %s\n", it->second.c_str());
 							}
 
 							if(!preservewads)
@@ -556,17 +556,17 @@ int RESGen::MakeRES(std::string &map, int fileindex, size_t filecount)
 							}
 						}
 					}
-					else if (!CompareStrEndNoCase(*it, ".mdl"))
+					else if (!CompareStrEndNoCase(it->first, ".mdl"))
 					{
 						// Check model for external texture
 						if (CheckModelExtTexture(resourceIt->second))
 						{
 							// Uses external texture, add
-							std::string extmdltex = it->substr(0, it->length() - 4); // strip extention
+							std::string extmdltex = it->second.substr(0, it->second.length() - 4); // strip extention
 							extmdltex += "T.mdl"; // add T and extention
 
 							if(
-								(findStringNoCase(resfile, extmdltex) == resfile.end())
+								(resfile.find(strToLowerCopy(extmdltex)) == resfile.end())
 							&&	(findStringNoCase(extraResources, extmdltex) == extraResources.end())
 							)
 							{
@@ -593,22 +593,25 @@ int RESGen::MakeRES(std::string &map, int fileindex, size_t filecount)
 			}
 		}
 
-		resfile.insert(resfile.end(), extraResources.begin(), extraResources.end());
+		for(std::vector<std::string>::const_iterator extraIt = extraResources.begin(); extraIt != extraResources.end(); ++extraIt)
+		{
+			resfile[strToLowerCopy(*extraIt)] = *extraIt;
+		}
 	}
 
 	// Check if resource has to be excluded
 	if (checkforexcludes)
 	{
 		//printf("\nStarting exclude check:\n");
-		std::vector<std::string>::iterator it = resfile.begin();
+		std::map<std::string, std::string>::iterator it = resfile.begin();
 		while(it != resfile.end())
 		{
-			if(findStringNoCaseSorted(excludelist, *it) != excludelist.end())
+			if(findStringNoCaseSorted(excludelist, it->first) != excludelist.end())
 			{
 				// file found
 				if (contentdisp)
 				{
-					printf("Resource is excluded: %s\n", it->c_str());
+					printf("Resource is excluded: %s\n", it->second.c_str());
 				}
 
 				it = resfile.erase(it);
@@ -659,8 +662,6 @@ int RESGen::MakeRES(std::string &map, int fileindex, size_t filecount)
 		}
 		return status;
 	}
-
-	std::sort(resfile.begin(), resfile.end(), StringKeyLessThan);
 
 	// Collecting resfile entries is done, now write the res file.
 	if (!WriteRes(basefolder, basefilename))
@@ -922,15 +923,16 @@ void RESGen::AddRes(std::string res, const char * const prefix, const char * con
 	}
 
 	// Add file to list if it isn't in it yet.
+	std::string resLower = strToLowerCopy(res);
 
 	// File not found, must be new. Add to list
-	if(findStringNoCase(resfile, res) != resfile.end())
+	if(resfile.find(resLower) != resfile.end())
 	{
 		// double file found, discard
 		return;
 	}
 
-	resfile.push_back(res);
+	resfile[resLower] = res;
 
 	// Report file found
 	if (contentdisp)
@@ -978,10 +980,9 @@ bool RESGen::WriteRes(const std::string &folder, const std::string &mapname)
 	fprintf(f, "\n// .res entries (%d):\n", resfile.size());
 
 	// Resources
-	for (size_t i = 0; i < resfile.size(); i++)
+	for (std::map<std::string, std::string>::const_iterator it = resfile.begin(); it != resfile.end(); ++it)
 	{
-		std::string &vtemp = resfile[i];
-		fprintf(f, "%s\n", vtemp.c_str());
+		fprintf(f, "%s\n", it->second.c_str());
 	}
 
 	// RFA file, if needed
@@ -990,12 +991,6 @@ bool RESGen::WriteRes(const std::string &folder, const std::string &mapname)
 		fprintf(f, "\n// Added .res content:\n%s\n", rfastring.c_str());
 	}
 
-	/*
-	printf("resources: %d\n", resources.size());
-	printf("resfile: %d\n", resfile.size());
-	printf("texturelist: %d\n", texturelist.size());
-	printf("excludelist: %d\n", excludelist.size());
-	*/
 	return true;
 }
 
