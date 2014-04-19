@@ -69,19 +69,6 @@ std::vector<std::string>::iterator findStringNoCase(std::vector<std::string> &ve
 	return vec.end();
 }
 
-std::vector<StringKey>::iterator findStringNoCase(std::vector<StringKey> &vec, const StringKey &element)
-{
-	for(std::vector<StringKey>::iterator it = vec.begin(); it != vec.end(); ++it)
-	{
-		if(it->lower == element.lower)
-		{
-			return it;
-		}
-	}
-
-	return vec.end();
-}
-
 RESGen::RESGen()
 {
 	checkforresources = false;

@@ -38,7 +38,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "util.h"
 
 std::vector<std::string>::iterator findStringNoCase(std::vector<std::string> &vec, const std::string &element);
-std::vector<StringKey>::iterator findStringNoCase(std::vector<StringKey> &vec, const StringKey &element);
 
 class RESGen
 {
