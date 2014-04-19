@@ -31,6 +31,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <cstddef>
 #include <map>
 #include <memory>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -38,7 +39,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 std::vector<std::string>::iterator findStringNoCase(std::vector<std::string> &vec, const std::string &element);
 std::vector<StringKey>::iterator findStringNoCase(std::vector<StringKey> &vec, const StringKey &element);
-std::vector<StringKey>::iterator findStringNoCaseSorted(std::vector<StringKey> &vec, const StringKey &element);
 
 class RESGen
 {
@@ -52,7 +52,12 @@ public:
 	virtual ~RESGen();
 
 private:
+	typedef std::map<std::string, std::string> StringMap;
+	typedef std::set<std::string> TextureSet;
+	typedef std::map<std::string, TextureSet> WadCache;
+
 	bool CheckModelExtTexture(const std::string &model);
+	bool CacheWad(const std::string &wadfile);
 	bool CheckWadUse(const std::string &wadfile);
 	void BuildPakResourceList(const std::string &pakfile);
 	void ListDir(const std::string &path, const std::string &filepath, bool reporterror);
@@ -62,7 +67,7 @@ private:
 	void AddRes(std::string res, const char * const prefix = NULL, const char * const suffix = NULL);
 	char * NextValue();
 	char * NextToken();
-	std::unique_ptr<char[]> LoadBSPData(const std::string &file, size_t & entdatalen, std::vector<std::string> & texlist);
+	std::unique_ptr<char[]> LoadBSPData(const std::string &file, size_t & entdatalen, StringMap & texlist);
 
 	std::string valveresourcepath;
 	std::string resourcepath;
@@ -75,10 +80,11 @@ private:
 	bool firstdir;
 	char * strtok_nexttoken;
 	int statcount; // statusbar counter
-	std::map<std::string, std::string> resources;
-	std::map<std::string, std::string> resfile;
-	std::vector<std::string> texturelist;
-	std::map<std::string, std::string> excludelist;
+	StringMap resources;
+	StringMap resfile;
+	StringMap texturelist;
+	StringMap excludelist;
+	WadCache wadcache;
 	bool verbal;
 	bool statusline;
 	bool overwrite;

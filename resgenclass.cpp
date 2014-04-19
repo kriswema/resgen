@@ -26,6 +26,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 // RESGen does it's own security checks, no need to add VS2005's layer
 #define _CRT_SECURE_NO_DEPRECATE
 
+#include <assert.h>
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
@@ -79,21 +80,6 @@ std::vector<StringKey>::iterator findStringNoCase(std::vector<StringKey> &vec, c
 	}
 
 	return vec.end();
-}
-
-std::vector<StringKey>::iterator findStringNoCaseSorted(std::vector<StringKey> &vec, const StringKey &element)
-{
-	std::vector<StringKey>::iterator it = std::lower_bound(vec.begin(), vec.end(), element, StringKeyLessThan);
-
-	if(
-		(it == vec.end())
-	||	(it->lower > element.lower)
-	)
-	{
-		return vec.end();
-	}
-
-	return it;
 }
 
 RESGen::RESGen()
@@ -489,13 +475,13 @@ int RESGen::MakeRES(std::string &map, int fileindex, size_t filecount)
 	if (checkforresources)
 	{
 		//printf("\nStarting resource check:\n");
-		std::map<std::string, std::string>::iterator it = resfile.begin();
+		StringMap::iterator it = resfile.begin();
 
 		while(it != resfile.end())
 		{
 			bool bErase = false;
 
-			std::map<std::string, std::string>::iterator resourceIt = resources.find(it->first);
+			StringMap::iterator resourceIt = resources.find(it->first);
 
 			if(resourceIt == resources.end())
 			{
@@ -603,7 +589,7 @@ int RESGen::MakeRES(std::string &map, int fileindex, size_t filecount)
 	if (checkforexcludes)
 	{
 		//printf("\nStarting exclude check:\n");
-		std::map<std::string, std::string>::iterator it = resfile.begin();
+		StringMap::iterator it = resfile.begin();
 		while(it != resfile.end())
 		{
 			if(excludelist.find(it->first) != excludelist.end())
@@ -629,9 +615,9 @@ int RESGen::MakeRES(std::string &map, int fileindex, size_t filecount)
 		if (!texturelist.empty())
 		{
 			status = 2; // res file might not be complete
-			for (size_t i = 0; i < texturelist.size(); i++)
+			for(StringMap::const_iterator it = texturelist.begin(); it != texturelist.end(); it++)
 			{
-				printf("Texture not found in wad files: %s\n", texturelist[i].c_str());
+				printf("Texture not found in wad files: %s\n", it->second.c_str());
 			}
 		}
 	}
@@ -753,7 +739,7 @@ void RESGen::BuildResourceList(std::string &respath, bool checkpak, bool sdisp, 
 	printf("\n");
 }
 
-std::unique_ptr<char[]> RESGen::LoadBSPData(const std::string &file, size_t & entdatalen, std::vector<std::string> & texlist)
+std::unique_ptr<char[]> RESGen::LoadBSPData(const std::string &file, size_t & entdatalen, StringMap & texlist)
 {
 	// first open the file.
 	File bsp(file, "rb"); // read in binary mode.
@@ -843,22 +829,11 @@ std::unique_ptr<char[]> RESGen::LoadBSPData(const std::string &file, size_t & en
 				if (texdata.offsets[0] == 0 && texdata.offsets[1] == 0 && texdata.offsets[2] == 0 && texdata.offsets[3] == 0)
 				{
 					// No texture for any mip level, so must be in a wad
-					std::string texfile(texdata.name);
-					texlist.push_back(texfile);
+					std::string texfileLower = strToLowerCopy(texdata.name);
+					texlist[texfileLower] = texdata.name;
 				}
 			}
 		}
-
-		/*
-		// TODO: Sort
-		printf("\n\nTextures found:\n");
-
-		for (int i = 0; i < texlist.GetCount(); i++)
-		{
-			printf("%s\n", texlist.GetAt(i).c_str());
-		}
-		printf("\n\n");
-		//*/
 	}
 
 	// add terminating NULL for entity data
@@ -980,7 +955,7 @@ bool RESGen::WriteRes(const std::string &folder, const std::string &mapname)
 	fprintf(f, "\n// .res entries (%d):\n", resfile.size());
 
 	// Resources
-	for (std::map<std::string, std::string>::const_iterator it = resfile.begin(); it != resfile.end(); ++it)
+	for (StringMap::const_iterator it = resfile.begin(); it != resfile.end(); ++it)
 	{
 		fprintf(f, "%s\n", it->second.c_str());
 	}
@@ -1431,7 +1406,7 @@ bool RESGen::LoadExludeFile(std::string &listfile)
 	return true;
 }
 
-bool RESGen::CheckWadUse(const std::string &wadfile)
+bool RESGen::CacheWad(const std::string &wadfile)
 {
 	File wad(resourcepath + wadfile, "rb");
 
@@ -1474,7 +1449,8 @@ bool RESGen::CheckWadUse(const std::string &wadfile)
 		return false;
 	}
 
-	bool retval = false;
+	const std::string wadFileLower(strToLowerCopy(wadfile));
+
 	for (int i = 0; i < header.numlumps; i++)
 	{
 		wadlumpinfo_s lumpinfo;
@@ -1484,21 +1460,57 @@ bool RESGen::CheckWadUse(const std::string &wadfile)
 			return false;
 		}
 
-		std::string texture = lumpinfo.name;
+		std::string lumpNameLower(lumpinfo.name);
+		strToLower(lumpNameLower);
+		wadcache[wadFileLower].insert(lumpNameLower);
+	}
 
-		std::vector<std::string>::iterator it = findStringNoCase(texturelist, texture);
+	return true;
+}
+
+bool RESGen::CheckWadUse(const std::string &wadfile)
+{
+	const std::string wadFileLower(strToLowerCopy(wadfile));
+
+	WadCache::iterator wadIt = wadcache.find(wadFileLower);
+
+	if(wadIt == wadcache.end())
+	{
+		// Haven't read this wad yet
+		if(!CacheWad(wadfile))
+		{
+			// Failed to read wad
+			// Cache this failure with an empty set to prevent wad being marked
+			// as used
+			wadcache[wadFileLower] = TextureSet();
+			return false;
+		}
+
+		wadIt = wadcache.find(wadFileLower);
+	}
+
+	assert(wadIt != wadcache.end());
+
+	bool bWadUsed = false;
+
+	TextureSet& textureSet = wadIt->second;
+
+	// Remove any textures that are found in this wad
+	for(TextureSet::iterator textureIt = textureSet.begin(); textureIt != textureSet.end(); ++textureIt)
+	{
+		StringMap::iterator it = texturelist.find(*textureIt);
 
 		if(it != texturelist.end())
 		{
 			// found a texture, so wad is used
-			retval = true;
+			bWadUsed = true;
 
 			// update texture list
 			texturelist.erase(it);
 		}
 	}
 
-	return retval;
+	return bWadUsed;
 }
 
 bool RESGen::CheckModelExtTexture(const std::string &model)
