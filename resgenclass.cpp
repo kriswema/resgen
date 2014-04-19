@@ -480,8 +480,6 @@ int RESGen::MakeRES(std::string &map, int fileindex, size_t filecount)
 	// Check for resources on disk
 	if (checkforresources)
 	{
-		std::sort(resources.begin(), resources.end(), StringKeyLessThan);
-
 		//printf("\nStarting resource check:\n");
 		std::vector<std::string>::iterator it = resfile.begin();
 
@@ -489,9 +487,9 @@ int RESGen::MakeRES(std::string &map, int fileindex, size_t filecount)
 		{
 			bool bErase = false;
 
-			std::vector<StringKey>::iterator resfileit = findStringNoCaseSorted(resources, *it);
+			std::map<std::string, std::string>::iterator resourceIt = resources.find(strToLowerCopy(*it));
 
-			if(resfileit == resources.end())
+			if(resourceIt == resources.end())
 			{
 				// file not found - maybe it's excluded?
 				if(findStringNoCaseSorted(excludelist, *it) != excludelist.end())
@@ -528,7 +526,7 @@ int RESGen::MakeRES(std::string &map, int fileindex, size_t filecount)
 				if (matchcase)
 				{
 					// match case
-					*it = resfileit->str;
+					*it = resourceIt->second;
 				}
 
 				if (parseresource)
@@ -536,7 +534,7 @@ int RESGen::MakeRES(std::string &map, int fileindex, size_t filecount)
 					if (!CompareStrEndNoCase(*it, ".wad"))
 					{
 						// Check if wad file is used
-						if (!CheckWadUse(resfileit->str)) // We MUST have the right file
+						if (!CheckWadUse(resourceIt->second)) // We MUST have the right file
 						{
 							// Wad is NOT being used
 							if (contentdisp)
@@ -553,7 +551,7 @@ int RESGen::MakeRES(std::string &map, int fileindex, size_t filecount)
 					else if (!CompareStrEndNoCase(*it, ".mdl"))
 					{
 						// Check model for external texture
-						if (CheckModelExtTexture(resfileit->str))
+						if (CheckModelExtTexture(resourceIt->second))
 						{
 							// Uses external texture, add
 							std::string extmdltex = it->substr(0, it->length() - 4); // strip extention
@@ -1122,7 +1120,7 @@ void RESGen::ListDir(const std::string &path, const std::string &filepath, bool 
 				// resource, add to list
 				file = replaceCharAll(file, '\\', '/'); // replace backslashes
 
-				resources.push_back(StringKey(file));
+				resources[strToLowerCopy(file)] = file;
 
 				if (resourcedisp)
 				{
@@ -1210,7 +1208,7 @@ void RESGen::ListDir(const std::string &path, const std::string &filepath, bool 
 					// resource, add to list
 					file = replaceCharAll(file, '\\', '/'); // replace backslashes
 
-					resources.push_back(StringKey(file));
+					resources[strToLowerCopy(file)] = file;
 
 					if (resourcedisp)
 					{
@@ -1329,7 +1327,7 @@ void RESGen::BuildPakResourceList(const std::string &pakfilename)
 			// resource, add to list
 			std::string resStr = replaceCharAll(filelist[i].name, '\\', '/');
 
-			resources.push_back(StringKey(resStr));
+			resources[strToLowerCopy(resStr)] = resStr;
 
 			if (resourcedisp)
 			{

@@ -29,6 +29,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #pragma once
 
 #include <cstddef>
+#include <map>
 #include <memory>
 #include <string>
 #include <vector>
@@ -74,7 +75,7 @@ private:
 	bool firstdir;
 	char * strtok_nexttoken;
 	int statcount; // statusbar counter
-	std::vector<StringKey> resources;
+	std::map<std::string, std::string> resources;
 	std::vector<std::string> resfile;
 	std::vector<std::string> texturelist;
 	std::vector<StringKey> excludelist;
