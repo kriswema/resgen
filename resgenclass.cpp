@@ -345,31 +345,39 @@ int RESGen::MakeRES(std::string &map, int fileindex, size_t filecount)
 		}
 
 		std::string value(token);
+		std::string valueLower = strToLowerCopy(value);
 
-		if (!CompareStrEndNoCase(value, ".mdl"))
+		const size_t dotIndex = valueLower.find_last_of('.');
+
+		if(dotIndex != std::string::npos)
 		{
-			// mdl file
-			AddRes(value);
-		}
-		else if (!CompareStrEndNoCase(value, ".wav"))
-		{
-			// wave file
-			AddRes(value, "sound/");
-		}
-		else if (!CompareStrEndNoCase(value, ".spr"))
-		{
-			// sprite file
-			AddRes(value);
-		}
-		else if (!CompareStrEndNoCase(value, ".bmp"))
-		{
-			// bitmap file
-			AddRes(value);
-		}
-		else if (!CompareStrEndNoCase(value, ".tga"))
-		{
-			// targa file
-			AddRes(value);
+			const std::string extension = valueLower.substr(dotIndex + 1);
+
+			if (extension == "mdl")
+			{
+				// mdl file
+				AddRes(value);
+			}
+			else if (extension == "wav")
+			{
+				// wave file
+				AddRes(value, "sound/");
+			}
+			else if (extension == "spr")
+			{
+				// sprite file
+				AddRes(value);
+			}
+			else if (extension == "bmp")
+			{
+				// bitmap file
+				AddRes(value);
+			}
+			else if (extension == "tga")
+			{
+				// targa file
+				AddRes(value);
+			}
 		}
 
 		token = NextToken(); // exit value
@@ -1106,32 +1114,40 @@ void RESGen::ListDir(const std::string &path, const std::string &filepath, bool 
 		}
 		else
 		{
-			// Check if the file is a possible resource
-			if (
-				!CompareStrEndNoCase(file, ".mdl") ||
-				!CompareStrEndNoCase(file, ".wav") ||
-				!CompareStrEndNoCase(file, ".spr") ||
-				!CompareStrEndNoCase(file, ".bmp") ||
-				!CompareStrEndNoCase(file, ".tga") ||
-				!CompareStrEndNoCase(file, ".txt") ||
-				!CompareStrEndNoCase(file, ".wad")
+			const std::string fileLower = strToLowerCopy(file);
+
+			const size_t dotIndex = fileLower.find_last_of('.');
+
+			if(dotIndex != std::string::npos)
+			{
+				const std::string extension = fileLower.substr(dotIndex + 1);
+
+				if (
+					extension == "mdl" ||
+					extension == "wav" ||
+					extension == "spr" ||
+					extension == "bmp" ||
+					extension == "tga" ||
+					extension == "txt" ||
+					extension == "wad"
 				)
-			{
-				// resource, add to list
-				file = replaceCharAll(file, '\\', '/'); // replace backslashes
-
-				resources[strToLowerCopy(file)] = file;
-
-				if (resourcedisp)
 				{
-					printf("Added \"%s\" to resource list\n", file.c_str());
-				}
-			}
+					// resource, add to list
+					file = replaceCharAll(file, '\\', '/'); // replace backslashes
 
-			if (!CompareStrEndNoCase(file, ".pak") && pakparse)
-			{
-				// get pakfilelist
-				BuildPakResourceList(path + file);
+					resources[strToLowerCopy(file)] = file;
+
+					if (resourcedisp)
+					{
+						printf("Added \"%s\" to resource list\n", file.c_str());
+					}
+				}
+
+				if ((extension == "pad") && pakparse)
+				{
+					// get pakfilelist
+					BuildPakResourceList(path + file);
+				}
 			}
 		}
 
@@ -1194,32 +1210,41 @@ void RESGen::ListDir(const std::string &path, const std::string &filepath, bool 
 			}
 			else
 			{
-				// Check if the file is a possible resource
-				if (
-					!CompareStrEndNoCase(file, ".mdl") ||
-					!CompareStrEndNoCase(file, ".wav") ||
-					!CompareStrEndNoCase(file, ".spr") ||
-					!CompareStrEndNoCase(file, ".bmp") ||
-					!CompareStrEndNoCase(file, ".tga") ||
-					!CompareStrEndNoCase(file, ".txt") ||
-					!CompareStrEndNoCase(file, ".wad")
+				std::string fileLower = strToLowerCopy(file);
+
+				const size_t dotIndex = fileLower.find_last_of('.');
+
+				if(dotIndex != std::string::npos)
+				{
+					const std::string extension = fileLower.substr(dotIndex + 1);
+
+					// Check if the file is a possible resource
+					if (
+						extension == "mdl" ||
+						extension == "wav" ||
+						extension == "spr" ||
+						extension == "bmp" ||
+						extension == "tga" ||
+						extension == "txt" ||
+						extension == "wad"
 					)
-				{
-					// resource, add to list
-					file = replaceCharAll(file, '\\', '/'); // replace backslashes
-
-					resources[strToLowerCopy(file)] = file;
-
-					if (resourcedisp)
 					{
-						printf("Added \"%s\" to resource list\n", file.c_str());
-					}
-				}
+						// resource, add to list
+						file = replaceCharAll(file, '\\', '/'); // replace backslashes
 
-				if (!CompareStrEndNoCase(file, ".pak") && pakparse)
-				{
-					// get pakfilelist
-					BuildPakResourceList(path + file);
+						resources[strToLowerCopy(file)] = file;
+
+						if (resourcedisp)
+						{
+							printf("Added \"%s\" to resource list\n", file.c_str());
+						}
+					}
+
+					if ((extension == "pak") && pakparse)
+					{
+						// get pakfilelist
+						BuildPakResourceList(path + file);
+					}
 				}
 			}
 		}
@@ -1314,24 +1339,33 @@ void RESGen::BuildPakResourceList(const std::string &pakfilename)
 	// Read filelist for possible resources
 	for (size_t i = 0; i < filecount; i++)
 	{
-		if (
-			!CompareStrEndNoCase(filelist[i].name, ".mdl") ||
-			!CompareStrEndNoCase(filelist[i].name, ".wav") ||
-			!CompareStrEndNoCase(filelist[i].name, ".spr") ||
-			!CompareStrEndNoCase(filelist[i].name, ".bmp") ||
-			!CompareStrEndNoCase(filelist[i].name, ".tga") ||
-			!CompareStrEndNoCase(filelist[i].name, ".txt") ||
-			!CompareStrEndNoCase(filelist[i].name, ".wad")
-			)
+		const std::string fileLower = strToLowerCopy(filelist[i].name);
+
+		const size_t dotIndex = fileLower.find_last_of('.');
+
+		if(dotIndex != std::string::npos)
 		{
-			// resource, add to list
-			std::string resStr = replaceCharAll(filelist[i].name, '\\', '/');
+			const std::string extension = fileLower.substr(dotIndex + 1);
 
-			resources[strToLowerCopy(resStr)] = resStr;
-
-			if (resourcedisp)
+			if (
+				extension == "mdl" ||
+				extension == "wav" ||
+				extension == "spr" ||
+				extension == "bmp" ||
+				extension == "tga" ||
+				extension == "txt" ||
+				extension == "wad"
+			)
 			{
-				printf("Added \"%s\" to resource list\n", resStr.c_str());
+				// resource, add to list
+				std::string resStr = replaceCharAll(filelist[i].name, '\\', '/');
+
+				resources[strToLowerCopy(resStr)] = resStr;
+
+				if (resourcedisp)
+				{
+					printf("Added \"%s\" to resource list\n", resStr.c_str());
+				}
 			}
 		}
 	}

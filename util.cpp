@@ -105,7 +105,20 @@ int CompareStrEndNoCase(const std::string &str, const std::string &ending)
     std::string strLC = strToLowerCopy(str);
     std::string endingLC = strToLowerCopy(ending);
 
-    return strLC.compare(str.length() - ending.length(), ending.length(), endingLC);
+    return CompareStrEnd(str, ending);
+}
+
+int CompareStrEnd(const std::string &str, const std::string &ending)
+{
+    const size_t strLength = str.length();
+    const size_t endingLength = ending.length();
+
+    if(strLength < endingLength)
+    {
+        return -1;
+    }
+
+    return str.compare(strLength - endingLength, endingLength, ending);
 }
 
 void leftTrim(std::string &str)
