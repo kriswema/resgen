@@ -594,7 +594,7 @@ int RESGen::MakeRES(std::string &map, int fileindex, size_t filecount, const Str
 					if (!CompareStrEnd(it->first, ".wad"))
 					{
 						// Check if wad file is used
-						if (!CheckWadUse(resourceIt->second)) // We MUST have the right file
+						if (!CheckWadUse(resourceIt)) // We MUST have the right file
 						{
 							// Wad is NOT being used
 							if (contentdisp)
@@ -1081,47 +1081,49 @@ bool RESGen::CacheWad(const std::string &wadfile)
 	return true;
 }
 
-bool RESGen::CheckWadUse(const std::string &wadfile)
+bool RESGen::CheckWadUse(const StringMap::const_iterator &wadfileIt)
 {
-	const std::string wadFileLower(strToLowerCopy(wadfile));
-
-	WadCache::iterator wadIt = wadcache.find(wadFileLower);
+	WadCache::const_iterator wadIt = wadcache.find(wadfileIt->first);
 
 	if(wadIt == wadcache.end())
 	{
 		// Haven't read this wad yet
-		if(!CacheWad(wadfile))
+		if(!CacheWad(wadfileIt->second))
 		{
 			// Failed to read wad
 			// Cache this failure with an empty set to prevent wad being marked
 			// as used
-			wadcache[wadFileLower] = TextureSet();
+			wadcache[wadfileIt->first] = TextureSet();
 			return false;
 		}
 
-		wadIt = wadcache.find(wadFileLower);
+		wadIt = wadcache.find(wadfileIt->first);
 	}
 
 	assert(wadIt != wadcache.end());
 
 	bool bWadUsed = false;
 
-	TextureSet& textureSet = wadIt->second;
+	const TextureSet& textureSet = wadIt->second;
 
-	// Remove any textures that are found in this wad
-	for(TextureSet::const_iterator textureIt = textureSet.begin(); textureIt != textureSet.end(); ++textureIt)
+	StringMap::iterator it = texturelist.begin();
+
+	// Look through all unfound textures and remove any that appear in this wad
+	while(it != texturelist.end())
 	{
-		// TODO: texturelist and textureSet are both sorted, so iterating both
-		// at same time should be faster than a find
-		StringMap::iterator it = texturelist.find(*textureIt);
+		TextureSet::const_iterator textureIt = textureSet.find(it->first);
 
-		if(it != texturelist.end())
+		if(textureIt != textureSet.end())
 		{
 			// found a texture, so wad is used
 			bWadUsed = true;
 
 			// update texture list
-			texturelist.erase(it);
+			it = texturelist.erase(it);
+		}
+		else
+		{
+			++it;
 		}
 	}
 

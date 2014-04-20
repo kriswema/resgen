@@ -57,7 +57,7 @@ private:
 
 	bool CheckModelExtTexture(const std::string &model);
 	bool CacheWad(const std::string &wadfile);
-	bool CheckWadUse(const std::string &wadfile);
+	bool CheckWadUse(const StringMap::const_iterator &wadfileIt);
 	bool WriteRes(const std::string &folder, const std::string &mapname);
 	void AddWad(const std::string &wadlist, size_t start, size_t len);
 	void AddRes(std::string res, const char * const prefix = NULL, const char * const suffix = NULL);
