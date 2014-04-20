@@ -58,53 +58,55 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
+template <char Delimiter>
 class Tokenizer
 {
 public:
-	Tokenizer(std::string& str_, char delimeter_)
+	Tokenizer(std::string& str_)
 		: str(str_)
-		, delimiter(delimeter_)
+		, strLength(str.length())
 		, nextPos(0)
 	{
 	}
 
-	bool SkipToken()
+	bool FindNext()
 	{
 		if(nextPos == std::string::npos)
 		{
 			return false;
 		}
 
-		nextPos = str.find_first_of(delimiter, nextPos);
-
-		if(nextPos != std::string::npos)
+		while(nextPos != strLength)
 		{
-			str[nextPos] = 0;
+			if(str[nextPos] == Delimiter)
+			{
+				str[nextPos] = 0;
+				nextPos++;
+				return true;
+			}
+
 			nextPos++;
 		}
 
+		nextPos = std::string::npos;
 		return true;
+	}
+
+	bool SkipToken()
+	{
+		return FindNext();
 	}
 
 	const char * NextToken()
 	{
-		// This replaces the normal strtok function because we don;t want to skip leading delimiters.
-		// That 'feature' of strtok makes it kinda useless, unless you do a lot of checking for the skipping.
-
 		if(nextPos == std::string::npos)
 		{
 			return NULL;
 		}
 
 		const size_t startPos = nextPos;
-		nextPos = str.find_first_of(delimiter, nextPos);
 
-		if(nextPos != std::string::npos)
-		{
-			str[nextPos] = 0;
-			nextPos++;
-		}
-
+		FindNext();
 		return &str.c_str()[startPos];
 	}
 
@@ -126,7 +128,7 @@ public:
 
 private:
 	std::string str;
-	char delimiter;
+	const size_t strLength;
 	size_t nextPos;
 };
 
@@ -262,7 +264,7 @@ int RESGen::MakeRES(std::string &map, int fileindex, size_t filecount, const Str
 	mapinfo.assign(mistart, milen);
 
 	// parse map info. We use StrTok for this...
-	Tokenizer mapTokenizer(mapinfo, '\"');
+	Tokenizer<'\"'> mapTokenizer(mapinfo);
 	if (!mapTokenizer.SkipToken())
 	{
 			printf("Error parsing \"%s\". No map information found.\n", map.c_str());
@@ -360,7 +362,7 @@ int RESGen::MakeRES(std::string &map, int fileindex, size_t filecount, const Str
 
 	statcount = STAT_MAX; // make statbar print at once
 
-	Tokenizer entDataTokenizer(entdata, '\"');
+	Tokenizer<'\"'> entDataTokenizer(entdata);
 
 	// parse the entity data. We use StrTok for this...
 	// Note that we reparse the mapinfo.

@@ -67,7 +67,6 @@ private:
 private:
 	bool checkforexcludes;
 	bool resourcedisp;
-	bool pakparse;
 	bool contentdisp;
 	int statcount; // statusbar counter
 	StringMap resfile;
