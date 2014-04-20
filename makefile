@@ -47,6 +47,7 @@ OBJ = \
 	$(OBJDIR)/listbuilder.o \
 	$(OBJDIR)/resgen.o \
 	$(OBJDIR)/resgenclass.o \
+	$(OBJDIR)/resourcelistbuilder.o \
 	$(OBJDIR)/util.o
 
 $(BINDIR)/$(EXECNAME) : $(OBJ)

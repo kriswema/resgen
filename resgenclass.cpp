@@ -41,8 +41,10 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <unistd.h>
 #endif
 
+#include "hltypes.h"
 #include "resgenclass.h"
 #include "resgen.h"
+#include "resourcelistbuilder.h"
 #include "util.h"
 
 // Half-Life BSP version
@@ -143,7 +145,6 @@ std::vector<std::string>::iterator findStringNoCase(std::vector<std::string> &ve
 
 RESGen::RESGen()
 {
-	checkforresources = false;
 	checkforexcludes = false;
 }
 
@@ -163,8 +164,10 @@ void RESGen::SetParams(bool beverbal, bool statline, bool overwrt, bool lcase, b
 	contentdisp = cdisp;
 }
 
-int RESGen::MakeRES(std::string &map, int fileindex, size_t filecount)
+int RESGen::MakeRES(std::string &map, int fileindex, size_t filecount, const StringMap &resources, std::vector<std::string> &resourcePaths_)
 {
+	resourcePaths = resourcePaths_;
+
 	#ifdef WIN32
 	WIN32_FIND_DATA filedata;
 	HANDLE filehandle;
@@ -528,7 +531,7 @@ int RESGen::MakeRES(std::string &map, int fileindex, size_t filecount)
 	std::vector<std::string> extraResources;
 
 	// Check for resources on disk
-	if (checkforresources)
+	if (!resourcePaths.empty())
 	{
 		//printf("\nStarting resource check:\n");
 		StringMap::iterator it = resfile.begin();
@@ -537,7 +540,7 @@ int RESGen::MakeRES(std::string &map, int fileindex, size_t filecount)
 		{
 			bool bErase = false;
 
-			StringMap::iterator resourceIt = resources.find(it->first);
+			StringMap::const_iterator resourceIt = resources.find(it->first);
 
 			if(resourceIt == resources.end())
 			{
@@ -666,7 +669,7 @@ int RESGen::MakeRES(std::string &map, int fileindex, size_t filecount)
 	}
 
 	// Give a list of missing textures
-	if (parseresource && checkforresources && verbal)
+	if (parseresource && !resourcePaths.empty() && verbal)
 	{
 		if (!texturelist.empty())
 		{
@@ -718,83 +721,6 @@ int RESGen::MakeRES(std::string &map, int fileindex, size_t filecount)
 	return status;
 }
 
-void RESGen::BuildResourceList(std::string &respath, bool checkpak, bool sdisp, bool rdisp)
-{
-	searchdisp = sdisp;
-	resourcedisp = rdisp;
-	pakparse = checkpak;
-
-	resources.clear();
-
-	if (respath.empty())
-	{
-		// no respath, thus no reslist
-		checkforresources = false;
-		return;
-	}
-
-	checkforresources = true;
-
-	// Check the respath and check ../valve if the respath doesn't point to valve
-
-	#ifdef WIN32
-	const char* pathSep = "\\";
-	const char* valveStr = "\\valve\\";
-	#else
-	const char* pathSep = "/";
-	const char* valveStr = "/valve/";
-	#endif
-
-	// prepare folder name
-	
-	if (respath[respath.length() - 1] != pathSep[0])
-	{
-		// No path separator, add
-		respath += pathSep;
-	}
-
-	std::string valvepath;
-
-	if(CompareStrEndNoCase(respath, valveStr))
-	{
-		// NOT valve dir, so check it too
-		size_t slashpos = respath.rfind(pathSep[0], respath.length() - 2);
-		if (slashpos != std::string::npos)
-		{
-			valvepath = respath.substr(0, slashpos);
-			valvepath += valveStr;
-		}
-		else
-		{
-			valvepath = respath + ".." + valveStr;
-		}
-	}
-
-	resourcepath = respath;
-	valveresourcepath = valvepath;
-
-	if (resourcedisp)
-	{
-		printf("Searching %s for resources:\n", respath.c_str());
-	}
-	else if (verbal)
-	{
-		printf("Searching %s for resources...\n", respath.c_str());
-	}
-
-	firstdir = true;
-	ListDir(respath, "", true);
-
-	// Check the valve dir too
-	if (!valvepath.empty())
-	{
-		firstdir = true;
-		ListDir(valvepath, "", false);
-	}
-
-	printf("\n");
-}
-
 bool RESGen::LoadBSPData(const std::string &file, std::string &entdata, StringMap & texlist)
 {
 	// first open the file.
@@ -840,7 +766,7 @@ bool RESGen::LoadBSPData(const std::string &file, std::string &entdata, StringMa
 		return false;
 	}
 
-	if (parseresource && checkforresources)
+	if (parseresource && !resourcePaths.empty())
 	{
 		// Load names of external textures
 		fseek(bsp, header.tex_header.fileofs, SEEK_SET); // go to start of texture data
@@ -1030,309 +956,6 @@ bool RESGen::LoadRfaFile(std::string &filename)
 	return bSuccess;
 }
 
-#ifdef WIN32
-// Win 32 DIR parser
-void RESGen::ListDir(const std::string &path, const std::string &filepath, bool reporterror)
-{
-	WIN32_FIND_DATA filedata;
-
-	// add *.* for searching all files.
-	std::string searchdir = path + filepath + "*.*";
-
-	// find first file
-	HANDLE filehandle = FindFirstFile(searchdir.c_str(), &filedata);
-
-	if (filehandle == INVALID_HANDLE_VALUE)
-	{
-		if (firstdir && reporterror)
-		{
-			if (GetLastError() & ERROR_PATH_NOT_FOUND || GetLastError() & ERROR_FILE_NOT_FOUND)
-			{
-				printf("The directory you specified (%s) can not be found or is empty.\n", path.c_str());
-			}
-			else
-			{
-				printf("There was an error with the directory you specified (%s) - ERROR NO: %lu.\n", path.c_str(), GetLastError());
-			}
-		}
-		return;
-	}
-
-	firstdir = false;
-
-	do
-	{
-		std::string file = filepath + filedata.cFileName;
-
-		// Check for directory
-		if (filedata.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
-		{
-			// Look for files in subdir, but ignore . and ..
-			if (strcmp(filedata.cFileName, ".") && strcmp(filedata.cFileName, ".."))
-			{
-				// Call this function recursive
-				ListDir(path, file + "\\", reporterror);
-			}
-		}
-		else
-		{
-			const std::string fileLower = strToLowerCopy(file);
-
-			const size_t dotIndex = fileLower.find_last_of('.');
-
-			if(dotIndex != std::string::npos)
-			{
-				const std::string extension = fileLower.substr(dotIndex + 1);
-
-				if (
-					extension == "mdl" ||
-					extension == "wav" ||
-					extension == "spr" ||
-					extension == "bmp" ||
-					extension == "tga" ||
-					extension == "txt" ||
-					extension == "wad"
-				)
-				{
-					// resource, add to list
-					file = replaceCharAll(file, '\\', '/'); // replace backslashes
-
-					resources[strToLowerCopy(file)] = file;
-
-					if (resourcedisp)
-					{
-						printf("Added \"%s\" to resource list\n", file.c_str());
-					}
-				}
-
-				if ((extension == "pad") && pakparse)
-				{
-					// get pakfilelist
-					BuildPakResourceList(path + file);
-				}
-			}
-		}
-
-	} while (FindNextFile(filehandle, &filedata));
-
-	// Close search
-	FindClose(filehandle);
-}
-
-#else
-// Linux dir parser
-void RESGen::ListDir(const std::string &path, const std::string &filepath, bool reporterror)
-{
-	struct stat filestatinfo; // Force as a struct for GCC
-
-	std::string searchpath = path + filepath;
-
-	// Open the current dir
-	DIR *directory = opendir(searchpath.c_str());
-
-	// Is it open?
-	if (directory == NULL)
-	{
-		// dir cannot be opened
-		if (firstdir && reporterror)
-		{
-			printf("There was an error with the directory you specified (%s)\nDid you enter the correct directory?\n", path.c_str());
-		}
-		return;
-	}
-
-	firstdir = false;
-
-	// Start going through dirs finding files.
-	while (true)
-	{
-		const dirent * const direntry = readdir(directory);
-		if(direntry == NULL)
-		{
-			break;
-		}
-
-		// Do we have a dir?
-		// We follow symlinks. people shouldn't mess with symlinks in the HL folder anyways.
-		int i = stat((searchpath + direntry->d_name).c_str(), &filestatinfo); // Get the info about the files the links point to
-
-		std::string file = filepath + direntry->d_name;
-
-		if (i == 0)
-		{
-			// Check for directory
-			if (S_ISDIR(filestatinfo.st_mode))
-			{
-				// Look for files in subdir, but ignore . and ..
-				if (strcmp(direntry->d_name, ".") && strcmp(direntry->d_name, ".."))
-				{
-					// Call this function recursive
-					ListDir(path, file + "/", reporterror);
-				}
-			}
-			else
-			{
-				std::string fileLower = strToLowerCopy(file);
-
-				const size_t dotIndex = fileLower.find_last_of('.');
-
-				if(dotIndex != std::string::npos)
-				{
-					const std::string extension = fileLower.substr(dotIndex + 1);
-
-					// Check if the file is a possible resource
-					if (
-						extension == "mdl" ||
-						extension == "wav" ||
-						extension == "spr" ||
-						extension == "bmp" ||
-						extension == "tga" ||
-						extension == "txt" ||
-						extension == "wad"
-					)
-					{
-						// resource, add to list
-						file = replaceCharAll(file, '\\', '/'); // replace backslashes
-
-						resources[strToLowerCopy(file)] = file;
-
-						if (resourcedisp)
-						{
-							printf("Added \"%s\" to resource list\n", file.c_str());
-						}
-					}
-
-					if ((extension == "pak") && pakparse)
-					{
-						// get pakfilelist
-						BuildPakResourceList(path + file);
-					}
-				}
-			}
-		}
-	}
-
-	// close the dir
-	closedir(directory);
-
-}
-
-#endif
-
-void RESGen::BuildPakResourceList(const std::string &pakfilename)
-{
-	// open the pak file in binary read mode
-	File pakfile(pakfilename, "rb");
-
-	if (pakfile == NULL)
-	{
-		// error opening pakfile!
-		printf("Could not find pakfile \"%s\".\n", pakfilename.c_str());
-		return;
-	}
-
-	// Check a pakfile for resources
-	// get the header
-	size_t pakheadersize = sizeof(pakheader_s);
-	pakheader_s pakheader;
-	size_t retval = fread(&pakheader, 1, pakheadersize, pakfile);
-
-	if (retval != pakheadersize)
-	{
-		// unexpected size.
-		if (verbal)
-		{
-			printf("Reading pakfile header failed. Wrong size (%d read, %d expected).\n", retval, pakheadersize);
-			printf("Is \"%s\" a valid pakfile?\n", pakfilename.c_str());
-		}
-		return;
-	}
-
-	// verify pak identity
-	if (pakheader.pakid != 1262698832)
-	{
-		if (verbal)
-		{
-			printf("Pakfile \"%s\" does not appear to be a Half-Life pakfile (ID mismatch).\n", pakfilename.c_str());
-		}
-		return;
-	}
-
-	// count the number of files in the pak
-	size_t fileinfosize = sizeof(fileinfo_s);
-	size_t filecount = pakheader.dirsize / fileinfosize;
-
-	// re-verify integrity of header
-	if (pakheader.dirsize % fileinfosize != 0 || filecount == 0)
-	{
-		if (verbal)
-		{
-			printf("Pakfile \"%s\" does not appear to be a Half-Life pakfile (invalid dirsize).\n", pakfilename.c_str());
-		}
-		return;
-	}
-
-	// load file list to memory
-	if(fseek(pakfile, pakheader.diroffset, SEEK_SET))
-	{
-		if (verbal)
-		{
-			printf("Error seeking for file list.\nPakfile \"%s\" is not a pakfile, or is corrupted.\n", pakfilename.c_str());
-		}
-		return;
-	}
-
-	std::unique_ptr<fileinfo_s[]> filelist(new fileinfo_s[filecount]);
-	retval = fread(filelist.get(), 1, pakheader.dirsize, pakfile);
-	if (retval != pakheader.dirsize)
-	{
-		if (verbal)
-		{
-			printf("Error seeking for file list.\nPakfile \"%s\" is not a pakfile, or is corrupted.\n", pakfilename.c_str());
-		}
-		return;
-	}
-
-	if (verbal)
-	{
-		printf("Scanning pak file \"%s\" for resources (%d files in pak)\n", pakfilename.c_str(), filecount);
-	}
-
-	// Read filelist for possible resources
-	for (size_t i = 0; i < filecount; i++)
-	{
-		const std::string fileLower = strToLowerCopy(filelist[i].name);
-
-		const size_t dotIndex = fileLower.find_last_of('.');
-
-		if(dotIndex != std::string::npos)
-		{
-			const std::string extension = fileLower.substr(dotIndex + 1);
-
-			if (
-				extension == "mdl" ||
-				extension == "wav" ||
-				extension == "spr" ||
-				extension == "bmp" ||
-				extension == "tga" ||
-				extension == "txt" ||
-				extension == "wad"
-			)
-			{
-				// resource, add to list
-				std::string resStr = replaceCharAll(filelist[i].name, '\\', '/');
-
-				resources[strToLowerCopy(resStr)] = resStr;
-
-				if (resourcedisp)
-				{
-					printf("Added \"%s\" to resource list\n", resStr.c_str());
-				}
-			}
-		}
-	}
-}
-
 bool RESGen::LoadExludeFile(std::string &listfile)
 {
 	if (listfile.empty())
@@ -1400,20 +1023,11 @@ bool RESGen::LoadExludeFile(std::string &listfile)
 
 bool RESGen::CacheWad(const std::string &wadfile)
 {
-	File wad(resourcepath + wadfile, "rb");
-
-	if (!wad)
+	File wad;
+	if(!OpenFirstValidPath(wad, wadfile, "rb"))
 	{
-		// try the valve folder
-		if (!valveresourcepath.empty())
-		{
-			wad.open(valveresourcepath + wadfile, "rb");
-		}
-		if (!wad)
-		{
-			printf("Failed to open WAD file \"%s\".\n", wadfile.c_str());
-			return false;
-		}
+		printf("Failed to open WAD file \"%s\".\n", wadfile.c_str());
+		return false;
 	}
 
 	wadheader_s header;
@@ -1509,20 +1123,11 @@ bool RESGen::CheckWadUse(const std::string &wadfile)
 
 bool RESGen::CheckModelExtTexture(const std::string &model)
 {
-	File mdl(resourcepath + model, "rb");
-
-	if (!mdl)
+	File mdl;
+	if(!OpenFirstValidPath(mdl, model, "rb"))
 	{
-		// try the valve folder
-		if (!valveresourcepath.empty())
-		{
-			mdl.open(valveresourcepath + model, "rb");
-		}
-		if (!mdl)
-		{
-			printf("Failed to open MDL file \"%s\".\n", model.c_str());
-			return false;
-		}
+		printf("Failed to open MDL file \"%s\".\n", model.c_str());
+		return false;
 	}
 
 	modelheader_s header;
@@ -1552,4 +1157,18 @@ bool RESGen::CheckModelExtTexture(const std::string &model)
 	return false;
 }
 
+bool RESGen::OpenFirstValidPath(File &outFile, std::string fileName, const char* const mode)
+{
+	for(std::vector<std::string>::const_iterator it = resourcePaths.begin(); it != resourcePaths.end(); ++it)
+	{
+		outFile.open(*it + fileName, mode);
+
+		if(outFile)
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
 

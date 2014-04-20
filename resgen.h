@@ -27,41 +27,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 #include <vector>
 
-struct file_s;
-
-struct config_s
-{
-	bool help; // f
-	bool credits ; // f
-	bool warranty; // f
-
-	bool verbal; // t -
-	bool statusline; // f
-	bool searchdisp; // f
-	bool resourcedisp; // f
-	bool contentdisp; // f
-
-	std::vector<file_s> files;
-	std::vector<file_s> excludes; // Map exclude list - not resource!
-	std::vector<std::string> excludelists; // Exclude resource list files - not maps!
-
-	bool overwrite; // f
-	std::string rfafile;
-
-	bool tolower; // f
-	bool matchcase; // f
-	bool checkpak; // t
-	bool parseresource; // f
-	bool preservewads; // f
-	std::string resource_path;
-
-#ifdef WIN32
-	bool keypress; // t
-#else
-	bool symlink; // t
-#endif
-};
-
 void getexitkey(bool verbal, bool keypress);
 
 void showcopyright();

@@ -9,11 +9,13 @@
 
 #include <algorithm>
 #include <string>
+#include <vector>
 
 // RAII wrapper for FILE
 class File
 {
 public:
+	File();
 	File(const char* fileName, const std::string& mode);
 	File(const std::string& fileName, const std::string& mode);
 	~File();
@@ -27,6 +29,44 @@ public:
 private:
 	FILE* fileHandle;
 };
+
+struct file_s;
+
+struct config_s
+{
+	bool verbal; // t -
+	bool statusline; // f
+	bool overwrite; // f
+	bool tolower; // f
+	bool matchcase; // f
+	bool parseresource; // f
+	bool preservewads; // f
+	bool contentdisp; // f
+
+	bool searchdisp; // f
+
+	bool help; // f
+	bool credits ; // f
+	bool warranty; // f
+
+	bool resourcedisp; // f
+
+	std::vector<file_s> files;
+	std::vector<file_s> excludes; // Map exclude list - not resource!
+	std::vector<std::string> excludelists; // Exclude resource list files - not maps!
+
+	std::string rfafile;
+
+	bool checkpak; // t
+	std::string resource_path;
+
+#ifdef WIN32
+	bool keypress; // t
+#else
+	bool symlink; // t
+#endif
+};
+
 
 std::string replaceCharAll(std::string str, const char find, const char replace);
 
@@ -46,5 +86,8 @@ void rightTrim(std::string &str, const std::string &trimmedChars);
 bool readFile(const std::string &filename, std::string &outStr);
 
 int ICompareStrings(const std::string &a, const std::string &b);
+
+std::string BuildValvePath(const std::string &respath);
+void EndWithPathSep(std::string &str);
 
 #endif // UTIL_H

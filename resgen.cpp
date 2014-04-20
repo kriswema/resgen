@@ -90,6 +90,7 @@ xxxxxxxxxxxxx xx xxxxxxx
 #include "listbuilder.h"
 #include "resgenclass.h"
 #include "resgen.h"
+#include "resourcelistbuilder.h"
 #include "util.h"
 
 #ifdef WIN32
@@ -634,7 +635,18 @@ int main(int argc, char* argv[])
 		if (config.verbal) { printf("\n"); }
 	}
 
-	resgen.BuildResourceList(config.resource_path, config.checkpak, config.searchdisp, config.resourcedisp);
+	std::vector<std::string> resourcePaths;
+
+	if (!config.resource_path.empty())
+	{
+		// Make sure path ends with a separator
+		EndWithPathSep(config.resource_path);
+		resourcePaths.push_back(config.resource_path);
+		resourcePaths.push_back(BuildValvePath(config.resource_path));
+	}
+
+	ResourceListBuilder resourceListBuilder(config);
+	resourceListBuilder.BuildResourceList(resourcePaths, config.checkpak, config.resourcedisp);
 
 	int i = 1;
 	size_t filecount = FileList.size();
@@ -643,7 +655,7 @@ int main(int argc, char* argv[])
 		if (config.contentdisp) { printf("\n"); } // Make output look a bit cleaner
 
 		std::string map(FileList[0]);
-		int retval = resgen.MakeRES(map, i, filecount);
+		int retval = resgen.MakeRES(map, i, filecount, resourceListBuilder.resources, resourcePaths);
 		if(retval)
 		{
 			if (retval == 2)

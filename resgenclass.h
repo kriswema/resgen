@@ -42,40 +42,34 @@ std::vector<std::string>::iterator findStringNoCase(std::vector<std::string> &ve
 class RESGen
 {
 public:
+	typedef std::map<std::string, std::string> StringMap;
+
 	bool LoadExludeFile(std::string &listfile);
 	bool LoadRfaFile(std::string &pakfilename);
-	void BuildResourceList(std::string &respath, bool checkpak, bool fdisp, bool rdisp);
-	int MakeRES(std::string &map, int fileindex, size_t filecount);
+	int MakeRES(std::string &map, int fileindex, size_t filecount, const StringMap &resources, std::vector<std::string> &resourcePaths_);
 	void SetParams(bool beverbal, bool statline, bool overwrt, bool lcase, bool mcase, bool prsresource, bool preservewads, bool cdisp);
 	RESGen();
 	virtual ~RESGen();
 
 private:
-	typedef std::map<std::string, std::string> StringMap;
 	typedef std::set<std::string> TextureSet;
 	typedef std::map<std::string, TextureSet> WadCache;
 
 	bool CheckModelExtTexture(const std::string &model);
 	bool CacheWad(const std::string &wadfile);
 	bool CheckWadUse(const std::string &wadfile);
-	void BuildPakResourceList(const std::string &pakfile);
-	void ListDir(const std::string &path, const std::string &filepath, bool reporterror);
 	bool WriteRes(const std::string &folder, const std::string &mapname);
 	void AddWad(const std::string &wadlist, size_t start, size_t len);
 	void AddRes(std::string res, const char * const prefix = NULL, const char * const suffix = NULL);
 	bool LoadBSPData(const std::string &file, std::string &entdata, StringMap & texlist);
+	bool OpenFirstValidPath(File &outFile, std::string fileName, const char* const mode);
 
-	std::string valveresourcepath;
-	std::string resourcepath;
-	bool checkforresources;
+private:
 	bool checkforexcludes;
 	bool resourcedisp;
 	bool pakparse;
-	bool searchdisp;
 	bool contentdisp;
-	bool firstdir;
 	int statcount; // statusbar counter
-	StringMap resources;
 	StringMap resfile;
 	StringMap texturelist;
 	StringMap excludelist;
@@ -89,93 +83,7 @@ private:
 	bool parseresource;
 	bool preservewads;
 	std::string rfastring;
-
-	struct modelheader_s
-	{
-		char id[4]; // Orriginal header is int, but this is easier
-		int version;
-
-		char name[64];
-		int length;
-
-		float eyeposition[3];
-		float min[3];
-		float max[3];
-
-		float bbmin[3];
-		float bbmax[3];
-
-		int flags;
-
-		int numbones;
-		int boneindex;
-
-		int numbonecontrollers;
-		int bonecontrollerindex;
-
-		int numhitboxes;
-		int hitboxindex;
-
-		int numseq;
-		int seqindex;
-
-		int numseqgroups;
-		int seqgroupindex;
-
-		int numtextures; // Number of textures
-		int textureindex; // Index of texture location - 0 means no textures present
-		int texturedataindex;
-
-		// incomplete - cut off for space saving
-	};
-	struct wadheader_s
-	{
-		char identification[4]; // Should be WAD2 or WAD3
-		int numlumps; // Number of lumps
-		int infotableofs; // Offset of lump data
-	};
-	struct wadlumpinfo_s
-	{
-		int filepos;
-		int disksize;
-		int size;
-		char type;
-		char compression;
-		char pad1, pad2;
-		char name[16]; // texture name, null terminated
-	};
-	struct pakheader_s
-	{
-		int pakid;
-		int diroffset;
-		size_t dirsize;
-	};
-
-	struct fileinfo_s
-	{
-		char name[56];
-		int fileoffset;
-		size_t filelen;
-	};
-	struct texdata_s
-	{
-		char name[16];
-		unsigned width, height;
-		unsigned offsets[4];
-	};
-	struct lumpinfo_s
-	{
-		int fileofs;
-		size_t filelen;
-	};
-	struct bsp_header
-	{
-		int version;
-		lumpinfo_s ent_header;
-		lumpinfo_s dnt_care01; // don't care
-		lumpinfo_s tex_header;
-		// incomplete - cut off for space saving
-	};
+	std::vector<std::string> resourcePaths;
 };
 
 #endif // !defined(AFX_RESGENCLASS_H__5EDE8CED_D2D4_4D20_846F_5A1034433CDD__INCLUDED_)

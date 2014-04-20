@@ -43,6 +43,7 @@ OBJ = \
 	$(OBJDIR)/test.o \
 	$(MAIN_OBJDIR)/listbuilder.o \
 	$(MAIN_OBJDIR)/resgenclass.o \
+	$(MAIN_OBJDIR)/resourcelistbuilder.o \
 	$(MAIN_OBJDIR)/util.o
 
 
