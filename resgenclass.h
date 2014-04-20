@@ -60,13 +60,10 @@ private:
 	bool CheckWadUse(const std::string &wadfile);
 	void BuildPakResourceList(const std::string &pakfile);
 	void ListDir(const std::string &path, const std::string &filepath, bool reporterror);
-	char * StrTok(char *string, char delimiter);
 	bool WriteRes(const std::string &folder, const std::string &mapname);
 	void AddWad(const std::string &wadlist, size_t start, size_t len);
 	void AddRes(std::string res, const char * const prefix = NULL, const char * const suffix = NULL);
-	char * NextValue();
-	char * NextToken();
-	std::unique_ptr<char[]> LoadBSPData(const std::string &file, size_t & entdatalen, StringMap & texlist);
+	bool LoadBSPData(const std::string &file, std::string &entdata, StringMap & texlist);
 
 	std::string valveresourcepath;
 	std::string resourcepath;
@@ -77,13 +74,13 @@ private:
 	bool searchdisp;
 	bool contentdisp;
 	bool firstdir;
-	char * strtok_nexttoken;
 	int statcount; // statusbar counter
 	StringMap resources;
 	StringMap resfile;
 	StringMap texturelist;
 	StringMap excludelist;
 	WadCache wadcache;
+	std::string mapinfo;
 	bool verbal;
 	bool statusline;
 	bool overwrite;

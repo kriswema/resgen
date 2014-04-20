@@ -56,6 +56,53 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
+class Tokenizer
+{
+public:
+	Tokenizer(std::string& str_)
+		: str(str_)
+		, nextPos(0)
+	{
+	}
+
+	const char * NextToken(char delimiter)
+	{
+		// This replaces the normal strtok function because we don;t want to skip leading delimiters.
+		// That 'feature' of strtok makes it kinda useless, unless you do a lot of checking for the skipping.
+
+		if(nextPos == std::string::npos)
+		{
+			return NULL;
+		}
+
+		const size_t startPos = nextPos;
+		nextPos = str.find_first_of(delimiter, nextPos);
+
+		if(nextPos != std::string::npos)
+		{
+			str[nextPos] = 0;
+			nextPos++;
+		}
+
+		return &str.c_str()[startPos];
+	}
+
+	const char * NextValue()
+	{
+		// Goes to the next entity token (key->value or value->key)
+		if (!NextToken('\"')) // exit key/value
+		{
+			return NULL;
+		}
+
+		return NextToken('\"'); // enter key/value
+	}
+
+private:
+	std::string str;
+	size_t nextPos;
+};
+
 std::vector<std::string>::iterator findStringNoCase(std::vector<std::string> &vec, const std::string &element)
 {
 	for(std::vector<std::string>::iterator it = vec.begin(); it != vec.end(); ++it)
@@ -161,19 +208,19 @@ int RESGen::MakeRES(std::string &map, int fileindex, size_t filecount)
 	texturelist.clear();
 
 	// first, get the enity data
-	size_t entdatalen; // Length of entity data
-	std::unique_ptr<char[]> entdata = LoadBSPData(map, entdatalen, texturelist);
-	if (entdata == NULL)
+	std::string entdata;
+
+	if(!LoadBSPData(map, entdata, texturelist))
 	{
 		// error. return
 		return 1;
 	}
 
 	// get mapinfo
-	char *mistart;
+	const char *mistart;
 
 	// Look for first entity block
-	if ((mistart = strstr(entdata.get(), "{")) == NULL)
+	if ((mistart = strstr(entdata.c_str(), "{")) == NULL)
 	{
 		// Something wrong with bsp entity data
 		printf("Error parsing \"%s\". Entity data not in recognized text format.\n", map.c_str());
@@ -183,19 +230,19 @@ int RESGen::MakeRES(std::string &map, int fileindex, size_t filecount)
 	// Look for first block end (we do not need to parse the ather blocks vor skyname or wad info)
 	size_t milen = static_cast<size_t>(strstr(mistart+1, "}") - mistart) + 1;
 
-	std::unique_ptr<char[]> mapinfo(new char [milen + 1]);
-	memcpy(mapinfo.get(), mistart, milen);
-	mapinfo[milen] = 0; // terminating NULL
+	mapinfo.clear();
+	mapinfo.assign(mistart, milen);
 
 	// parse map info. We use StrTok for this...
-	char *token = StrTok(mapinfo.get(), '\"');
+	Tokenizer mapTokenizer(mapinfo);
+	const char *token = mapTokenizer.NextToken('\"');
 	if (!token)
 	{
 			printf("Error parsing \"%s\". No map information found.\n", map.c_str());
 			return 1;
 	}
 
-	token = StrTok(NULL, '\"');
+	token = mapTokenizer.NextToken('\"');
 	if (!token)
 	{
 			printf("Error parsing \"%s\". Entity data is corrupt.\n", map.c_str());
@@ -207,7 +254,7 @@ int RESGen::MakeRES(std::string &map, int fileindex, size_t filecount)
 		if (!strcmp(token, "wad"))
 		{
 			// wad file
-			token = NextValue();
+			token = mapTokenizer.NextValue();
 			if (!token)
 			{
 				printf("Error parsing \"%s\" for WADs. Entity data is corrupt.\n", map.c_str());
@@ -240,7 +287,7 @@ int RESGen::MakeRES(std::string &map, int fileindex, size_t filecount)
 		else if (!strcmp(token, "skyname"))
 		{
 			// wad file
-			token = NextValue();
+			token = mapTokenizer.NextValue();
 			if (!token)
 			{
 				printf("Error parsing \"%s\" skies. Entity data is corrupt.\n", map.c_str());
@@ -261,7 +308,7 @@ int RESGen::MakeRES(std::string &map, int fileindex, size_t filecount)
 		else
 		{
 			// go to value
-			token = NextValue();
+			token = mapTokenizer.NextValue();
 			if (!token)
 			{
 				printf("Error parsing \"%s\" for map data. Entity data is corrupt.\n", map.c_str());
@@ -270,7 +317,7 @@ int RESGen::MakeRES(std::string &map, int fileindex, size_t filecount)
 		}
 
 		// Go to next key, if available
-		token = NextToken(); // exit value
+		token = mapTokenizer.NextToken('\"'); // exit value
 		if (!token)
 		{
 			printf("Error parsing \"%s\". Keys/values not alligned.\n", map.c_str());
@@ -278,20 +325,21 @@ int RESGen::MakeRES(std::string &map, int fileindex, size_t filecount)
 		}
 		// token is 'empty'
 
-		token = NextToken(); // try next key
+		token = mapTokenizer.NextToken('\"'); // try next key
 
 		// No statbar - this is way too fast for it to even show up.
 	}
 
-	mapinfo.reset();
+	mapinfo.clear();
 
 
 	statcount = STAT_MAX; // make statbar print at once
 
+	Tokenizer entDataTokenizer(entdata);
 
 	// parse the entity data. We use StrTok for this...
 	// Note that we reparse the mapinfo.
-	token = StrTok(entdata.get(), '\"');
+	token = entDataTokenizer.NextToken('\"');
 	if (!token)
 	{
 			printf("Error parsing \"%s\". No initial key.\n", map.c_str());
@@ -299,7 +347,7 @@ int RESGen::MakeRES(std::string &map, int fileindex, size_t filecount)
 	}
 
 	// Do again, to get to first key.
-	token = StrTok(NULL, '\"');
+	token = entDataTokenizer.NextToken('\"');
 	if (!token)
 	{
 			printf("Error parsing \"%s\". First key not found.\n", map.c_str());
@@ -309,7 +357,7 @@ int RESGen::MakeRES(std::string &map, int fileindex, size_t filecount)
 	while (token)
 	{
 		// Move from key to value
-		token = NextValue();
+		token = entDataTokenizer.NextValue();
 
 		if (!token)
 		{
@@ -353,7 +401,7 @@ int RESGen::MakeRES(std::string &map, int fileindex, size_t filecount)
 			}
 		}
 
-		token = NextToken(); // exit value
+		token = entDataTokenizer.NextToken('\"'); // exit value
 		if (!token)
 		{
 			printf("\rError parsing \"%s\". Could not move on to next key.\n", map.c_str());
@@ -368,8 +416,8 @@ int RESGen::MakeRES(std::string &map, int fileindex, size_t filecount)
 			statcount = 0;
 
 			// Calculate the percentage completed of the current file.
-			size_t progress = static_cast<size_t>(token - entdata.get());
-			size_t percentage = ((progress + 1) * 101) / entdatalen; // Make the length one too long.
+			size_t progress = static_cast<size_t>(token - &entdata[0]);
+			size_t percentage = ((progress + 1) * 101) / entdata.length(); // Make the length one too long.
 			if (percentage > 100)
 			{
 				 // Make sure we don;t go over 100%
@@ -383,7 +431,7 @@ int RESGen::MakeRES(std::string &map, int fileindex, size_t filecount)
 		}
 
 
-		token = StrTok(NULL, '\"'); // try next key
+		token = entDataTokenizer.NextToken('\"'); // try next key
 	}
 
 	if (statusline)
@@ -392,7 +440,7 @@ int RESGen::MakeRES(std::string &map, int fileindex, size_t filecount)
 		printf("\r%-21s\r", ""); // easier to adjust length this way
 	}
 
-	entdata.reset();
+	entdata.clear();
 
 	// Try to find info txt and overview data
 	#ifdef WIN32
@@ -482,7 +530,7 @@ int RESGen::MakeRES(std::string &map, int fileindex, size_t filecount)
 					}
 
 				}
-				else if (CompareStrEndNoCase(it->first, ".wad"))
+				else if (CompareStrEnd(it->first, ".wad"))
 				{
 					// not a wad file
 					if (verbal)
@@ -512,7 +560,7 @@ int RESGen::MakeRES(std::string &map, int fileindex, size_t filecount)
 
 				if (parseresource)
 				{
-					if (!CompareStrEndNoCase(it->first, ".wad"))
+					if (!CompareStrEnd(it->first, ".wad"))
 					{
 						// Check if wad file is used
 						if (!CheckWadUse(resourceIt->second)) // We MUST have the right file
@@ -529,7 +577,7 @@ int RESGen::MakeRES(std::string &map, int fileindex, size_t filecount)
 							}
 						}
 					}
-					else if (!CompareStrEndNoCase(it->first, ".mdl"))
+					else if (!CompareStrEnd(it->first, ".mdl"))
 					{
 						// Check model for external texture
 						if (CheckModelExtTexture(resourceIt->second))
@@ -726,7 +774,7 @@ void RESGen::BuildResourceList(std::string &respath, bool checkpak, bool sdisp, 
 	printf("\n");
 }
 
-std::unique_ptr<char[]> RESGen::LoadBSPData(const std::string &file, size_t & entdatalen, StringMap & texlist)
+bool RESGen::LoadBSPData(const std::string &file, std::string &entdata, StringMap & texlist)
 {
 	// first open the file.
 	File bsp(file, "rb"); // read in binary mode.
@@ -734,7 +782,7 @@ std::unique_ptr<char[]> RESGen::LoadBSPData(const std::string &file, size_t & en
 	if (bsp == NULL)
 	{
 		printf("Error opening \"%s\"\n", file.c_str());
-		return NULL;
+		return false;
 	}
 
 	// file open.. read header
@@ -744,31 +792,31 @@ std::unique_ptr<char[]> RESGen::LoadBSPData(const std::string &file, size_t & en
 	{
 		// header NOT read properly!
 		printf("Error opening \"%s\". Corrupt BSP file.\n", file.c_str());
-		return NULL;
+		return false;
 	}
 
 	if (header.version != BSPVERSION)
 	{
 		printf("Error opening \"%s\". Incorrect BSP version.\n", file.c_str());
-		return NULL;
+		return false;
 	}
 
 	if (header.ent_header.fileofs <= 0 || header.ent_header.filelen <= 0)
 	{
 		// File corrupted
 		printf("Error opening \"%s\". Corrupt BSP header.\n", file.c_str());
-		return NULL;
+		return false;
 	}
 
 	// read entity data
-	std::unique_ptr<char[]> entdata(new char[header.ent_header.filelen + 1]);
+	entdata.resize(header.ent_header.filelen);
 
 	fseek(bsp, header.ent_header.fileofs, SEEK_SET);
-	if (fread(entdata.get(), header.ent_header.filelen, 1, bsp) != 1)
+	if (fread(&entdata[0], header.ent_header.filelen, 1, bsp) != 1)
 	{
 		// not the right ammount of data was read
 		printf("Error opening \"%s\". BSP file corrupt.\n", file.c_str());
-		return NULL;
+		return false;
 	}
 
 	if (parseresource && checkforresources)
@@ -781,7 +829,7 @@ std::unique_ptr<char[]> RESGen::LoadBSPData(const std::string &file, size_t & en
 		{
 			// header NOT read properly!
 			printf("Error opening \"%s\". Corrupt texture header.\n", file.c_str());
-			return NULL;
+			return false;
 		}
 
 		if (texcount > 0)
@@ -795,7 +843,7 @@ std::unique_ptr<char[]> RESGen::LoadBSPData(const std::string &file, size_t & en
 			{
 				// header NOT read properly!
 				printf("Error opening \"%s\". Corrupt texture data.\n  read: %d, expect: %d\n", file.c_str(), i, texcount);
-				return NULL;
+				return false;
 			}
 
 			for (i = 0; i < texcount; i++)
@@ -809,7 +857,7 @@ std::unique_ptr<char[]> RESGen::LoadBSPData(const std::string &file, size_t & en
 				{
 					// header NOT read properly!
 					printf("Error opening \"%s\". Corrupt BSP file.\n", file.c_str());
-					return NULL;
+					return false;
 				}
 
 				// is this a wad based texture?
@@ -823,38 +871,13 @@ std::unique_ptr<char[]> RESGen::LoadBSPData(const std::string &file, size_t & en
 		}
 	}
 
-	// add terminating NULL for entity data
-	entdata.get()[header.ent_header.filelen] = 0;
-
-	entdatalen = header.ent_header.filelen;
-
 	#ifdef _DEBUG
 	// Debug write entity data to file
 	File tmp(file + "_ent.txt", "w");
-	fprintf(tmp, "%s", entdata);
+	fprintf(tmp, "%s", entdata.c_str());
 	#endif
 
-	return entdata;
-}
-
-char * RESGen::NextToken()
-{
-	char *token = StrTok(NULL, '\"');
-
-	return token;
-}
-
-char * RESGen::NextValue()
-{
-	// Goes to the next entity token (key->value or value->key)
-	char *token = StrTok(NULL, '\"'); // exit key/value
-	if (!token)
-	{
-		return NULL;
-	}
-	token = StrTok(NULL, '\"'); // enter key/value
-
-	return token;
+	return true;
 }
 
 void RESGen::AddRes(std::string res, const char * const prefix, const char * const suffix)
@@ -984,45 +1007,6 @@ bool RESGen::LoadRfaFile(std::string &filename)
 	}
 
 	return bSuccess;
-}
-
-char * RESGen::StrTok(char *string, char delimiter)
-{
-	// This replaces the normal strtok function because we don;t want to skip leading delimiters.
-	// That 'feature' of strtok makes it kinda useless, unless you do a lot of checking for the skipping.
-
-	// set temp to start of string to parse
-	if (string == NULL)
-	{
-		string = strtok_nexttoken;
-	}
-
-	char *temp = string;
-
-	// Search for token
-	while (*temp)
-	{
-		if (*temp == delimiter)
-		{
-			// token found, remove it and set temp to next char
-			*temp++ = 0; // terminate string at token
-			break;
-		}
-		temp++;
-	}
-
-	if (temp == string)
-	{
-		// Token has ended
-		return NULL;
-	}
-
-	// Save for next strtok run
-	strtok_nexttoken = temp;
-
-	// Return token
-	return string;
-
 }
 
 #ifdef WIN32
