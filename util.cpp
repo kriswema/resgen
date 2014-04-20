@@ -105,7 +105,7 @@ int CompareStrEndNoCase(const std::string &str, const std::string &ending)
     std::string strLC = strToLowerCopy(str);
     std::string endingLC = strToLowerCopy(ending);
 
-    return CompareStrEnd(str, ending);
+    return CompareStrEnd(strLC, endingLC);
 }
 
 int CompareStrEnd(const std::string &str, const std::string &ending)

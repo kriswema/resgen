@@ -671,7 +671,7 @@ int RESGen::MakeRES(std::string &map, int fileindex, size_t filecount)
 		if (!texturelist.empty())
 		{
 			status = 2; // res file might not be complete
-			for(StringMap::const_iterator it = texturelist.begin(); it != texturelist.end(); it++)
+			for(StringMap::const_iterator it = texturelist.begin(); it != texturelist.end(); ++it)
 			{
 				printf("Texture not found in wad files: %s\n", it->second.c_str());
 			}
@@ -856,9 +856,9 @@ bool RESGen::LoadBSPData(const std::string &file, std::string &entdata, StringMa
 		if (texcount > 0)
 		{
 			// Textures available, read all offsets
-			std::unique_ptr<char[]> offsets(new char[sizeof(int) * texcount]);
+			std::vector<char> offsets(sizeof(int) * texcount);
 
-			size_t i = fread(offsets.get(), sizeof(int), texcount, bsp);
+			size_t i = fread(offsets.data(), sizeof(int), texcount, bsp);
 
 			if (i != texcount) // load texture offsets
 			{
@@ -1488,8 +1488,10 @@ bool RESGen::CheckWadUse(const std::string &wadfile)
 	TextureSet& textureSet = wadIt->second;
 
 	// Remove any textures that are found in this wad
-	for(TextureSet::iterator textureIt = textureSet.begin(); textureIt != textureSet.end(); ++textureIt)
+	for(TextureSet::const_iterator textureIt = textureSet.begin(); textureIt != textureSet.end(); ++textureIt)
 	{
+		// TODO: texturelist and textureSet are both sorted, so iterating both
+		// at same time should be faster than a find
 		StringMap::iterator it = texturelist.find(*textureIt);
 
 		if(it != texturelist.end())
