@@ -59,13 +59,32 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 class Tokenizer
 {
 public:
-	Tokenizer(std::string& str_)
+	Tokenizer(std::string& str_, char delimeter_)
 		: str(str_)
+		, delimiter(delimeter_)
 		, nextPos(0)
 	{
 	}
 
-	const char * NextToken(char delimiter)
+	bool SkipToken()
+	{
+		if(nextPos == std::string::npos)
+		{
+			return false;
+		}
+
+		nextPos = str.find_first_of(delimiter, nextPos);
+
+		if(nextPos != std::string::npos)
+		{
+			str[nextPos] = 0;
+			nextPos++;
+		}
+
+		return true;
+	}
+
+	const char * NextToken()
 	{
 		// This replaces the normal strtok function because we don;t want to skip leading delimiters.
 		// That 'feature' of strtok makes it kinda useless, unless you do a lot of checking for the skipping.
@@ -90,16 +109,22 @@ public:
 	const char * NextValue()
 	{
 		// Goes to the next entity token (key->value or value->key)
-		if (!NextToken('\"')) // exit key/value
+		if (!SkipToken()) // exit key/value
 		{
 			return NULL;
 		}
 
-		return NextToken('\"'); // enter key/value
+		return NextToken(); // enter key/value
+	}
+
+	bool SkipValue()
+	{
+		return SkipToken() && SkipToken();
 	}
 
 private:
 	std::string str;
+	char delimiter;
 	size_t nextPos;
 };
 
@@ -234,15 +259,14 @@ int RESGen::MakeRES(std::string &map, int fileindex, size_t filecount)
 	mapinfo.assign(mistart, milen);
 
 	// parse map info. We use StrTok for this...
-	Tokenizer mapTokenizer(mapinfo);
-	const char *token = mapTokenizer.NextToken('\"');
-	if (!token)
+	Tokenizer mapTokenizer(mapinfo, '\"');
+	if (!mapTokenizer.SkipToken())
 	{
 			printf("Error parsing \"%s\". No map information found.\n", map.c_str());
 			return 1;
 	}
 
-	token = mapTokenizer.NextToken('\"');
+	const char *token = mapTokenizer.NextToken();
 	if (!token)
 	{
 			printf("Error parsing \"%s\". Entity data is corrupt.\n", map.c_str());
@@ -308,8 +332,7 @@ int RESGen::MakeRES(std::string &map, int fileindex, size_t filecount)
 		else
 		{
 			// go to value
-			token = mapTokenizer.NextValue();
-			if (!token)
+			if (!mapTokenizer.SkipValue())
 			{
 				printf("Error parsing \"%s\" for map data. Entity data is corrupt.\n", map.c_str());
 				return 1;
@@ -317,15 +340,14 @@ int RESGen::MakeRES(std::string &map, int fileindex, size_t filecount)
 		}
 
 		// Go to next key, if available
-		token = mapTokenizer.NextToken('\"'); // exit value
-		if (!token)
+		if (!mapTokenizer.SkipToken()) // exit value
 		{
 			printf("Error parsing \"%s\". Keys/values not alligned.\n", map.c_str());
 			return 1;
 		}
 		// token is 'empty'
 
-		token = mapTokenizer.NextToken('\"'); // try next key
+		token = mapTokenizer.NextToken(); // try next key
 
 		// No statbar - this is way too fast for it to even show up.
 	}
@@ -335,19 +357,18 @@ int RESGen::MakeRES(std::string &map, int fileindex, size_t filecount)
 
 	statcount = STAT_MAX; // make statbar print at once
 
-	Tokenizer entDataTokenizer(entdata);
+	Tokenizer entDataTokenizer(entdata, '\"');
 
 	// parse the entity data. We use StrTok for this...
 	// Note that we reparse the mapinfo.
-	token = entDataTokenizer.NextToken('\"');
-	if (!token)
+	if (!entDataTokenizer.SkipToken())
 	{
 			printf("Error parsing \"%s\". No initial key.\n", map.c_str());
 			return 1;
 	}
 
 	// Do again, to get to first key.
-	token = entDataTokenizer.NextToken('\"');
+	token = entDataTokenizer.NextToken();
 	if (!token)
 	{
 			printf("Error parsing \"%s\". First key not found.\n", map.c_str());
@@ -366,42 +387,42 @@ int RESGen::MakeRES(std::string &map, int fileindex, size_t filecount)
 		}
 
 		std::string value(token);
-		std::string valueLower = strToLowerCopy(value);
 
-		const size_t dotIndex = valueLower.find_last_of('.');
+		const size_t dotIndex = value.find_last_of('.');
 
 		if(dotIndex != std::string::npos)
 		{
-			const std::string extension = valueLower.substr(dotIndex + 1);
+			std::string extensionLower(value.substr(dotIndex + 1));
+			strToLower(extensionLower);
 
-			if (extension == "mdl")
+			if (extensionLower == "mdl")
 			{
 				// mdl file
 				AddRes(value);
 			}
-			else if (extension == "wav")
+			else if (extensionLower == "wav")
 			{
 				// wave file
 				AddRes(value, "sound/");
 			}
-			else if (extension == "spr")
+			else if (extensionLower == "spr")
 			{
 				// sprite file
 				AddRes(value);
 			}
-			else if (extension == "bmp")
+			else if (extensionLower == "bmp")
 			{
 				// bitmap file
 				AddRes(value);
 			}
-			else if (extension == "tga")
+			else if (extensionLower == "tga")
 			{
 				// targa file
 				AddRes(value);
 			}
 		}
 
-		token = entDataTokenizer.NextToken('\"'); // exit value
+		token = entDataTokenizer.NextToken(); // exit value
 		if (!token)
 		{
 			printf("\rError parsing \"%s\". Could not move on to next key.\n", map.c_str());
@@ -431,7 +452,7 @@ int RESGen::MakeRES(std::string &map, int fileindex, size_t filecount)
 		}
 
 
-		token = entDataTokenizer.NextToken('\"'); // try next key
+		token = entDataTokenizer.NextToken(); // try next key
 	}
 
 	if (statusline)
