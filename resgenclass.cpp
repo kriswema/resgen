@@ -391,39 +391,44 @@ int RESGen::MakeRES(std::string &map, int fileindex, size_t filecount, const Str
 			return 1;
 		}
 
-		std::string value(token);
+		const size_t tokenLength = strlen(token);
 
-		const size_t dotIndex = value.find_last_of('.');
-
-		if(dotIndex != std::string::npos)
+		// TODO: This is fast, but should be made more robust if possible
+		// Need at least 5 chars, assuming filename is:
+		// [alpha][.][alpha]{3}
+		if(tokenLength >= 5)
 		{
-			std::string extensionLower(value.substr(dotIndex + 1));
-			strToLower(extensionLower);
+			if(token[tokenLength - 4] == '.')
+			{
+				const char c1 = ::tolower(token[tokenLength - 3]);
+				const char c2 = ::tolower(token[tokenLength - 2]);
+				const char c3 = ::tolower(token[tokenLength - 1]);
 
-			if (extensionLower == "mdl")
-			{
-				// mdl file
-				AddRes(value);
-			}
-			else if (extensionLower == "wav")
-			{
-				// wave file
-				AddRes(value, "sound/");
-			}
-			else if (extensionLower == "spr")
-			{
-				// sprite file
-				AddRes(value);
-			}
-			else if (extensionLower == "bmp")
-			{
-				// bitmap file
-				AddRes(value);
-			}
-			else if (extensionLower == "tga")
-			{
-				// targa file
-				AddRes(value);
+				if(c1 == 'm' && c2 == 'd' && c3 == 'l')
+				{
+					// mdl file
+					AddRes(token);
+				}
+				if(c1 == 'w' && c2 == 'a' && c3 == 'v')
+				{
+					// wave file
+					AddRes(token, "sound/");
+				}
+				if(c1 == 's' && c2 == 'p' && c3 == 'r')
+				{
+					// sprite file
+					AddRes(token);
+				}
+				if(c1 == 'b' && c2 == 'm' && c3 == 'p')
+				{
+					// bitmap file
+					AddRes(token);
+				}
+				if(c1 == 't' && c2 == 'g' && c3 == 'a')
+				{
+					// targa file
+					AddRes(token);
+				}
 			}
 		}
 
