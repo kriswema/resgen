@@ -7,6 +7,12 @@
 #define SIZE_T_SPECIFIER    "%zu"
 #endif
 
+#ifdef WIN32
+#define INLINE __forceinline
+#else
+#define INLINE inline
+#endif
+
 #include <algorithm>
 #include <string>
 #include <vector>
@@ -73,53 +79,60 @@ class Tokenizer
 public:
 	Tokenizer(std::string& str_)
 		: str(str_)
-		, strLength(str.length())
-		, nextPos(0)
+		, currentPtr(&str[0])
+		, strEnd(currentPtr + str.length())
 	{
 	}
 
-	bool FindNext()
+	int GetLatestTokenLength() const
 	{
-		if(nextPos == std::string::npos)
+		// currentPtr points to char after NUL
+		const char* const end = (currentPtr ? currentPtr - 1 : strEnd);
+		return end - tokenStart;
+	}
+
+	INLINE bool FindNext()
+	{
+		if(!currentPtr)
 		{
 			return false;
 		}
 
-		while(nextPos != strLength)
+		while(currentPtr != strEnd)
 		{
-			if(str[nextPos] == Delimiter)
+			if(*currentPtr == Delimiter)
 			{
-				str[nextPos] = 0;
-				nextPos++;
+				*currentPtr = 0;
+				currentPtr++;
 				return true;
 			}
 
-			nextPos++;
+			currentPtr++;
 		}
 
-		nextPos = std::string::npos;
+		currentPtr = NULL;
 		return true;
 	}
 
-	bool SkipToken()
+	INLINE bool SkipToken()
 	{
 		return FindNext();
 	}
 
-	const char * NextToken()
+	INLINE const char * NextToken()
 	{
-		if(nextPos == std::string::npos)
+		if(!currentPtr)
 		{
 			return NULL;
 		}
 
-		const size_t startPos = nextPos;
+		tokenStart = currentPtr;
 
 		FindNext();
-		return &str.c_str()[startPos];
+		return tokenStart;
 	}
 
-	const char * NextValue()
+	INLINE const char * NextValue()
 	{
 		// Goes to the next entity token (key->value or value->key)
 		if (!SkipToken()) // exit key/value
@@ -130,7 +143,7 @@ public:
 		return NextToken(); // enter key/value
 	}
 
-	bool SkipValue()
+	INLINE bool SkipValue()
 	{
 		return SkipToken() && SkipToken();
 	}
@@ -140,8 +153,15 @@ private:
 	Tokenizer& operator=(const Tokenizer &other);
 
 	std::string str;
-	const size_t strLength;
-	size_t nextPos;
+
+	// Current position in string
+	char* currentPtr;
+
+	// Pointer to char after last
+	char* strEnd;
+
+	// Start of most recent token
+	char* tokenStart;
 };
 
 

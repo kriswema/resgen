@@ -317,7 +317,7 @@ int RESGen::MakeRES(std::string &map, int fileindex, size_t filecount, const Str
 			return 1;
 		}
 
-		const size_t tokenLength = strlen(token);
+		const int tokenLength = entDataTokenizer.GetLatestTokenLength();
 
 		// TODO: This is fast, but should be made more robust if possible
 		// Need at least 5 chars, assuming filename is:
