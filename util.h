@@ -67,6 +67,83 @@ struct config_s
 #endif
 };
 
+template <char Delimiter>
+class Tokenizer
+{
+public:
+	Tokenizer(std::string& str_)
+		: str(str_)
+		, strLength(str.length())
+		, nextPos(0)
+	{
+	}
+
+	bool FindNext()
+	{
+		if(nextPos == std::string::npos)
+		{
+			return false;
+		}
+
+		while(nextPos != strLength)
+		{
+			if(str[nextPos] == Delimiter)
+			{
+				str[nextPos] = 0;
+				nextPos++;
+				return true;
+			}
+
+			nextPos++;
+		}
+
+		nextPos = std::string::npos;
+		return true;
+	}
+
+	bool SkipToken()
+	{
+		return FindNext();
+	}
+
+	const char * NextToken()
+	{
+		if(nextPos == std::string::npos)
+		{
+			return NULL;
+		}
+
+		const size_t startPos = nextPos;
+
+		FindNext();
+		return &str.c_str()[startPos];
+	}
+
+	const char * NextValue()
+	{
+		// Goes to the next entity token (key->value or value->key)
+		if (!SkipToken()) // exit key/value
+		{
+			return NULL;
+		}
+
+		return NextToken(); // enter key/value
+	}
+
+	bool SkipValue()
+	{
+		return SkipToken() && SkipToken();
+	}
+
+private:
+	Tokenizer(const Tokenizer &other);
+	Tokenizer& operator=(const Tokenizer &other);
+
+	std::string str;
+	const size_t strLength;
+	size_t nextPos;
+};
+
 
 std::string replaceCharAll(std::string str, const char find, const char replace);
 

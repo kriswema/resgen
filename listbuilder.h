@@ -49,6 +49,9 @@ public:
 	virtual ~ListBuilder();
 
 private:
+	ListBuilder(const ListBuilder &other);
+	ListBuilder& operator=(const ListBuilder &other);
+
 	std::vector<file_s> & exlist;
 	bool firstdir;
 	void ListDir(const std::string &path);

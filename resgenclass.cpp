@@ -58,80 +58,6 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-template <char Delimiter>
-class Tokenizer
-{
-public:
-	Tokenizer(std::string& str_)
-		: str(str_)
-		, strLength(str.length())
-		, nextPos(0)
-	{
-	}
-
-	bool FindNext()
-	{
-		if(nextPos == std::string::npos)
-		{
-			return false;
-		}
-
-		while(nextPos != strLength)
-		{
-			if(str[nextPos] == Delimiter)
-			{
-				str[nextPos] = 0;
-				nextPos++;
-				return true;
-			}
-
-			nextPos++;
-		}
-
-		nextPos = std::string::npos;
-		return true;
-	}
-
-	bool SkipToken()
-	{
-		return FindNext();
-	}
-
-	const char * NextToken()
-	{
-		if(nextPos == std::string::npos)
-		{
-			return NULL;
-		}
-
-		const size_t startPos = nextPos;
-
-		FindNext();
-		return &str.c_str()[startPos];
-	}
-
-	const char * NextValue()
-	{
-		// Goes to the next entity token (key->value or value->key)
-		if (!SkipToken()) // exit key/value
-		{
-			return NULL;
-		}
-
-		return NextToken(); // enter key/value
-	}
-
-	bool SkipValue()
-	{
-		return SkipToken() && SkipToken();
-	}
-
-private:
-	std::string str;
-	const size_t strLength;
-	size_t nextPos;
-};
-
 std::vector<std::string>::iterator findStringNoCase(std::vector<std::string> &vec, const std::string &element)
 {
 	for(std::vector<std::string>::iterator it = vec.begin(); it != vec.end(); ++it)
@@ -400,9 +326,9 @@ int RESGen::MakeRES(std::string &map, int fileindex, size_t filecount, const Str
 		{
 			if(token[tokenLength - 4] == '.')
 			{
-				const char c1 = ::tolower(token[tokenLength - 3]);
-				const char c2 = ::tolower(token[tokenLength - 2]);
-				const char c3 = ::tolower(token[tokenLength - 1]);
+				const int c1 = ::tolower(token[tokenLength - 3]);
+				const int c2 = ::tolower(token[tokenLength - 2]);
+				const int c3 = ::tolower(token[tokenLength - 1]);
 
 				if(c1 == 'm' && c2 == 'd' && c3 == 'l')
 				{
@@ -755,7 +681,7 @@ bool RESGen::LoadBSPData(const std::string &file, std::string &entdata, StringMa
 		return false;
 	}
 
-	if (header.ent_header.fileofs <= 0 || header.ent_header.filelen <= 0)
+	if (header.ent_header.fileofs <= 0)
 	{
 		// File corrupted
 		printf("Error opening \"%s\". Corrupt BSP header.\n", file.c_str());
@@ -796,7 +722,7 @@ bool RESGen::LoadBSPData(const std::string &file, std::string &entdata, StringMa
 			if (i != texcount) // load texture offsets
 			{
 				// header NOT read properly!
-				printf("Error opening \"%s\". Corrupt texture data.\n  read: %d, expect: %d\n", file.c_str(), i, texcount);
+				printf("Error opening \"%s\". Corrupt texture data.\n  read: " SIZE_T_SPECIFIER ", expect: " SIZE_T_SPECIFIER "\n", file.c_str(), i, texcount);
 				return false;
 			}
 
@@ -916,7 +842,7 @@ bool RESGen::WriteRes(const std::string &folder, const std::string &mapname)
 	fprintf(f, "// with serveral improvements and additions by Zero3Cool.\n");
 	fprintf(f, "// For more info go to http://resgen.hltools.com\n");
 
-	fprintf(f, "\n// .res entries (%d):\n", resfile.size());
+	fprintf(f, "\n// .res entries (" SIZE_T_SPECIFIER "):\n", resfile.size());
 
 	// Resources
 	for (StringMap::const_iterator it = resfile.begin(); it != resfile.end(); ++it)

@@ -283,7 +283,7 @@ void ResourceListBuilder::BuildPakResourceList(const std::string &pakfilename)
 		// unexpected size.
 		if (verbal)
 		{
-			printf("Reading pakfile header failed. Wrong size (%d read, %d expected).\n", retval, pakheadersize);
+			printf("Reading pakfile header failed. Wrong size (" SIZE_T_SPECIFIER " read, " SIZE_T_SPECIFIER " expected).\n", retval, pakheadersize);
 			printf("Is \"%s\" a valid pakfile?\n", pakfilename.c_str());
 		}
 		return;
@@ -336,7 +336,7 @@ void ResourceListBuilder::BuildPakResourceList(const std::string &pakfilename)
 
 	if (verbal)
 	{
-		printf("Scanning pak file \"%s\" for resources (%d files in pak)\n", pakfilename.c_str(), filecount);
+		printf("Scanning pak file \"%s\" for resources (" SIZE_T_SPECIFIER " files in pak)\n", pakfilename.c_str(), filecount);
 	}
 
 	// Read filelist for possible resources
