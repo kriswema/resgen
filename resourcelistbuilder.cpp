@@ -137,7 +137,7 @@ void ResourceListBuilder::ListDir(const std::string &path, const std::string &fi
 				)
 				{
 					// resource, add to list
-					file = replaceCharAll(file, '\\', '/'); // replace backslashes
+					replaceCharAll(file, '\\', '/'); // replace backslashes
 
 					resources[strToLowerCopy(file)] = file;
 
@@ -234,7 +234,7 @@ void ResourceListBuilder::ListDir(const std::string &path, const std::string &fi
 					)
 					{
 						// resource, add to list
-						file = replaceCharAll(file, '\\', '/'); // replace backslashes
+						replaceCharAll(file, '\\', '/'); // replace backslashes
 
 						resources[strToLowerCopy(file)] = file;
 
@@ -361,7 +361,7 @@ void ResourceListBuilder::BuildPakResourceList(const std::string &pakfilename)
 			)
 			{
 				// resource, add to list
-				std::string resStr = replaceCharAll(filelist[i].name, '\\', '/');
+				std::string resStr = replaceCharAllCopy(filelist[i].name, '\\', '/');
 
 				resources[strToLowerCopy(resStr)] = resStr;
 

@@ -766,15 +766,15 @@ void RESGen::AddRes(std::string res, const char * const prefix, const char * con
 	while (!isalnum(res[0])) // keep stripping until a valid char is found
 	{
 		// Remove character
-		res = res.substr(1); // Kinda slow, but usually only happens once.
+		res.erase(res.begin());
 	}
 
-	res = replaceCharAll(res, '\\', '/');
+	replaceCharAll(res, '\\', '/');
 
 	// Add prefix and suffix
 	if (prefix)
 	{
-		res = std::string(prefix) + res;
+		res.insert(0, prefix);
 	}
 	if (suffix)
 	{
@@ -788,16 +788,9 @@ void RESGen::AddRes(std::string res, const char * const prefix, const char * con
 	}
 
 	// Add file to list if it isn't in it yet.
-	std::string resLower = strToLowerCopy(res);
-
-	// File not found, must be new. Add to list
-	if(resfile.find(resLower) != resfile.end())
-	{
-		// double file found, discard
-		return;
-	}
-
-	resfile[resLower] = res;
+	// We shouldn't care if this overwrites a previous entry (it shouldn't) -
+	// it'll only differ by case
+	resfile[strToLowerCopy(res)] = res;
 
 	// Report file found
 	if (contentdisp)
@@ -814,7 +807,7 @@ void RESGen::AddWad(const std::string &wadlist, size_t start, size_t len)
 {
 	std::string wadfile = wadlist.substr(start, len);
 
-	wadfile = replaceCharAll(wadfile, '\\', '/');
+	replaceCharAll(wadfile, '\\', '/');
 
 	// strip folders
 	wadfile = wadfile.substr(wadfile.rfind('/') + 1);
@@ -928,7 +921,7 @@ bool RESGen::LoadExludeFile(std::string &listfile)
 			if (line.compare(0, 2, "//") && line.length() != 0)
 			{
 				// Convert backslashes to slashes
-				line = replaceCharAll(line, '\\', '/');
+				replaceCharAll(line, '\\', '/');
 				// Not a comment or empty line
 				excludelist[strToLowerCopy(line)] = line;
 			}
@@ -945,7 +938,7 @@ bool RESGen::LoadExludeFile(std::string &listfile)
 		if (line.compare(0, 2, "//") && line.length() != 0)
 		{
 			// Convert backslashes to slashes
-			line = replaceCharAll(line, '\\', '/');
+			replaceCharAll(line, '\\', '/');
 			// Not a comment or empty line
 			excludelist[strToLowerCopy(line)] = line;
 		}

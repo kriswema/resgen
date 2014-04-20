@@ -81,11 +81,16 @@ FILE* File::operator->()
 }
 
 
-std::string replaceCharAll(std::string str, const char find, const char replace)
+std::string replaceCharAllCopy(const std::string &str, const char find, const char replace)
 {
     std::string result = str;
     std::replace(result.begin(), result.end(), find, replace);
     return result;
+}
+
+void replaceCharAll(std::string &str, const char find, const char replace)
+{
+    std::replace(str.begin(), str.end(), find, replace);
 }
 
 std::string strToLowerCopy(const std::string &str)

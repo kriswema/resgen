@@ -165,7 +165,8 @@ private:
 };
 
 
-std::string replaceCharAll(std::string str, const char find, const char replace);
+std::string replaceCharAllCopy(const std::string &str, const char find, const char replace);
+void replaceCharAll(std::string &str, const char find, const char replace);
 
 std::string strToLowerCopy(const std::string &str);
 
