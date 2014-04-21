@@ -101,11 +101,8 @@ void splitPath(const std::string &fullPath, std::string &baseFolder, std::string
     // folder, including trailing /
     if (lastSlashIndex == std::string::npos)
     {
-	#ifdef WIN32
-	baseFolder = ".\\";
-	#else
-	baseFolder = "./";
-	#endif
+	baseFolder += ".";
+	baseFolder += PATH_SEPARATOR;
     }
     else
     {
@@ -236,44 +233,36 @@ int ICompareStrings(const std::string &a, const std::string &b)
 
 std::string BuildValvePath(const std::string &respath)
 {
-	// Check the respath and check ../valve if the respath doesn't point to valve
+    // Check the respath and check ../valve if the respath doesn't point to valve
 
-	#ifdef WIN32
-	const char* pathSep = "\\";
-	const char* valveStr = "\\valve\\";
-	#else
-	const char* pathSep = "/";
-	const char* valveStr = "/valve/";
-	#endif
+    #ifdef WIN32
+    const char* valveStr = "\\valve\\";
+    #else
+    const char* valveStr = "/valve/";
+    #endif
 
-	if(CompareStrEndNoCase(respath, valveStr))
-	{
-		// NOT valve dir, so check it too
-		size_t slashpos = respath.rfind(pathSep[0], respath.length() - 2);
-		if (slashpos != std::string::npos)
-		{
-			return respath.substr(0, slashpos) + valveStr;
-		}
-		else
-		{
-			return respath + ".." + valveStr;
-		}
-	}
+    if(CompareStrEndNoCase(respath, valveStr))
+    {
+	    // NOT valve dir, so check it too
+	    size_t slashpos = respath.rfind(PATH_SEPARATOR, respath.length() - 2);
+	    if (slashpos != std::string::npos)
+	    {
+		    return respath.substr(0, slashpos) + valveStr;
+	    }
+	    else
+	    {
+		    return respath + ".." + valveStr;
+	    }
+    }
 
-	return "";
+    return "";
 }
 
 void EndWithPathSep(std::string &str)
 {
-	#ifdef WIN32
-	const char pathSep = '\\';
-	#else
-	const char pathSep = '/';
-	#endif
-	
-	if (str[str.length() - 1] != pathSep)
-	{
-		// No path separator, add
-		str += pathSep;
-	}
+    if (str[str.length() - 1] != PATH_SEPARATOR)
+    {
+	// No path separator, add
+	str += PATH_SEPARATOR;
+    }
 }

@@ -361,16 +361,17 @@ int RESGen::MakeRES(std::string &map, int fileindex, size_t filecount, const Str
 	entdata.clear();
 
 	// Try to find info txt and overview data
-	if(fileExists(basefolder + "..\\overviews\\" + basefilename + ".txt"))
+	std::string overviewPath = basefolder + ".." + PATH_SEPARATOR + "overviews" + PATH_SEPARATOR + basefilename;
+	if(fileExists(overviewPath + ".txt"))
 	{
 		// file found, but we need the tga or bmp too
-		if(fileExists(basefolder + "..\\overviews\\" + basefilename + ".tga"))
+		if(fileExists(overviewPath + ".tga"))
 		{
 			// txt found too, add both files to res list
 			AddRes(basefilename, "overviews/", ".tga");
 			AddRes(basefilename, "overviews/", ".txt");
 		}
-		else if(fileExists(basefolder + "..\\overviews\\" + basefilename + ".bmp"))
+		else if(fileExists(overviewPath + ".bmp"))
 		{
 			// txt found too, add both files to res list
 			AddRes(basefilename, "overviews/", ".bmp");

@@ -113,7 +113,7 @@ void ResourceListBuilder::ListDir(const std::string &path, const std::string &fi
 			if (strcmp(filedata.cFileName, ".") && strcmp(filedata.cFileName, ".."))
 			{
 				// Call this function recursive
-				ListDir(path, file + "\\", reporterror);
+				ListDir(path, file + PATH_SEPARATOR, reporterror);
 			}
 		}
 		else
@@ -209,7 +209,7 @@ void ResourceListBuilder::ListDir(const std::string &path, const std::string &fi
 				if (strcmp(direntry->d_name, ".") && strcmp(direntry->d_name, ".."))
 				{
 					// Call this function recursive
-					ListDir(path, file + "/", reporterror);
+					ListDir(path, file + PATH_SEPARATOR, reporterror);
 				}
 			}
 			else

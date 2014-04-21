@@ -13,6 +13,12 @@
 #define INLINE inline
 #endif
 
+#ifdef WIN32
+const char PATH_SEPARATOR = '\\';
+#else
+const char PATH_SEPARATOR = '/';
+#endif
+
 #include <algorithm>
 #include <string>
 #include <vector>
