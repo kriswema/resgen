@@ -164,6 +164,9 @@ private:
 	char* tokenStart;
 };
 
+void splitPath(const std::string &fullPath, std::string &baseFolder, std::string &baseFileName);
+
+bool fileExists(const std::string &fileName);
 
 std::string replaceCharAllCopy(const std::string &str, const char find, const char replace);
 void replaceCharAll(std::string &str, const char find, const char replace);

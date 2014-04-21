@@ -24,6 +24,16 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <stdio.h>
 #include <string.h>
 
+#ifdef WIN32
+#include <windows.h>
+#else
+#include <glob.h>
+#include <sys/types.h>
+#include <dirent.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#endif
+
 #include "util.h"
 
 File::File()
@@ -80,6 +90,59 @@ FILE* File::operator->()
     return fileHandle;
 }
 
+void splitPath(const std::string &fullPath, std::string &baseFolder, std::string &baseFileName)
+{
+    size_t lastSlashIndex = fullPath.rfind('/'); // Linux style path
+    if (lastSlashIndex == std::string::npos)
+    {
+	lastSlashIndex = fullPath.rfind('\\'); // windows style path
+    }
+
+    // folder, including trailing /
+    if (lastSlashIndex == std::string::npos)
+    {
+	#ifdef WIN32
+	baseFolder = ".\\";
+	#else
+	baseFolder = "./";
+	#endif
+    }
+    else
+    {
+	baseFolder = fullPath.substr(0, lastSlashIndex + 1);
+    }
+    const size_t basenameStart =
+	(lastSlashIndex != std::string::npos) ? lastSlashIndex + 1 : 0;
+
+    // Subtract 4 for the '.bsp' extension
+    baseFileName = fullPath.substr(basenameStart, fullPath.length() - basenameStart - 4);
+}
+
+bool fileExists(const std::string &fileName)
+{
+#ifdef WIN32
+    WIN32_FIND_DATA filedata;
+    HANDLE filehandle = FindFirstFile(fileName.c_str(), &filedata);
+    if (filehandle != INVALID_HANDLE_VALUE)
+    {
+	FindClose(filehandle);
+	return true;
+    }
+#else
+    // We use glob to find the file in Linux.
+    // Please note that params are NOT expanded (tilde will be).
+    // So it might not work properly in cases where params are used
+    // The glob man page tell us to use wordexp for expansion.. However, that function does not exist.
+    glob_t globbuf;
+    if (!glob(fileName.c_str(), GLOB_TILDE, NULL, &globbuf))
+    {
+	globfree(&globbuf);
+	return true;
+    }
+#endif
+
+    return false;
+}
 
 std::string replaceCharAllCopy(const std::string &str, const char find, const char replace)
 {

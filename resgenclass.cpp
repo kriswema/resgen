@@ -96,36 +96,11 @@ int RESGen::MakeRES(std::string &map, int fileindex, size_t filecount, const Str
 {
 	resourcePaths = resourcePaths_;
 
-	#ifdef WIN32
-	WIN32_FIND_DATA filedata;
-	HANDLE filehandle;
-	#else
-	glob_t globbuf;
-	#endif
+	std::string basefolder;
+	std::string basefilename;
+	splitPath(map, basefolder, basefilename);
 
-	// Create basefilename
-	size_t lastSlashIndex = map.rfind('/'); // Linux style path
-	if (lastSlashIndex == std::string::npos)
-	{
-		lastSlashIndex = map.rfind('\\'); // windows style path
-	}
-
-	std::string basefolder; // folder, including trailing /
-	if (lastSlashIndex == std::string::npos)
-	{
-		#ifdef WIN32
-		basefolder = ".\\";
-		#else
-		basefolder = "./";
-		#endif
-	}
-	else
-	{
-		basefolder = map.substr(0, lastSlashIndex + 1);
-	}
-	std::string basefilename = map.substr(lastSlashIndex + 1, map.length() - lastSlashIndex - 5);
-
-	std::string resName = basefolder + basefilename + ".res";
+	const std::string resName = basefolder + basefilename + ".res";
 
 	if (verbal)
 	{
@@ -134,21 +109,7 @@ int RESGen::MakeRES(std::string &map, int fileindex, size_t filecount, const Str
 
 
 	// Check if resfile doesn't already exist
-	bool fileexists = false;
-	#ifdef WIN32
-	filehandle = FindFirstFile(resName.c_str(), &filedata);
-	if (filehandle != INVALID_HANDLE_VALUE)
-	{
-		FindClose(filehandle);
-		fileexists = true;
-	}
-	#else
-	if (!glob(resName.c_str(), GLOB_TILDE, NULL, &globbuf))
-	{
-		globfree(&globbuf);
-		fileexists = true;
-	}
-	#endif
+	const bool fileexists = fileExists(resName);
 
 	if (!overwrite && fileexists)
 	{
@@ -400,63 +361,22 @@ int RESGen::MakeRES(std::string &map, int fileindex, size_t filecount, const Str
 	entdata.clear();
 
 	// Try to find info txt and overview data
-	#ifdef WIN32
-	filehandle = FindFirstFile((basefolder + "..\\overviews\\" + basefilename + ".txt").c_str(), &filedata); // try to find txt file for overview
-	if (filehandle != INVALID_HANDLE_VALUE)
+	if(fileExists(basefolder + "..\\overviews\\" + basefilename + ".txt"))
 	{
-		FindClose(filehandle);
-
 		// file found, but we need the tga or bmp too
-		filehandle = FindFirstFile((basefolder + "..\\overviews\\" + basefilename + ".tga").c_str(), &filedata); // try to find tga file for overview
-		if (filehandle != INVALID_HANDLE_VALUE)
+		if(fileExists(basefolder + "..\\overviews\\" + basefilename + ".tga"))
 		{
-			FindClose(filehandle);
-
 			// txt found too, add both files to res list
 			AddRes(basefilename, "overviews/", ".tga");
 			AddRes(basefilename, "overviews/", ".txt");
 		}
-		else
+		else if(fileExists(basefolder + "..\\overviews\\" + basefilename + ".bmp"))
 		{
-			filehandle = FindFirstFile((basefolder + "..\\overviews\\" + basefilename + ".bmp").c_str(), &filedata); // try to find bmp file for overview
-			if (filehandle != INVALID_HANDLE_VALUE)
-			{
-				FindClose(filehandle);
-
-				// txt found too, add both files to res list
-				AddRes(basefilename, "overviews/", ".bmp");
-				AddRes(basefilename, "overviews/", ".txt");
-			}
-		}
-	}
-	#else
-	// We use glob to find the file in Linux.
-	// Please note that params are NOT expanded (tilde will be).
-	// So it might not work properly in cases where params are used
-	// The glob man page tell us to use wordexp for expansion.. However, that function does not exist.
-	if (!glob((basefolder + "../overviews/" + basefilename + ".txt").c_str(), GLOB_TILDE, NULL, &globbuf))
-	{
-		globfree(&globbuf);
-
-		// file found, but we need the tga or bmp too
-		if (!glob((basefolder + "../overviews/" + basefilename + ".tga").c_str(), GLOB_TILDE, NULL, &globbuf))
-		{
-			globfree(&globbuf);
-
-			// txt found too, add both files to res list
-			AddRes(basefilename, "overviews/", ".tga");
-			AddRes(basefilename, "overviews/", ".txt");
-		}
-		else if (!glob((basefolder + "../overviews/" + basefilename + ".bmp").c_str(), GLOB_TILDE, NULL, &globbuf))
-		{
-			globfree(&globbuf);
-
 			// txt found too, add both files to res list
 			AddRes(basefilename, "overviews/", ".bmp");
 			AddRes(basefilename, "overviews/", ".txt");
 		}
 	}
-	#endif
 
 	// Resource list has been made.
 	int status = 0; // RES status, 0 means ok, 2 means missing resource
