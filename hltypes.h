@@ -1,13 +1,15 @@
 #ifndef HLTYPES_H
 #define HLTYPES_H
 
+#include <cstdint>
+
 struct modelheader_s
 {
     char id[4]; // Orriginal header is int, but this is easier
-    int version;
+    uint32_t version;
 
     char name[64];
-    int length;
+    uint32_t length;
 
     float eyeposition[3];
     float min[3];
@@ -16,26 +18,26 @@ struct modelheader_s
     float bbmin[3];
     float bbmax[3];
 
-    int flags;
+    uint32_t flags;
 
-    int numbones;
-    int boneindex;
+    uint32_t numbones;
+    uint32_t boneindex;
 
-    int numbonecontrollers;
-    int bonecontrollerindex;
+    uint32_t numbonecontrollers;
+    uint32_t bonecontrollerindex;
 
-    int numhitboxes;
-    int hitboxindex;
+    uint32_t numhitboxes;
+    uint32_t hitboxindex;
 
-    int numseq;
-    int seqindex;
+    uint32_t numseq;
+    uint32_t seqindex;
 
-    int numseqgroups;
-    int seqgroupindex;
+    uint32_t numseqgroups;
+    uint32_t seqgroupindex;
 
-    int numtextures; // Number of textures
-    int textureindex; // Index of texture location - 0 means no textures present
-    int texturedataindex;
+    uint32_t numtextures; // Number of textures
+    uint32_t textureindex; // Index of texture location - 0 means no textures present
+    uint32_t texturedataindex;
 
     // incomplete - cut off for space saving
 };
@@ -43,15 +45,15 @@ struct modelheader_s
 struct wadheader_s
 {
     char identification[4]; // Should be WAD2 or WAD3
-    int numlumps; // Number of lumps
-    int infotableofs; // Offset of lump data
+    int32_t numlumps; // Number of lumps
+    int32_t infotableofs; // Offset of lump data
 };
 
 struct wadlumpinfo_s
 {
-    int filepos;
-    int disksize;
-    int size;
+    uint32_t filepos;
+    uint32_t disksize;
+    uint32_t size;
     char type;
     char compression;
     char pad1, pad2;
@@ -60,36 +62,36 @@ struct wadlumpinfo_s
 
 struct pakheader_s
 {
-    int pakid;
-    int diroffset;
-    size_t dirsize;
+    uint32_t pakid; // 'PACK'
+    int32_t diroffset;
+    uint32_t dirsize;
 };
 
 struct fileinfo_s
 {
     char name[56];
-    int fileoffset;
-    size_t filelen;
+    uint32_t fileoffset;
+    uint32_t filelen;
 };
 
 struct texdata_s
 {
     char name[16];
-    unsigned width, height;
-    unsigned offsets[4];
+    uint32_t width, height;
+    uint32_t offsets[4];
 };
 
 struct lumpinfo_s
 {
-    int fileofs;
-    size_t filelen;
+    int32_t fileofs;
+    uint32_t filelen;
 };
 
 struct bsp_header
 {
-    int version;
+    uint32_t version;
     lumpinfo_s ent_header;
-    lumpinfo_s dnt_care01; // don't care
+    lumpinfo_s _ignore; // Don't care about this
     lumpinfo_s tex_header;
     // incomplete - cut off for space saving
 };

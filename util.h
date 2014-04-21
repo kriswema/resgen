@@ -87,6 +87,7 @@ public:
 		: str(str_)
 		, currentPtr(&str[0])
 		, strEnd(currentPtr + str.length())
+		, tokenStart(NULL)
 	{
 	}
 
