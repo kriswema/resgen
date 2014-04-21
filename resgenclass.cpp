@@ -145,40 +145,28 @@ int RESGen::MakeRES(std::string &map, int fileindex, size_t filecount, const Str
 	}
 
 	// Look for first block end (we do not need to parse the ather blocks vor skyname or wad info)
+	// TODO: This can find braces inside strings
 	size_t milen = static_cast<size_t>(strstr(mistart+1, "}") - mistart) + 1;
 
 	mapinfo.clear();
 	mapinfo.assign(mistart, milen);
 
 	// parse map info. We use StrTok for this...
-	Tokenizer<'\"'> mapTokenizer(mapinfo);
-	if (!mapTokenizer.SkipToken())
+	EntTokenizer mapTokenizer(mapinfo);
+
+	const EntTokenizer::KeyValuePair* kv = mapTokenizer.NextPair();
+
+	if (!kv)
 	{
-			printf("Error parsing \"%s\". No map information found.\n", map.c_str());
-			return 1;
+		printf("Error parsing \"%s\". No map information found.\n", map.c_str());
+		return 1;
 	}
 
-	const char *token = mapTokenizer.NextToken();
-	if (!token)
+	while (kv)
 	{
-			printf("Error parsing \"%s\". Entity data is corrupt.\n", map.c_str());
-			return 1;
-	}
-
-	while (token)
-	{
-		if (!strcmp(token, "wad"))
+		if (!strcmp(kv->first, "wad"))
 		{
-			// wad file
-			token = mapTokenizer.NextValue();
-			if (!token)
-			{
-				printf("Error parsing \"%s\" for WADs. Entity data is corrupt.\n", map.c_str());
-				return 1;
-			}
-			// token has value
-
-			std::string value = token;
+			std::string value(kv->second);
 			if (!value.empty()) // Don't try to parse an empty listing
 			{
 				// seperate the WAD files and save
@@ -200,18 +188,9 @@ int RESGen::MakeRES(std::string &map, int fileindex, size_t filecount, const Str
 			}
 
 		}
-		else if (!strcmp(token, "skyname"))
+		else if (!strcmp(kv->first, "skyname"))
 		{
-			// wad file
-			token = mapTokenizer.NextValue();
-			if (!token)
-			{
-				printf("Error parsing \"%s\" skies. Entity data is corrupt.\n", map.c_str());
-				return 1;
-			}
-			// token has value
-
-			std::string value(token);
+			std::string value(kv->second);
 
 			// Add al 6 sky textures here
 			AddRes(value, "gfx/env/", "up.tga");
@@ -221,27 +200,8 @@ int RESGen::MakeRES(std::string &map, int fileindex, size_t filecount, const Str
 			AddRes(value, "gfx/env/", "ft.tga");
 			AddRes(value, "gfx/env/", "bk.tga");
 		}
-		else
-		{
-			// go to value
-			if (!mapTokenizer.SkipValue())
-			{
-				printf("Error parsing \"%s\" for map data. Entity data is corrupt.\n", map.c_str());
-				return 1;
-			}
-		}
 
-		// Go to next key, if available
-		if (!mapTokenizer.SkipToken()) // exit value
-		{
-			printf("Error parsing \"%s\". Keys/values not alligned.\n", map.c_str());
-			return 1;
-		}
-		// token is 'empty'
-
-		token = mapTokenizer.NextToken(); // try next key
-
-		// No statbar - this is way too fast for it to even show up.
+		kv = mapTokenizer.NextPair();
 	}
 
 	mapinfo.clear();
@@ -249,36 +209,22 @@ int RESGen::MakeRES(std::string &map, int fileindex, size_t filecount, const Str
 
 	statcount = STAT_MAX; // make statbar print at once
 
-	Tokenizer<'\"'> entDataTokenizer(entdata);
+	EntTokenizer entDataTokenizer(entdata);
 
-	// parse the entity data. We use StrTok for this...
+	kv = entDataTokenizer.NextPair();
+
 	// Note that we reparse the mapinfo.
-	if (!entDataTokenizer.SkipToken())
+	if(!kv)
 	{
-			printf("Error parsing \"%s\". No initial key.\n", map.c_str());
-			return 1;
+		printf("Error parsing \"%s\".\n", map.c_str());
+		return 1;
 	}
 
-	// Do again, to get to first key.
-	token = entDataTokenizer.NextToken();
-	if (!token)
+	while (kv)
 	{
-			printf("Error parsing \"%s\". First key not found.\n", map.c_str());
-			return 1;
-	}
+		const ptrdiff_t tokenLength = entDataTokenizer.GetLatestValueLength();
 
-	while (token)
-	{
-		// Move from key to value
-		token = entDataTokenizer.NextValue();
-
-		if (!token)
-		{
-			printf("\rError parsing \"%s\". Key to value transition failed.\n", map.c_str());
-			return 1;
-		}
-
-		const ptrdiff_t tokenLength = entDataTokenizer.GetLatestTokenLength();
+		const char *token = kv->second;
 
 		// TODO: This is fast, but should be made more robust if possible
 		// Need at least 5 chars, assuming filename is:
@@ -319,14 +265,6 @@ int RESGen::MakeRES(std::string &map, int fileindex, size_t filecount, const Str
 			}
 		}
 
-		token = entDataTokenizer.NextToken(); // exit value
-		if (!token)
-		{
-			printf("\rError parsing \"%s\". Could not move on to next key.\n", map.c_str());
-			return 1;
-		}
-		// token is 'empty'
-
 		// update statbar
 		if (statusline && statcount == STAT_MAX)
 		{
@@ -348,8 +286,7 @@ int RESGen::MakeRES(std::string &map, int fileindex, size_t filecount, const Str
 			statcount++;
 		}
 
-
-		token = entDataTokenizer.NextToken(); // try next key
+		kv = entDataTokenizer.NextPair();
 	}
 
 	if (statusline)

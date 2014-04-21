@@ -80,6 +80,7 @@ struct config_s
 #endif
 };
 
+
 template <char Delimiter>
 class Tokenizer
 {
@@ -101,6 +102,8 @@ public:
 
 	INLINE bool FindNext()
 	{
+		tokenStart = currentPtr;
+
 		if(!currentPtr)
 		{
 			return false;
@@ -156,7 +159,7 @@ public:
 		return SkipToken() && SkipToken();
 	}
 
-private:
+protected:
 	Tokenizer(const Tokenizer &other);
 	Tokenizer& operator=(const Tokenizer &other);
 
@@ -171,6 +174,70 @@ private:
 	// Start of most recent token
 	char* tokenStart;
 };
+
+class EntTokenizer : public Tokenizer<'\"'>
+{
+public:
+	typedef std::pair<const char*, const char*> KeyValuePair;
+
+	EntTokenizer(std::string& str_)
+		: Tokenizer(str_)
+		, bError(false)
+	{
+	}
+
+	ptrdiff_t GetLatestValueLength() const
+	{
+		// currentPtr points to char after NUL
+		const char* const end = (currentPtr ? currentPtr - 1 : strEnd);
+		return end - pair.second;
+	}
+
+	// TODO: Doesn't record errors when unexpected end
+	const KeyValuePair* NextPair()
+	{
+		// Have we finished parsing?
+		if(!currentPtr)
+		{
+			return NULL;
+		}
+
+		// Skip end of line
+		// TODO: Check if this contains { or }
+		if(!SkipToken())
+		{
+			return NULL;
+		}
+
+		// Read key
+		pair.first = currentPtr;
+
+		if(!FindNext())
+		{
+			return NULL;
+		}
+
+		// Ignore space between key/value
+		if(!SkipToken())
+		{
+			return NULL;
+		}
+
+		pair.second = currentPtr;
+
+		if(!FindNext())
+		{
+			return NULL;
+		}
+
+		return &pair;
+	}
+
+private:
+	KeyValuePair pair;
+	bool bError;
+};
+
 
 void splitPath(const std::string &fullPath, std::string &baseFolder, std::string &baseFileName);
 

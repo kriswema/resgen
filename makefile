@@ -27,6 +27,13 @@ LDFLAGS=-lstdc++
 
 DO_CXX=$(CXX) $(INCLUDEDIRS) $(CFLAGS) -o $@ -c $<
 
+OBJ = \
+	$(OBJDIR)/listbuilder.o \
+	$(OBJDIR)/resgen.o \
+	$(OBJDIR)/resgenclass.o \
+	$(OBJDIR)/resourcelistbuilder.o \
+	$(OBJDIR)/util.o
+
 #############################################################################
 # RESGen files
 #############################################################################
@@ -42,13 +49,6 @@ debug: $(BINDIR)/$(EXECNAME)
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.cpp
 	$(DO_CXX)
-
-OBJ = \
-	$(OBJDIR)/listbuilder.o \
-	$(OBJDIR)/resgen.o \
-	$(OBJDIR)/resgenclass.o \
-	$(OBJDIR)/resourcelistbuilder.o \
-	$(OBJDIR)/util.o
 
 $(BINDIR)/$(EXECNAME) : $(OBJ)
 	$(CXX) $(CFLAGS) $(LDFLAGS) -o $@ $(OBJ)
