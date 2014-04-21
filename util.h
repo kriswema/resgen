@@ -20,6 +20,7 @@ const char PATH_SEPARATOR = '/';
 #endif
 
 #include <algorithm>
+#include <cstddef>
 #include <string>
 #include <vector>
 
