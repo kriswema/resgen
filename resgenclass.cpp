@@ -154,54 +154,62 @@ int RESGen::MakeRES(std::string &map, int fileindex, size_t filecount, const Str
 	// parse map info. We use StrTok for this...
 	EntTokenizer mapTokenizer(mapinfo);
 
-	const EntTokenizer::KeyValuePair* kv = mapTokenizer.NextPair();
-
-	if (!kv)
+	try
 	{
-		printf("Error parsing \"%s\". No map information found.\n", map.c_str());
-		return 1;
-	}
+		const EntTokenizer::KeyValuePair* kv = mapTokenizer.NextPair();
 
-	while (kv)
-	{
-		if (!strcmp(kv->first, "wad"))
+		if (!kv)
 		{
-			std::string value(kv->second);
-			if (!value.empty()) // Don't try to parse an empty listing
+			printf("Error parsing \"%s\". No map information found.\n", map.c_str());
+			return 1;
+		}
+
+		while (kv)
+		{
+			if (!strcmp(kv->first, "wad"))
 			{
-				// seperate the WAD files and save
-				size_t i = 0;
-				size_t seppos;
-
-				while ((seppos = value.find(';', i)) != std::string::npos)
+				std::string value(kv->second);
+				if (!value.empty()) // Don't try to parse an empty listing
 				{
-					AddWad(value, i, seppos - i); // Add wad to reslist
-					i = seppos + 1;
+					// seperate the WAD files and save
+					size_t i = 0;
+					size_t seppos;
+
+					while ((seppos = value.find(';', i)) != std::string::npos)
+					{
+						AddWad(value, i, seppos - i); // Add wad to reslist
+						i = seppos + 1;
+					}
+
+					// There might be a wad file left in the list, check for it
+					if (i < value.length())
+					{
+						// it should be equal, there is a wadfile left!
+						AddWad(value, i, value.length() - i);
+					}
 				}
 
-				// There might be a wad file left in the list, check for it
-				if (i < value.length())
-				{
-					// it should be equal, there is a wadfile left!
-					AddWad(value, i, value.length() - i);
-				}
+			}
+			else if (!strcmp(kv->first, "skyname"))
+			{
+				std::string value(kv->second);
+
+				// Add al 6 sky textures here
+				AddRes(value, "gfx/env/", "up.tga");
+				AddRes(value, "gfx/env/", "dn.tga");
+				AddRes(value, "gfx/env/", "lf.tga");
+				AddRes(value, "gfx/env/", "rt.tga");
+				AddRes(value, "gfx/env/", "ft.tga");
+				AddRes(value, "gfx/env/", "bk.tga");
 			}
 
+			kv = mapTokenizer.NextPair();
 		}
-		else if (!strcmp(kv->first, "skyname"))
-		{
-			std::string value(kv->second);
-
-			// Add al 6 sky textures here
-			AddRes(value, "gfx/env/", "up.tga");
-			AddRes(value, "gfx/env/", "dn.tga");
-			AddRes(value, "gfx/env/", "lf.tga");
-			AddRes(value, "gfx/env/", "rt.tga");
-			AddRes(value, "gfx/env/", "ft.tga");
-			AddRes(value, "gfx/env/", "bk.tga");
-		}
-
-		kv = mapTokenizer.NextPair();
+	}
+	catch(ParseException &parseException)
+	{
+		printf("Failed to parse '%s': %s\n", map.c_str(), parseException.what());
+		return 1;
 	}
 
 	mapinfo.clear();
@@ -211,82 +219,91 @@ int RESGen::MakeRES(std::string &map, int fileindex, size_t filecount, const Str
 
 	EntTokenizer entDataTokenizer(entdata);
 
-	kv = entDataTokenizer.NextPair();
-
-	// Note that we reparse the mapinfo.
-	if(!kv)
+	
+	try
 	{
-		printf("Error parsing \"%s\".\n", map.c_str());
-		return 1;
+		const EntTokenizer::KeyValuePair* kv = entDataTokenizer.NextPair();
+
+		// Note that we reparse the mapinfo.
+		if(!kv)
+		{
+			printf("Error parsing \"%s\".\n", map.c_str());
+			return 1;
+		}
+
+		while (kv)
+		{
+			const ptrdiff_t tokenLength = entDataTokenizer.GetLatestValueLength();
+
+			const char *token = kv->second;
+
+			// TODO: This is fast, but should be made more robust if possible
+			// Need at least 5 chars, assuming filename is:
+			// [alpha][.][alpha]{3}
+			if(tokenLength >= 5)
+			{
+				if(token[tokenLength - 4] == '.')
+				{
+					const int c1 = ::tolower(token[tokenLength - 3]);
+					const int c2 = ::tolower(token[tokenLength - 2]);
+					const int c3 = ::tolower(token[tokenLength - 1]);
+
+					if(c1 == 'm' && c2 == 'd' && c3 == 'l')
+					{
+						// mdl file
+						AddRes(token);
+					}
+					if(c1 == 'w' && c2 == 'a' && c3 == 'v')
+					{
+						// wave file
+						AddRes(token, "sound/");
+					}
+					if(c1 == 's' && c2 == 'p' && c3 == 'r')
+					{
+						// sprite file
+						AddRes(token);
+					}
+					if(c1 == 'b' && c2 == 'm' && c3 == 'p')
+					{
+						// bitmap file
+						AddRes(token);
+					}
+					if(c1 == 't' && c2 == 'g' && c3 == 'a')
+					{
+						// targa file
+						AddRes(token);
+					}
+				}
+			}
+
+			// update statbar
+			if (statusline && statcount == STAT_MAX)
+			{
+				// Reset the statcount
+				statcount = 0;
+
+				// Calculate the percentage completed of the current file.
+				size_t progress = static_cast<size_t>(token - &entdata[0]);
+				size_t percentage = ((progress + 1) * 101) / entdata.length(); // Make the length one too long.
+				if (percentage > 100)
+				{
+					 // Make sure we don;t go over 100%
+					percentage = 100;
+				}
+				printf("\r(" SIZE_T_SPECIFIER "%%) [%d/" SIZE_T_SPECIFIER "]", percentage, fileindex, filecount);
+			}
+			else
+			{
+				statcount++;
+			}
+
+			kv = entDataTokenizer.NextPair();
+		}
 	}
-
-	while (kv)
+	catch(ParseException &parseException)
 	{
-		const ptrdiff_t tokenLength = entDataTokenizer.GetLatestValueLength();
-
-		const char *token = kv->second;
-
-		// TODO: This is fast, but should be made more robust if possible
-		// Need at least 5 chars, assuming filename is:
-		// [alpha][.][alpha]{3}
-		if(tokenLength >= 5)
-		{
-			if(token[tokenLength - 4] == '.')
-			{
-				const int c1 = ::tolower(token[tokenLength - 3]);
-				const int c2 = ::tolower(token[tokenLength - 2]);
-				const int c3 = ::tolower(token[tokenLength - 1]);
-
-				if(c1 == 'm' && c2 == 'd' && c3 == 'l')
-				{
-					// mdl file
-					AddRes(token);
-				}
-				if(c1 == 'w' && c2 == 'a' && c3 == 'v')
-				{
-					// wave file
-					AddRes(token, "sound/");
-				}
-				if(c1 == 's' && c2 == 'p' && c3 == 'r')
-				{
-					// sprite file
-					AddRes(token);
-				}
-				if(c1 == 'b' && c2 == 'm' && c3 == 'p')
-				{
-					// bitmap file
-					AddRes(token);
-				}
-				if(c1 == 't' && c2 == 'g' && c3 == 'a')
-				{
-					// targa file
-					AddRes(token);
-				}
-			}
-		}
-
-		// update statbar
-		if (statusline && statcount == STAT_MAX)
-		{
-			// Reset the statcount
-			statcount = 0;
-
-			// Calculate the percentage completed of the current file.
-			size_t progress = static_cast<size_t>(token - &entdata[0]);
-			size_t percentage = ((progress + 1) * 101) / entdata.length(); // Make the length one too long.
-			if (percentage > 100)
-			{
-				 // Make sure we don;t go over 100%
-				percentage = 100;
-			}
-			printf("\r(" SIZE_T_SPECIFIER "%%) [%d/" SIZE_T_SPECIFIER "]", percentage, fileindex, filecount);
-		}
-		else
-		{
-			statcount++;
-		}
-
-		kv = entDataTokenizer.NextPair();
+		printf("Failed to parse '%s': %s\n", map.c_str(), parseException.what());
+		return 1;
 	}
 
 	if (statusline)

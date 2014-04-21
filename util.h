@@ -21,6 +21,7 @@ const char PATH_SEPARATOR = '/';
 
 #include <algorithm>
 #include <cstddef>
+#include <exception>
 #include <string>
 #include <vector>
 
@@ -80,6 +81,14 @@ struct config_s
 #endif
 };
 
+class ParseException : public std::runtime_error
+{
+public:
+	ParseException(const char* message)
+		: std::runtime_error(message)
+	{
+	}
+};
 
 template <char Delimiter>
 class Tokenizer
@@ -89,21 +98,11 @@ public:
 		: str(str_)
 		, currentPtr(&str[0])
 		, strEnd(currentPtr + str.length())
-		, tokenStart(NULL)
 	{
 	}
 
-	ptrdiff_t GetLatestTokenLength() const
+	INLINE bool Next()
 	{
-		// currentPtr points to char after NUL
-		const char* const end = (currentPtr ? currentPtr - 1 : strEnd);
-		return end - tokenStart;
-	}
-
-	INLINE bool FindNext()
-	{
-		tokenStart = currentPtr;
-
 		if(!currentPtr)
 		{
 			return false;
@@ -121,42 +120,7 @@ public:
 			currentPtr++;
 		}
 
-		currentPtr = NULL;
-		return true;
-	}
-
-	INLINE bool SkipToken()
-	{
-		return FindNext();
-	}
-
-	INLINE const char * NextToken()
-	{
-		if(!currentPtr)
-		{
-			return NULL;
-		}
-
-		tokenStart = currentPtr;
-
-		FindNext();
-		return tokenStart;
-	}
-
-	INLINE const char * NextValue()
-	{
-		// Goes to the next entity token (key->value or value->key)
-		if (!SkipToken()) // exit key/value
-		{
-			return NULL;
-		}
-
-		return NextToken(); // enter key/value
-	}
-
-	INLINE bool SkipValue()
-	{
-		return SkipToken() && SkipToken();
+		throw ParseException("Found end of data while parsing string");
 	}
 
 protected:
@@ -170,9 +134,6 @@ protected:
 
 	// Pointer to char after last
 	char* strEnd;
-
-	// Start of most recent token
-	char* tokenStart;
 };
 
 class EntTokenizer : public Tokenizer<'\"'>
@@ -182,7 +143,7 @@ public:
 
 	EntTokenizer(std::string& str_)
 		: Tokenizer(str_)
-		, bError(false)
+		, bInBlock(false)
 	{
 	}
 
@@ -193,7 +154,6 @@ public:
 		return end - pair.second;
 	}
 
-	// TODO: Doesn't record errors when unexpected end
 	const KeyValuePair* NextPair()
 	{
 		// Have we finished parsing?
@@ -203,39 +163,97 @@ public:
 		}
 
 		// Skip end of line
-		// TODO: Check if this contains { or }
-		if(!SkipToken())
+		if(!NextKV())
 		{
+			// If we've run out key-values, make sure we are in an accept state
+			if(bInBlock)
+			{
+				throw ParseException("Reached end of entity data while inside a block.");
+			}
+
 			return NULL;
 		}
 
 		// Read key
 		pair.first = currentPtr;
 
-		if(!FindNext())
+		if(!Next())
 		{
-			return NULL;
+			throw ParseException("Failed to parse key of key-value pair.");
 		}
 
 		// Ignore space between key/value
-		if(!SkipToken())
-		{
-			return NULL;
-		}
+		ParseKVSeparator();
 
 		pair.second = currentPtr;
 
-		if(!FindNext())
+		if(!Next())
 		{
-			return NULL;
+			throw ParseException("Failed to parse value of key-value pair.");
 		}
 
 		return &pair;
 	}
 
 private:
+	void ParseKVSeparator()
+	{
+		while(currentPtr != strEnd)
+		{
+			if(*currentPtr == '\"')
+			{
+				*currentPtr = 0;
+				currentPtr++;
+				return;
+			}
+			else if(*currentPtr != ' ')
+			{
+				throw ParseException("Found non-whitespace between key and value.");
+			}
+
+			currentPtr++;
+		}
+
+		throw ParseException("Failed to parse key-value pair");
+	}
+
+	bool NextKV()
+	{
+		while(currentPtr != strEnd)
+		{
+			switch(*currentPtr)
+			{
+				case '\"':
+					*currentPtr = 0;
+					currentPtr++;
+					return true;
+				case '{':
+					if(bInBlock)
+					{
+						throw ParseException("Unexpected start of block.");
+					}
+					bInBlock = true;
+					break;
+				case '}':
+					if(!bInBlock)
+					{
+						throw ParseException("Unexpected end of block.");
+					}
+					bInBlock = false;
+					break;
+				default:
+					break;
+			}
+
+			currentPtr++;
+		}
+
+		currentPtr = NULL;
+		return false;
+	}
+
 	KeyValuePair pair;
-	bool bError;
+	bool bInBlock;
 };
 
 
