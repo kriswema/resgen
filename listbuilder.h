@@ -41,7 +41,7 @@ struct file_s
 class ListBuilder
 {
 public:
-#ifndef WIN32
+#ifndef _WIN32
 	void SetSymLink(bool slink);
 #endif
 	void BuildList(std::vector<file_s> &srclist);
@@ -56,7 +56,7 @@ private:
 	bool firstdir;
 	void ListDir(const std::string &path);
 	bool recursive;
-#ifndef WIN32
+#ifndef _WIN32
 	bool symlink;
 #endif
 	void PrepExList();

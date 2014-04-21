@@ -1,19 +1,19 @@
 #ifndef UTIL_H
 #define UTIL_H
 
-#ifdef WIN32
+#ifdef _WIN32
 #define SIZE_T_SPECIFIER    "%Iu"
 #else
 #define SIZE_T_SPECIFIER    "%zu"
 #endif
 
-#ifdef WIN32
+#ifdef _WIN32
 #define INLINE __forceinline
 #else
 #define INLINE inline
 #endif
 
-#ifdef WIN32
+#ifdef _WIN32
 const char PATH_SEPARATOR = '\\';
 #else
 const char PATH_SEPARATOR = '/';
@@ -72,7 +72,7 @@ struct config_s
 	bool checkpak; // t
 	std::string resource_path;
 
-#ifdef WIN32
+#ifdef _WIN32
 	bool keypress; // t
 #else
 	bool symlink; // t
@@ -91,7 +91,7 @@ public:
 	{
 	}
 
-	int GetLatestTokenLength() const
+	ptrdiff_t GetLatestTokenLength() const
 	{
 		// currentPtr points to char after NUL
 		const char* const end = (currentPtr ? currentPtr - 1 : strEnd);

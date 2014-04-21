@@ -22,7 +22,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <cstring>
 #include <vector>
 
-#ifdef WIN32
+#ifdef _WIN32
 #include <windows.h>
 #else
 #include <glob.h>
@@ -72,7 +72,7 @@ void ResourceListBuilder::BuildResourceList(const std::vector<std::string> &path
 	printf("\n");
 }
 
-#ifdef WIN32
+#ifdef _WIN32
 // Win 32 DIR parser
 void ResourceListBuilder::ListDir(const std::string &path, const std::string &filepath, bool reporterror)
 {

@@ -31,7 +31,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <string.h>
 #include <ctype.h>
 
-#ifdef WIN32
+#ifdef _WIN32
 #include <windows.h>
 #else
 #include <glob.h>
@@ -278,7 +278,7 @@ int RESGen::MakeRES(std::string &map, int fileindex, size_t filecount, const Str
 			return 1;
 		}
 
-		const int tokenLength = entDataTokenizer.GetLatestTokenLength();
+		const ptrdiff_t tokenLength = entDataTokenizer.GetLatestTokenLength();
 
 		// TODO: This is fast, but should be made more robust if possible
 		// Need at least 5 chars, assuming filename is:

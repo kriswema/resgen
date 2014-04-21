@@ -36,7 +36,7 @@ public:
 	void BuildResourceList(const std::vector<std::string> &paths, bool checkpak, bool rdisp);
 
 private:
-	#ifdef WIN32
+	#ifdef _WIN32
 	// Win 32 DIR parser
 	void ListDir(const std::string &path, const std::string &filepath, bool reporterror);
 	#else

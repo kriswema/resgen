@@ -82,7 +82,7 @@ xxxxxxxxxxxxx xx xxxxxxx
 #include <ctype.h>
 #include <stdlib.h>
 
-#ifdef WIN32
+#ifdef _WIN32
 #include <conio.h>
 #include <windows.h>
 #endif
@@ -93,7 +93,7 @@ xxxxxxxxxxxxx xx xxxxxxx
 #include "resourcelistbuilder.h"
 #include "util.h"
 
-#ifdef WIN32
+#ifdef _WIN32
 void getexitkey(bool verbal, bool keypress)
 {
 	if (verbal && keypress)
@@ -148,7 +148,7 @@ void showhelp()
 
 	printf(" -b [rfafile] Excludes resources from [rfafile] from generated res files.\n");
 
-	#ifdef WIN32
+	#ifdef _WIN32
 	printf(" -k           RESGen will not wait for a keypress to exit in verbal mode\n");
 	#else
 	printf(" -t           Ignore symbolic links when searching folders\n");
@@ -219,7 +219,7 @@ int main(int argc, char* argv[])
 	config.parseresource = false;
 	config.preservewads = false;
 
-#ifdef WIN32
+#ifdef _WIN32
 	config.keypress = true;
 #else
 	config.symlink = true;
@@ -482,7 +482,7 @@ int main(int argc, char* argv[])
 					i++; // increase i.. we used that arg.
 					config.excludelists.push_back(argv[i]);
 					break;
-#ifdef WIN32
+#ifdef _WIN32
 // -k
 				case 'k':
 					config.keypress = false;
@@ -492,7 +492,7 @@ int main(int argc, char* argv[])
 				case 't':
 					config.symlink = false;
 					break;
-#endif // WIN32
+#endif // _WIN32
 
 				default:
 					printf("Ignoring '%c' argument: Argument not known\n", argstr[j]);
@@ -524,7 +524,7 @@ int main(int argc, char* argv[])
 	if (config.warranty)
 	{
 		showwarranty();
-#ifdef WIN32
+#ifdef _WIN32
 		getexitkey(config.verbal, config.keypress);
 #endif
 		exit(0);
@@ -538,7 +538,7 @@ int main(int argc, char* argv[])
 	if (config.help)
 	{
 		showhelp();
-#ifdef WIN32
+#ifdef _WIN32
 		getexitkey(config.verbal, config.keypress);
 #endif
 		exit(0);
@@ -547,7 +547,7 @@ int main(int argc, char* argv[])
 	if (config.credits)
 	{
 		showcredits();
-#ifdef WIN32
+#ifdef _WIN32
 		getexitkey(config.verbal, config.keypress);
 #endif
 		exit(0);
@@ -559,7 +559,7 @@ int main(int argc, char* argv[])
 		showhelp();
 
 		printf("\nERROR: You need to specify at least 1 folder or map to process\n");
-#ifdef WIN32
+#ifdef _WIN32
 		getexitkey(config.verbal, config.keypress);
 #endif
 		exit(0);
@@ -576,7 +576,7 @@ int main(int argc, char* argv[])
 	std::vector<std::string> MissingList; // bsp files with missing reources
 
 	ListBuilder listbuild(&FileList, config.excludes, config.verbal, config.searchdisp);
-#ifndef WIN32
+#ifndef _WIN32
 	listbuild.SetSymLink(config.symlink);
 #endif
 	listbuild.BuildList(config.files);
@@ -599,7 +599,7 @@ int main(int argc, char* argv[])
 	if(!resgen.LoadRfaFile(config.rfafile))
 	{
 		// Could not load RFA file, exit
-		#ifdef WIN32
+		#ifdef _WIN32
 		getexitkey(config.verbal, config.keypress);
 		#endif
 		return 0;
@@ -616,7 +616,7 @@ int main(int argc, char* argv[])
 		{
 			if (!resgen.LoadExludeFile(*it))
 			{
-				#ifdef WIN32
+				#ifdef _WIN32
 				getexitkey(config.verbal,config.keypress);
 				#endif
 				return 0;
@@ -726,7 +726,7 @@ int main(int argc, char* argv[])
 
 	// note we don't bother to clean up memory, the OS will do this for us.
 
-#ifdef WIN32
+#ifdef _WIN32
 	getexitkey(config.verbal, config.keypress);
 #endif
 	return 0;

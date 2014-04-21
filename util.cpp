@@ -24,7 +24,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <stdio.h>
 #include <string.h>
 
-#ifdef WIN32
+#ifdef _WIN32
 #include <windows.h>
 #else
 #include <glob.h>
@@ -70,7 +70,7 @@ void File::close()
 void File::open(const std::string& fileName, const std::string& mode)
 {
     close();
-#ifdef WIN32
+#ifdef _WIN32
     if(fopen_s(&fileHandle, fileName.c_str(), mode.c_str()))
     {
         fileHandle = NULL;
@@ -117,7 +117,7 @@ void splitPath(const std::string &fullPath, std::string &baseFolder, std::string
 
 bool fileExists(const std::string &fileName)
 {
-#ifdef WIN32
+#ifdef _WIN32
     WIN32_FIND_DATA filedata;
     HANDLE filehandle = FindFirstFile(fileName.c_str(), &filedata);
     if (filehandle != INVALID_HANDLE_VALUE)
@@ -235,7 +235,7 @@ std::string BuildValvePath(const std::string &respath)
 {
     // Check the respath and check ../valve if the respath doesn't point to valve
 
-    #ifdef WIN32
+    #ifdef _WIN32
     const char* valveStr = "\\valve\\";
     #else
     const char* valveStr = "/valve/";

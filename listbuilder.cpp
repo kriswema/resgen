@@ -26,7 +26,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <stdio.h>
 #include <string.h>
 
-#ifdef WIN32
+#ifdef _WIN32
 #include <windows.h>
 #else
 #include <sys/types.h>
@@ -47,7 +47,7 @@ ListBuilder::ListBuilder(std::vector<std::string> *flist, std::vector<file_s> &e
 	: exlist(excludes)
 	, firstdir(false)
 	, recursive(false)
-#ifndef WIN32
+#ifndef _WIN32
 	, symlink(false)
 #endif
 	, searchdisp(sdisp)
@@ -95,7 +95,7 @@ void ListBuilder::BuildList(std::vector<file_s> &srclist)
 			// folder processing
 
 			// prepare folder name
-			#ifdef WIN32
+			#ifdef _WIN32
 			if (file.name[file.name.length() - 1] != '\\')
 			{
 				// No ending "\", add
@@ -206,7 +206,7 @@ void ListBuilder::PrepExList()
 	}
 }
 
-#ifndef WIN32
+#ifndef _WIN32
 void ListBuilder::SetSymLink(bool slink)
 {
 	symlink = slink;
@@ -214,7 +214,7 @@ void ListBuilder::SetSymLink(bool slink)
 #endif
 
 
-#ifdef WIN32
+#ifdef _WIN32
 // Win 32 DIR parser
 void ListBuilder::ListDir(const std::string &path)
 {
