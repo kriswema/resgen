@@ -141,6 +141,7 @@ bool fileExists(const std::string &fileName)
     return false;
 }
 
+
 std::string replaceCharAllCopy(const std::string &str, const char find, const char replace)
 {
     std::string result = str;

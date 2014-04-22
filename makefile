@@ -28,6 +28,7 @@ LDFLAGS=-lstdc++
 DO_CXX=$(CXX) $(INCLUDEDIRS) $(CFLAGS) -o $@ -c $<
 
 OBJ = \
+	$(OBJDIR)/enttokenizer.o \
 	$(OBJDIR)/listbuilder.o \
 	$(OBJDIR)/resgen.o \
 	$(OBJDIR)/resgenclass.o \

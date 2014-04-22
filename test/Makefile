@@ -41,6 +41,7 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.cpp
 
 OBJ = \
 	$(OBJDIR)/test.o \
+	$(MAIN_OBJDIR)/enttokenizer.o \
 	$(MAIN_OBJDIR)/listbuilder.o \
 	$(MAIN_OBJDIR)/resgenclass.o \
 	$(MAIN_OBJDIR)/resourcelistbuilder.o \
