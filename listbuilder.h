@@ -26,43 +26,44 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #if !defined(AFX_LISTBUILDER_H__EBF81BE5_23F6_426C_82E6_F5EB2AEDE98F__INCLUDED_)
 #define AFX_LISTBUILDER_H__EBF81BE5_23F6_426C_82E6_F5EB2AEDE98F__INCLUDED_
 
-#if _MSC_VER > 1000
 #pragma once
-#endif // _MSC_VER > 1000
 
-#include "LinkedList.h"
-#include "vstring.h"
+#include <string>
+#include <vector>
 
 struct file_s
 {
 	bool folder;
 	bool recursive;
-	VString name;
+	std::string name;
 };
 
 class ListBuilder
 {
 public:
-#ifndef WIN32
+#ifndef _WIN32
 	void SetSymLink(bool slink);
 #endif
-	void BuildList(LinkedList *srclist);
-	ListBuilder(LinkedList *flist, LinkedList *excludes, bool beverbal, bool sdisp);
+	void BuildList(std::vector<file_s> &srclist);
+	ListBuilder(std::vector<std::string> *flist, std::vector<file_s> &excludes, bool beverbal, bool sdisp);
 	virtual ~ListBuilder();
 
 private:
-	LinkedList * exlist;
+	ListBuilder(const ListBuilder &other);
+	ListBuilder& operator=(const ListBuilder &other);
+
+	std::vector<file_s> & exlist;
 	bool firstdir;
-	void ListDir(const VString &path);
+	void ListDir(const std::string &path);
 	bool recursive;
-#ifndef WIN32
+#ifndef _WIN32
 	bool symlink;
 #endif
 	void PrepExList();
-	void AddFile(const VString &filename, bool checkexlist);
+	void AddFile(const std::string &filename, bool checkexlist);
 	bool searchdisp;
 	bool verbal;
-	LinkedList * filelist;
+	std::vector<std::string> * filelist;
 };
 
 #endif // !defined(AFX_LISTBUILDER_H__EBF81BE5_23F6_426C_82E6_F5EB2AEDE98F__INCLUDED_)

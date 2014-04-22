@@ -25,43 +25,8 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #define VERSION "2.0.3"
 #endif
 
-#include "LinkedList.h"
-#include "vstring.h"
+#include <vector>
 
-struct config_s
-{
-	bool help; // f
-	bool credits ; // f
-	bool warranty; // f
-
-	bool verbal; // t -
-	bool statusline; // f
-	bool searchdisp; // f
-	bool resourcedisp; // f
-	bool contentdisp; // f
-
-	LinkedList files;
-	LinkedList excludes; // Map exclude list - not resource!
-	LinkedList excludelists; // Exclude resource list files - not maps!
-
-	bool overwrite; // f
-	VString rfafile;
-
-	bool tolower; // f
-	bool matchcase; // f
-	bool checkpak; // t
-	bool parseresource; // f
-	bool preservewads; // f
-	VString resource_path;
-
-#ifdef WIN32
-	bool keypress; // t
-#else
-	bool symlink; // t
-#endif
-};
-
-int strrnicmp(const char *src, const char *dst, int limit);
 void getexitkey(bool verbal, bool keypress);
 
 void showcopyright();

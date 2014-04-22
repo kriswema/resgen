@@ -1,5 +1,4 @@
 language: cpp
 install: sudo make get-deps
-before_script: make neat
-script: make
+script: make && make test
 after_script: make clean

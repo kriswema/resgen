@@ -26,7 +26,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include <stdio.h>
 #include <string.h>
 
-#ifdef WIN32
+#ifdef _WIN32
 #include <windows.h>
 #else
 #include <sys/types.h>
@@ -36,14 +36,23 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #endif
 
 #include "listbuilder.h"
-#include "leakcheck.h"
+#include "util.h"
 
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-ListBuilder::ListBuilder(LinkedList *flist, LinkedList *excludes, bool beverbal, bool sdisp)
+ListBuilder::ListBuilder(std::vector<std::string> *flist, std::vector<file_s> &excludes, bool beverbal, bool sdisp)
+	: exlist(excludes)
+	, firstdir(false)
+	, recursive(false)
+#ifndef _WIN32
+	, symlink(false)
+#endif
+	, searchdisp(sdisp)
+	, verbal(beverbal)
+	, filelist(flist)
 {
 #ifdef _DEBUG
 	if (flist == NULL)
@@ -52,11 +61,6 @@ ListBuilder::ListBuilder(LinkedList *flist, LinkedList *excludes, bool beverbal,
 		return;
 	}
 #endif
-
-	filelist = flist;
-	verbal = beverbal;
-	searchdisp = sdisp;
-	exlist = excludes;
 }
 
 ListBuilder::~ListBuilder()
@@ -64,133 +68,114 @@ ListBuilder::~ListBuilder()
 
 }
 
-void ListBuilder::BuildList(LinkedList *srclist)
+void ListBuilder::BuildList(std::vector<file_s> &srclist)
 {
 #ifdef _DEBUG
-	if (srclist == NULL)
-	{
-		printf("P_ERROR (ListBuilder::BuildList): No source list.\n");
-		return;
-	}
-
-	if (srclist->GetCount() == 0)
+	if (srclist.empty())
 	{
 		printf("P_ERROR (ListBuilder::BuildList): Source list empty.\n");
-		return;
-	}
-
-	if (exlist == NULL)
-	{
-		printf("P_ERROR (ListBuilder::BuildList): No exlucdes list.\n");
 		return;
 	}
 #endif
 
 	PrepExList();
 
-	int i;
-	file_s *file;
-
 	// walk entries and take appropritate actions.
-	for (i = 0; i < srclist->GetCount(); i++)
+	for (size_t i = 0; i < srclist.size(); i++)
 	{
-		file = (file_s *) srclist->GetAt(i);
+		file_s &file = srclist[i];
 
-		if (file->folder == false)
+		if (file.folder == false)
 		{
 			// single file processing
-			AddFile(file->name, false);
+			AddFile(file.name, false);
 		}
 		else
 		{
 			// folder processing
 
 			// prepare folder name
-			#ifdef WIN32
-			if (file->name[file->name.GetLength() - 1] != '\\')
+			#ifdef _WIN32
+			if (file.name[file.name.length() - 1] != '\\')
 			{
 				// No ending "\", add
-				file->name += "\\";
+				file.name += "\\";
 			}
 			#else
-			if (file->name[file->name.GetLength() - 1] != '/')
+			if (file.name[file.name.length() - 1] != '/')
 			{
 				// No ending "/", add
-				file->name += "/";
+				file.name += "/";
 			}
 			#endif
 
-			recursive = file->recursive;
+			recursive = file.recursive;
 
 			if (verbal)
 			{
 				if (recursive)
 				{
-					printf("Searching %s and subdirectories for bsp files...\n", (LPCSTR)file->name);
+					printf("Searching %s and subdirectories for bsp files...\n", file.name.c_str());
 				}
 				else
 				{
-					printf("Searching %s for bsp files...\n", (LPCSTR)file->name);
+					printf("Searching %s for bsp files...\n", file.name.c_str());
 				}
 			}
 
 			firstdir = true;
 
-			ListDir(file->name);
+			ListDir(file.name);
 		}
 	}
 
 }
 
-void ListBuilder::AddFile(const VString &filename, bool checkexlist)
+void ListBuilder::AddFile(const std::string &filename, bool checkexlist)
 {
 #ifdef _DEBUG
-	if (filename.GetLength() == 0)
+	if (filename.length() == 0)
 	{
 		printf("P_ERROR (ListBuilder::AddFile): No file name.\n");
 		return;
 	}
 #endif
 
-	VString *tmp = new VString(filename);
+	std::string tmp = filename;
 
-	if (tmp->CompareReverseLimitNoCase(".bsp", 4))
+	if (CompareStrEndNoCase(tmp, ".bsp"))
 	{
 		// add file extension
-		*tmp += ".bsp";
+		tmp += ".bsp";
 	}
 
 	if (checkexlist) // Process exceptions
 	{
-		file_s *tmpex;
-		int i;
-		for (i = 0; i < exlist->GetCount(); i++)
+		for (size_t i = 0; i < exlist.size(); i++)
 		{
-			tmpex = (file_s *)exlist->GetAt(i);
-			if(!tmp->CompareReverseLimitNoCase((LPCSTR)tmpex->name, tmpex->name.GetLength()))
+			file_s &tmpex = exlist[i];
+			if (!CompareStrEndNoCase(tmp, tmpex.name))
 			{
 				// make sure mapname is not longer.
-				if (tmp->GetLength() <= tmpex->name.GetLength())
+				if (tmp.length() <= tmpex.name.length())
 				{
 					// they must be equal
 					if (verbal)
 					{
-						printf ("Excluded \"%s\" from res file generation\n", (LPCSTR)*tmp);
+						printf ("Excluded \"%s\" from res file generation\n", tmp.c_str());
 					}
-					delete tmp;
 					return;
 				}
 
 				// check for folder char
-				char prechar = (*tmp)[(tmp->GetLength() - tmpex->name.GetLength()) - 1];
+				char prechar = tmp[(tmp.length() - tmpex.name.length()) - 1];
 				if (prechar == '\\' || prechar == '/')
 				{
 					// folder. They are equal
 					if (verbal)
 					{
-						printf ("Excluded \"%s\" from res file generation\n", (LPCSTR)*tmp);
+						printf ("Excluded \"%s\" from res file generation\n", tmp.c_str());
 					}
-					delete tmp;
 					return;
 				}
 			}
@@ -198,32 +183,30 @@ void ListBuilder::AddFile(const VString &filename, bool checkexlist)
 	}
 
 	// file can be added to filelist
-	filelist->AddTail(tmp);
+	filelist->push_back(tmp);
 
 	if (verbal && searchdisp)
 	{
-		printf("Added \"%s\" to the map list\n", (LPCSTR)*tmp);
+		printf("Added \"%s\" to the map list\n", tmp.c_str());
 	}
 }
 
 void ListBuilder::PrepExList()
 {
 	// Prepares Exceptionlist by adding .bsp to filenames that need it
-	file_s *tmp;
-	int i;
-	for (i = 0; i < exlist->GetCount(); i++)
+	for (size_t i = 0; i < exlist.size(); i++)
 	{
-		tmp = (file_s *)exlist->GetAt(i);
+		file_s &tmp = exlist[i];
 
-		if (tmp->name.CompareReverseLimitNoCase(".bsp", 4))
+		if (CompareStrEndNoCase(tmp.name, ".bsp"))
 		{
 			// add file extension
-			tmp->name += ".bsp";
+			tmp.name += ".bsp";
 		}
 	}
 }
 
-#ifndef WIN32
+#ifndef _WIN32
 void ListBuilder::SetSymLink(bool slink)
 {
 	symlink = slink;
@@ -231,19 +214,17 @@ void ListBuilder::SetSymLink(bool slink)
 #endif
 
 
-#ifdef WIN32
+#ifdef _WIN32
 // Win 32 DIR parser
-void ListBuilder::ListDir(const VString &path)
+void ListBuilder::ListDir(const std::string &path)
 {
 	WIN32_FIND_DATA filedata;
-	HANDLE filehandle;
 
 	// add *.* for searching all files.
-	VString searchdir = path + "*.*";
-	VString file;
+	std::string searchdir = path + "*.*";
 
 	// find first file
-	filehandle = FindFirstFile(searchdir, &filedata);
+	HANDLE filehandle = FindFirstFile(searchdir.c_str(), &filedata);
 
 	if (filehandle == INVALID_HANDLE_VALUE)
 	{
@@ -251,11 +232,11 @@ void ListBuilder::ListDir(const VString &path)
 		{
 			if (GetLastError() & ERROR_PATH_NOT_FOUND || GetLastError() & ERROR_FILE_NOT_FOUND)
 			{
-				printf("The directory you specified (%s) can not be found or is empty.\n", (LPCSTR)path);
+				printf("The directory you specified (%s) can not be found or is empty.\n", path.c_str());
 			}
 			else
 			{
-				printf("There was an error with the directory you specified (%s) - ERROR NO: %d.\n", (LPCSTR)path, GetLastError());
+				printf("There was an error with the directory you specified (%s) - ERROR NO: %lu.\n", path.c_str(), GetLastError());
 			}
 		}
 		return;
@@ -265,7 +246,7 @@ void ListBuilder::ListDir(const VString &path)
 
 	do
 	{
-		file = path + filedata.cFileName;
+		std::string file = path + filedata.cFileName;
 
 		// Check for directory
 		if (filedata.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
@@ -283,7 +264,7 @@ void ListBuilder::ListDir(const VString &path)
 		else
 		{
 			// Check if the file is a .bsp
-			if (!file.CompareReverseLimitNoCase(".bsp", 4))
+			if (!CompareStrEndNoCase(file, ".bsp"))
 			{
 				AddFile(file, true);
 			}
@@ -297,20 +278,19 @@ void ListBuilder::ListDir(const VString &path)
 
 #else
 // Linux dir parser
-void ListBuilder::ListDir(const VString &path)
+void ListBuilder::ListDir(const std::string &path)
 {
-	DIR *directory;
 	struct stat filestatinfo; // Force as a struct for GCC
 
 	// Open the current dir
-	directory = opendir(path);
+	DIR *directory = opendir(path.c_str());
 	// Is it open?
 	if (directory == NULL)
 	{
 		// dir cannot be opened
 		if (firstdir)
 		{
-			printf("There was an error with the directory you specified (%s)\nDid you enter the correct directory?\n", (LPCSTR)path);
+			printf("There was an error with the directory you specified (%s)\nDid you enter the correct directory?\n", path.c_str());
 		}
 		return;
 	}
@@ -327,17 +307,17 @@ void ListBuilder::ListDir(const VString &path)
 		}
 
 		// Do we have a dir?
-		VString file = path + direntry->d_name;
+		std::string file = path + direntry->d_name;
 
 		int i;
 
 		if (symlink)
 		{
-			i = stat(file, &filestatinfo); // Get the info about the files the links point to
+			i = stat(file.c_str(), &filestatinfo); // Get the info about the files the links point to
 		}
 		else
 		{
-			i = lstat(file, &filestatinfo); // Get the info about the links
+			i = lstat(file.c_str(), &filestatinfo); // Get the info about the links
 		}
 
 		if (i == 0)
@@ -360,7 +340,7 @@ void ListBuilder::ListDir(const VString &path)
 				else
 				{
 					// Check if the file is a .bsp
-					if (!file.CompareReverseLimitNoCase(".bsp", 4))
+					if (!CompareStrEndNoCase(file, ".bsp"))
 					{
 						AddFile(file, true);
 					}

@@ -82,7 +82,7 @@ xxxxxxxxxxxxx xx xxxxxxx
 #include <ctype.h>
 #include <stdlib.h>
 
-#ifdef WIN32
+#ifdef _WIN32
 #include <conio.h>
 #include <windows.h>
 #endif
@@ -90,79 +90,16 @@ xxxxxxxxxxxxx xx xxxxxxx
 #include "listbuilder.h"
 #include "resgenclass.h"
 #include "resgen.h"
-#include "leakcheck.h"
+#include "resourcelistbuilder.h"
+#include "util.h"
 
-// global helper functions
-int strrnicmp(const char *src, const char *dst, int limit)
-{
-	// derived from VString function
-	// first determine our maximum running length
-	int i = strlen(src) - 1;
-	int j = strlen(dst) - 1;
-	int ret = 0;
-
-	limit--;
-
-	if (i < limit)
-	{
-		if (i < j)
-		{
-			return -1;
-		}
-		else if (j < i)
-		{
-			return 1;
-		}
-		limit = i;
-	}
-	if (j < limit)
-	{
-		if (i < j)
-		{
-			return -1;
-		}
-		else if (j < i)
-		{
-			return 1;
-		}
-		limit = j;
-	}
-
-	src = src + i;
-	dst = dst + j;
-
-	while (limit >= 0)
-	{
-		i = tolower(*src);
-		j = tolower(*dst);
-
-		ret = i - j;
-		if (ret)
-		{
-			if (ret < 0)
-			{
-				return -1;
-			}
-			else
-			{
-				return 1;
-			}
-		}
-		src--;
-		dst--;
-		limit--;
-	}
-
-	return 0;
-}
-
-#ifdef WIN32
+#ifdef _WIN32
 void getexitkey(bool verbal, bool keypress)
 {
 	if (verbal && keypress)
 	{
 		printf("Press any key to exit");
-		_getch();
+		_kbhit();
 	}
 }
 #endif
@@ -211,7 +148,7 @@ void showhelp()
 
 	printf(" -b [rfafile] Excludes resources from [rfafile] from generated res files.\n");
 
-	#ifdef WIN32
+	#ifdef _WIN32
 	printf(" -k           RESGen will not wait for a keypress to exit in verbal mode\n");
 	#else
 	printf(" -t           Ignore symbolic links when searching folders\n");
@@ -282,27 +219,21 @@ int main(int argc, char* argv[])
 	config.parseresource = false;
 	config.preservewads = false;
 
-#ifdef WIN32
+#ifdef _WIN32
 	config.keypress = true;
 #else
 	config.symlink = true;
 #endif
 
-	int i, j;
-	int arglen;
-	char *argstr;
-
-	file_s *file;
-
 	// parse the command line
-	for (i = 1; i < argc; i++) // arg 0 is the command line.
+	for (int i = 1; i < argc; i++) // arg 0 is the command line.
 	{
-		argstr = argv[i];
+		char *argstr = argv[i];
 		if (argstr[0] == '-')
 		{
 			// cmdline switch(es)
-			arglen = strlen(argstr);
-			for (j = 1; j < arglen; j++)
+			size_t arglen = strlen(argstr);
+			for (size_t j = 1; j < arglen; j++)
 			{
 				switch (argstr[j])
 				{
@@ -340,6 +271,7 @@ int main(int argc, char* argv[])
 					break;
 // -d
 				case 'd':
+				{
 #ifdef NO_MULTIARG_FILES
 					if (arglen != 2)
 					{
@@ -358,16 +290,18 @@ int main(int argc, char* argv[])
 						break;
 					}
 
-					file = new file_s;
-					file->folder = true;
-					file->recursive = false;
+					file_s file;
+					file.folder = true;
+					file.recursive = false;
 					i++; // increase i.. we used that arg.
-					file->name = argv[i];
+					file.name = argv[i];
 
-					config.files.AddTail(file); // add to linked list
+					config.files.push_back(file); // add to linked list
 					break;
+				}
 // -r
 				case 'r':
+				{
 #ifdef NO_MULTIARG_FILES
 					if (arglen != 2)
 					{
@@ -386,16 +320,18 @@ int main(int argc, char* argv[])
 						break;
 					}
 
-					file = new file_s;
-					file->folder = true;
-					file->recursive = true;
+					file_s file;
+					file.folder = true;
+					file.recursive = true;
 					i++; // increase i.. we used that arg.
-					file->name = argv[i];
+					file.name = argv[i];
 
-					config.files.AddTail(file); // add to linked list
+					config.files.push_back(file); // add to linked list
 					break;
+				}
 // -f
 				case 'f':
+				{
 #ifdef NO_MULTIARG_FILES
 					if (arglen != 2)
 					{
@@ -414,16 +350,18 @@ int main(int argc, char* argv[])
 						break;
 					}
 
-					file = new file_s;
-					file->folder = false;
-					file->recursive = false;
+					file_s file;
+					file.folder = false;
+					file.recursive = false;
 					i++; // increase i.. we used that arg.
-					file->name = argv[i];
+					file.name = argv[i];
 
-					config.files.AddTail(file); // add to linked list
+					config.files.push_back(file); // add to linked list
 					break;
+				}
 // -x
 				case 'x':
+				{
 #ifdef NO_MULTIARG_FILES
 					if (arglen != 2)
 					{
@@ -442,14 +380,15 @@ int main(int argc, char* argv[])
 						break;
 					}
 
-					file = new file_s;
-					file->folder = false;
-					file->recursive = false;
+					file_s file;
+					file.folder = false;
+					file.recursive = false;
 					i++; // increase i.. we used that arg.
-					file->name = argv[i];
+					file.name = argv[i];
 
-					config.excludes.AddTail(file); // add to linked list
+					config.excludes.push_back(file); // add to linked list
 					break;
+				}
 // -o
 				case 'o':
 					config.overwrite = true;
@@ -541,9 +480,9 @@ int main(int argc, char* argv[])
 					}
 
 					i++; // increase i.. we used that arg.
-					config.excludelists.AddTail(new VString(argv[i]));
+					config.excludelists.push_back(argv[i]);
 					break;
-#ifdef WIN32
+#ifdef _WIN32
 // -k
 				case 'k':
 					config.keypress = false;
@@ -553,7 +492,7 @@ int main(int argc, char* argv[])
 				case 't':
 					config.symlink = false;
 					break;
-#endif // WIN32
+#endif // _WIN32
 
 				default:
 					printf("Ignoring '%c' argument: Argument not known\n", argstr[j]);
@@ -563,12 +502,12 @@ int main(int argc, char* argv[])
 		else
 		{
 			// not a switch. Assume it's a map.
-			file = new file_s;
-			file->folder = false;
-			file->recursive = false;
-			file->name = argv[i];
+			file_s file;
+			file.folder = false;
+			file.recursive = false;
+			file.name = argv[i];
 
-			config.files.AddTail(file); // add to linked list
+			config.files.push_back(file); // add to linked list
 		}
 	}
 
@@ -585,7 +524,7 @@ int main(int argc, char* argv[])
 	if (config.warranty)
 	{
 		showwarranty();
-#ifdef WIN32
+#ifdef _WIN32
 		getexitkey(config.verbal, config.keypress);
 #endif
 		exit(0);
@@ -599,7 +538,7 @@ int main(int argc, char* argv[])
 	if (config.help)
 	{
 		showhelp();
-#ifdef WIN32
+#ifdef _WIN32
 		getexitkey(config.verbal, config.keypress);
 #endif
 		exit(0);
@@ -608,19 +547,19 @@ int main(int argc, char* argv[])
 	if (config.credits)
 	{
 		showcredits();
-#ifdef WIN32
+#ifdef _WIN32
 		getexitkey(config.verbal, config.keypress);
 #endif
 		exit(0);
 	}
 
 	// check if we have anything to do
-	if (config.files.GetCount() == 0)
+	if (config.files.empty())
 	{
 		showhelp();
 
 		printf("\nERROR: You need to specify at least 1 folder or map to process\n");
-#ifdef WIN32
+#ifdef _WIN32
 		getexitkey(config.verbal, config.keypress);
 #endif
 		exit(0);
@@ -632,32 +571,21 @@ int main(int argc, char* argv[])
 	}
 
 	// Build filelist
-	LinkedList FileList; // bsp files
-	LinkedList ErrorList; // failed bsp files
-	LinkedList MissingList; // bsp files with missing reources
-	VString *strtmp;
+	std::vector<std::string> FileList; // bsp files
+	std::vector<std::string> ErrorList; // failed bsp files
+	std::vector<std::string> MissingList; // bsp files with missing reources
 
-	ListBuilder listbuild(&FileList, &config.excludes, config.verbal, config.searchdisp);
-#ifndef WIN32
+	ListBuilder listbuild(&FileList, config.excludes, config.verbal, config.searchdisp);
+#ifndef _WIN32
 	listbuild.SetSymLink(config.symlink);
 #endif
-	listbuild.BuildList(&config.files);
+	listbuild.BuildList(config.files);
 
 	// clean up config.files, we don't need it anymore
-	while (config.files.GetCount() > 0)
-	{
-		file = (file_s *)config.files.GetAt(0);
-		config.files.RemoveAt(0);
-		delete file;
-	}
+	config.files.clear();
 
 	// Clean up config.exludes, we don't need it anymore
-	while (config.excludes.GetCount() > 0)
-	{
-		file = (file_s *)config.excludes.GetAt(0);
-		config.excludes.RemoveAt(0);
-		delete file;
-	}
+	config.excludes.clear();
 
 	if (config.verbal) { printf("\n"); } // Make output look a bit cleaner
 
@@ -671,21 +599,24 @@ int main(int argc, char* argv[])
 	if(!resgen.LoadRfaFile(config.rfafile))
 	{
 		// Could not load RFA file, exit
-		#ifdef WIN32
+		#ifdef _WIN32
 		getexitkey(config.verbal, config.keypress);
 		#endif
 		return 0;
 	}
 
 	// Load all resource exclude lists
-	if (config.excludelists.GetCount())
+	if (!config.excludelists.empty())
 	{
-		while(config.excludelists.GetCount())
+		for(
+			std::vector<std::string>::iterator it(config.excludelists.begin());
+			it != config.excludelists.end();
+			++it
+		)
 		{
-			strtmp = (VString *)config.excludelists.GetAt(0);
-			if (!resgen.LoadExludeFile(*strtmp))
+			if (!resgen.LoadExludeFile(*it))
 			{
-				#ifdef WIN32
+				#ifdef _WIN32
 				getexitkey(config.verbal,config.keypress);
 				#endif
 				return 0;
@@ -694,51 +625,53 @@ int main(int argc, char* argv[])
 			{
 				if (config.verbal)
 				{
-					printf("Loaded resource exclude list %s\n",(LPCSTR)*strtmp);
+					printf("Loaded resource exclude list %s\n", it->c_str());
 				}
 			}
-			config.excludelists.RemoveAt(0); // clean up, we don't need it after this
-			delete strtmp;
 		}
+
+		config.excludelists.clear();
 
 		if (config.verbal) { printf("\n"); }
 	}
 
-	resgen.BuildResourceList(config.resource_path, config.checkpak, config.searchdisp, config.resourcedisp);
+	std::vector<std::string> resourcePaths;
 
-	int filecount, errorcount, missingcount;
-	int retval;
+	if (!config.resource_path.empty())
+	{
+		// Make sure path ends with a separator
+		EndWithPathSep(config.resource_path);
+		resourcePaths.push_back(config.resource_path);
+		resourcePaths.push_back(BuildValvePath(config.resource_path));
+	}
 
-	i = 1;
-	filecount = FileList.GetCount();
-	while (FileList.GetCount() > 0)
+	ResourceListBuilder resourceListBuilder(config);
+	resourceListBuilder.BuildResourceList(resourcePaths, config.checkpak, config.resourcedisp);
+
+	int i = 1;
+	size_t filecount = FileList.size();
+	while (FileList.size() > 0)
 	{
 		if (config.contentdisp) { printf("\n"); } // Make output look a bit cleaner
 
-		retval = resgen.MakeRES(*(VString *)FileList.GetAt(0), i, filecount);
+		std::string map(FileList[0]);
+		int retval = resgen.MakeRES(map, i, filecount, resourceListBuilder.resources, resourcePaths);
 		if(retval)
 		{
 			if (retval == 2)
 			{
 				// res file was made properly, but some resources were missing
-				strtmp = new VString(*(VString *)FileList.GetAt(0));
-				MissingList.AddTail(strtmp);
+				MissingList.push_back(FileList[0]);
 			}
 			else
 			{
 				//
 				// an error occured. List them.
-				strtmp = new VString(*(VString *)FileList.GetAt(0));
-				ErrorList.AddTail(strtmp);
-
-				resgen.ClearResfile(); // We are not going to try and fix it, so resfile can be cleared.
-				resgen.ClearTextures(); // Also clear texture list.
+				ErrorList.push_back(FileList[0]);
 			}
 		}
 
-		strtmp = (VString *)FileList.GetAt(0);
-		FileList.RemoveAt(0);
-		delete strtmp;
+		FileList.erase(FileList.begin());
 
 		if (config.verbal) { printf("\n"); } // Make output look a bit cleaner
 
@@ -746,17 +679,16 @@ int main(int argc, char* argv[])
 	}
 
 	// clean up errors
-	errorcount = ErrorList.GetCount();
-	missingcount = MissingList.GetCount();
+	size_t errorcount = ErrorList.size();
+	size_t missingcount = MissingList.size();
 	if (errorcount)
 	{
 		if (config.verbal) { printf("Failed to create res file(s) for:\n"); }
-		while (ErrorList.GetCount() > 0)
+		while (!ErrorList.empty())
 		{
-			strtmp = (VString *)ErrorList.GetAt(0);
-			if (config.verbal) { printf(" %s\n", (LPCSTR)*strtmp); } // only print of verbal
-			ErrorList.RemoveAt(0);
-			delete strtmp;
+			std::string strtmp = ErrorList[0];
+			if (config.verbal) { printf(" %s\n", strtmp.c_str()); } // only print of verbal
+			ErrorList.erase(ErrorList.begin());
 		}
 		if (config.verbal) { printf("\n"); }
 	}
@@ -767,20 +699,19 @@ int main(int argc, char* argv[])
 			printf("Because one or more required files were not found in your installation,\n");
 			printf("the following map(s) might be missing resources:\n");
 		}
-		while (MissingList.GetCount() > 0)
+		while (!MissingList.empty())
 		{
-			strtmp = (VString *)MissingList.GetAt(0);
-			if (config.verbal) { printf(" %s\n", (LPCSTR)*strtmp); } // only print of verbal
-			MissingList.RemoveAt(0);
-			delete strtmp;
+			std::string strtmp = MissingList[0];
+			if (config.verbal) { printf(" %s\n", strtmp.c_str()); } // only print of verbal
+			MissingList.erase(MissingList.begin());
 		}
 		if (config.verbal) { printf("\n"); }
 	}
 
-	printf("Done creating res file(s)! %d map(s) were processed", filecount - errorcount);
+	printf("Done creating res file(s)! " SIZE_T_SPECIFIER " map(s) were processed", filecount - errorcount);
 	if (errorcount)
 	{
-		printf(", skipped %d due to errors.\n", errorcount);
+		printf(", skipped " SIZE_T_SPECIFIER " due to errors.\n", errorcount);
 	}
 	else
 	{
@@ -789,13 +720,13 @@ int main(int argc, char* argv[])
 
 	if (missingcount)
 	{
-		printf("%d map(s) might be missing resources.\n", missingcount);
+		printf(SIZE_T_SPECIFIER " map(s) might be missing resources.\n", missingcount);
 	}
 	// res files made.. exit
 
 	// note we don't bother to clean up memory, the OS will do this for us.
 
-#ifdef WIN32
+#ifdef _WIN32
 	getexitkey(config.verbal, config.keypress);
 #endif
 	return 0;
