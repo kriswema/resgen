@@ -86,8 +86,23 @@ class ParseException : public std::runtime_error
 public:
 	ParseException(const char* message)
 		: std::runtime_error(message)
+		, charNum(-1)
 	{
 	}
+
+	ParseException(const char* message, int charNum_)
+		: std::runtime_error(message)
+		, charNum(charNum_)
+	{
+	}
+
+	int GetCharNum() const
+	{
+		return charNum;
+	}
+
+private:
+	int charNum;
 };
 
 template <char Delimiter>
@@ -144,7 +159,23 @@ public:
 	EntTokenizer(std::string& str_)
 		: Tokenizer(str_)
 		, bInBlock(false)
+		, blocksRead(0)
 	{
+	}
+
+	int GetCharNum() const
+	{
+		if(!currentPtr)
+		{
+			return -1;
+		}
+
+		return currentPtr - &str[0];
+	}
+
+	int GetNumBlocksRead() const
+	{
+		return blocksRead;
 	}
 
 	ptrdiff_t GetLatestValueLength() const
@@ -168,7 +199,7 @@ public:
 			// If we've run out key-values, make sure we are in an accept state
 			if(bInBlock)
 			{
-				throw ParseException("Reached end of entity data while inside a block.");
+				throw ParseException("Reached end of entity data while inside a block.", GetCharNum());
 			}
 
 			return NULL;
@@ -179,7 +210,7 @@ public:
 
 		if(!Next())
 		{
-			throw ParseException("Failed to parse key of key-value pair.");
+			throw ParseException("Failed to parse key of key-value pair.", GetCharNum());
 		}
 
 		// Ignore space between key/value
@@ -189,7 +220,7 @@ public:
 
 		if(!Next())
 		{
-			throw ParseException("Failed to parse value of key-value pair.");
+			throw ParseException("Failed to parse value of key-value pair.", GetCharNum());
 		}
 
 		return &pair;
@@ -208,13 +239,13 @@ private:
 			}
 			else if(*currentPtr != ' ')
 			{
-				throw ParseException("Found non-whitespace between key and value.");
+				throw ParseException("Found non-whitespace between key and value.", GetCharNum());
 			}
 
 			currentPtr++;
 		}
 
-		throw ParseException("Failed to parse key-value pair");
+		throw ParseException("Failed to parse key-value pair", GetCharNum());
 	}
 
 	bool NextKV()
@@ -230,16 +261,17 @@ private:
 				case '{':
 					if(bInBlock)
 					{
-						throw ParseException("Unexpected start of block.");
+						throw ParseException("Unexpected start of block.", GetCharNum());
 					}
 					bInBlock = true;
 					break;
 				case '}':
 					if(!bInBlock)
 					{
-						throw ParseException("Unexpected end of block.");
+						throw ParseException("Unexpected end of block.", GetCharNum());
 					}
 					bInBlock = false;
+					blocksRead++;
 					break;
 				default:
 					break;
@@ -254,6 +286,7 @@ private:
 
 	KeyValuePair pair;
 	bool bInBlock;
+	int blocksRead;
 };
 
 

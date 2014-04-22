@@ -133,38 +133,24 @@ int RESGen::MakeRES(std::string &map, int fileindex, size_t filecount, const Str
 		return 1;
 	}
 
-	// get mapinfo
-	const char *mistart;
 
-	// Look for first entity block
-	if ((mistart = strstr(entdata.c_str(), "{")) == NULL)
-	{
-		// Something wrong with bsp entity data
-		printf("Error parsing \"%s\". Entity data not in recognized text format.\n", map.c_str());
-		return 1;
-	}
+	statcount = STAT_MAX; // make statbar print at once
 
-	// Look for first block end (we do not need to parse the ather blocks vor skyname or wad info)
-	// TODO: This can find braces inside strings
-	size_t milen = static_cast<size_t>(strstr(mistart+1, "}") - mistart) + 1;
+	EntTokenizer entDataTokenizer(entdata);
 
-	mapinfo.clear();
-	mapinfo.assign(mistart, milen);
-
-	// parse map info. We use StrTok for this...
-	EntTokenizer mapTokenizer(mapinfo);
-
+	
 	try
 	{
-		const EntTokenizer::KeyValuePair* kv = mapTokenizer.NextPair();
+		const EntTokenizer::KeyValuePair* kv = entDataTokenizer.NextPair();
 
-		if (!kv)
+		// Note that we reparse the mapinfo.
+		if(!kv)
 		{
-			printf("Error parsing \"%s\". No map information found.\n", map.c_str());
+			printf("Error parsing \"%s\".\n", map.c_str());
 			return 1;
 		}
 
-		while (kv)
+		while (kv && (entDataTokenizer.GetNumBlocksRead() == 0))
 		{
 			if (!strcmp(kv->first, "wad"))
 			{
@@ -203,32 +189,7 @@ int RESGen::MakeRES(std::string &map, int fileindex, size_t filecount, const Str
 				AddRes(value, "gfx/env/", "bk.tga");
 			}
 
-			kv = mapTokenizer.NextPair();
-		}
-	}
-	catch(ParseException &parseException)
-	{
-		printf("Failed to parse '%s': %s\n", map.c_str(), parseException.what());
-		return 1;
-	}
-
-	mapinfo.clear();
-
-
-	statcount = STAT_MAX; // make statbar print at once
-
-	EntTokenizer entDataTokenizer(entdata);
-
-	
-	try
-	{
-		const EntTokenizer::KeyValuePair* kv = entDataTokenizer.NextPair();
-
-		// Note that we reparse the mapinfo.
-		if(!kv)
-		{
-			printf("Error parsing \"%s\".\n", map.c_str());
-			return 1;
+			kv = entDataTokenizer.NextPair();
 		}
 
 		while (kv)
@@ -302,7 +263,14 @@ int RESGen::MakeRES(std::string &map, int fileindex, size_t filecount, const Str
 	}
 	catch(ParseException &parseException)
 	{
-		printf("Failed to parse '%s': %s\n", map.c_str(), parseException.what());
+		if(parseException.GetCharNum() >= 0)
+		{
+			printf("Failed to parse '%s': %s (char: %d)\n", map.c_str(), parseException.what(), parseException.GetCharNum());
+		}
+		else
+		{
+			printf("Failed to parse '%s': %s\n", map.c_str(), parseException.what());
+		}
 		return 1;
 	}
 

@@ -73,7 +73,6 @@ private:
 	StringMap texturelist;
 	StringMap excludelist;
 	WadCache wadcache;
-	std::string mapinfo;
 	bool verbal;
 	bool statusline;
 	bool overwrite;
