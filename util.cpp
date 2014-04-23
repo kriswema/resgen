@@ -212,6 +212,45 @@ void rightTrim(std::string &str, const std::string &trimmedChars)
     str.erase(str.find_last_not_of(trimmedChars) + 1);
 }
 
+bool stripParentheses(std::string& str)
+{
+	size_t parenStart = str.find('(');
+
+	while(parenStart != std::string::npos)
+	{
+		size_t parenEnd = str.find(')');
+
+		if(parenEnd == std::string::npos)
+		{
+			return false;
+		}
+
+		str.erase(parenStart, parenEnd - parenStart + 1);
+
+		parenStart = str.find('(');
+	}
+
+	return true;
+}
+
+void removeSubstring(std::string& str, const char* const substring)
+{
+	size_t substringLength = strlen(substring);
+	
+	// while(true) incorrectly triggers MSVC C4127
+	for(;;)
+	{
+		const size_t matchStart = str.find(substring);
+
+		if(matchStart == std::string::npos)
+		{
+			break;
+		}
+
+		str.erase(matchStart, substringLength);
+	}
+}
+
 bool readFile(const std::string &filename, std::string &outStr)
 {
     std::ifstream f(filename.c_str());

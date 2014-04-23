@@ -104,6 +104,66 @@ private:
 	int charNum;
 };
 
+template <char Delimiter>
+class Tokenizer
+{
+public:
+	Tokenizer(std::string& str_)
+		: str(str_)
+		, currentPtr(&str[0])
+		, strEnd(currentPtr + str.length())
+	{
+	}
+
+	const char * Next()
+	{
+		if(!currentPtr)
+		{
+			return NULL;
+		}
+
+		tokenStart = currentPtr;
+
+		while(currentPtr != strEnd)
+		{
+			if(*currentPtr == Delimiter)
+			{
+				// Skip over empty tokens
+				while(
+					(currentPtr != strEnd)
+				&&	(*currentPtr == Delimiter)
+				)
+				{
+					*currentPtr = 0;
+					currentPtr++;
+				}
+
+				return tokenStart;
+			}
+
+			currentPtr++;
+		}
+
+		currentPtr = NULL;
+
+		return tokenStart;
+	}
+
+private:
+	Tokenizer(const Tokenizer &other);
+	Tokenizer& operator=(const Tokenizer &other);
+
+	std::string str;
+
+	// Current position in string
+	char* currentPtr;
+
+	// Pointer to char after last
+	char* strEnd;
+
+	// Start of most recent token
+	char* tokenStart;
+};
 
 void splitPath(const std::string &fullPath, std::string &baseFolder, std::string &baseFileName);
 
@@ -124,6 +184,10 @@ void leftTrim(std::string &str, const std::string &trimmedChars);
 
 void rightTrim(std::string &str);
 void rightTrim(std::string &str, const std::string &trimmedChars);
+
+bool stripParentheses(std::string& str);
+
+void removeSubstring(std::string& str, const char* const substring);
 
 bool readFile(const std::string &filename, std::string &outStr);
 
