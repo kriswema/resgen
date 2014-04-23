@@ -62,6 +62,7 @@ private:
 	void AddWad(const std::string &wadlist, size_t start, size_t len);
 	void AddRes(std::string res, const char * const prefix = NULL, const char * const suffix = NULL);
 	bool LoadBSPData(const std::string &file, std::string &entdata, StringMap & texlist);
+	void ParseSentence(const char* const sentence);
 	bool OpenFirstValidPath(File &outFile, std::string fileName, const char* const mode);
 
 private:

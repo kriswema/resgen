@@ -28,6 +28,8 @@ EntTokenizer::EntTokenizer(std::string& str_)
 	, strEnd(currentPtr + str.length())
 	, bInBlock(false)
 	, blocksRead(0)
+	, keyLength(0)
+	, valueLength(0)
 {
 }
 
@@ -46,11 +48,14 @@ int EntTokenizer::GetNumBlocksRead() const
 	return blocksRead;
 }
 
+ptrdiff_t EntTokenizer::GetLatestKeyLength() const
+{
+	return keyLength;
+}
+
 ptrdiff_t EntTokenizer::GetLatestValueLength() const
 {
-	// currentPtr points to char after NUL
-	const char* const end = (currentPtr ? currentPtr - 1 : strEnd);
-	return end - pair.second;
+	return valueLength;
 }
 
 const EntTokenizer::KeyValuePair* EntTokenizer::NextPair()
@@ -80,6 +85,8 @@ const EntTokenizer::KeyValuePair* EntTokenizer::NextPair()
 	{
 		throw ParseException("Failed to parse key of key-value pair.", GetCharNum());
 	}
+	// currentPtr points to char after NUL
+	keyLength = (currentPtr ? currentPtr - 1 : strEnd) - pair.first;
 
 	// Ignore space between key/value
 	ParseKVSeparator();
@@ -90,6 +97,8 @@ const EntTokenizer::KeyValuePair* EntTokenizer::NextPair()
 	{
 		throw ParseException("Failed to parse value of key-value pair.", GetCharNum());
 	}
+	// currentPtr points to char after NUL
+	valueLength = (currentPtr ? currentPtr - 1 : strEnd) - pair.second;
 
 	return &pair;
 }

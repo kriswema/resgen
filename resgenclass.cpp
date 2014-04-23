@@ -195,20 +195,45 @@ int RESGen::MakeRES(std::string &map, int fileindex, size_t filecount, const Str
 
 		while (kv)
 		{
-			const ptrdiff_t tokenLength = entDataTokenizer.GetLatestValueLength();
+			const ptrdiff_t keyLength = entDataTokenizer.GetLatestKeyLength();
+			const ptrdiff_t valueLength = entDataTokenizer.GetLatestValueLength();
+
+			// Early out - check if key ends in 'speak'
+			if(
+				(keyLength >= 5)
+			&&	!strcmp(kv->first + keyLength - 5, "speak")
+			)
+			{
+				// Guessing which keys have spoken sentences is too likely to
+				// cause false positives - instead use a whitelist of keys
+				// known to contain sentences
+				// TODO: This can still cause false positives if used on a different entity/mod
+				// TODO: Ideally parse FGD corresponding to map
+				if(
+					!strcmp(kv->first, "AP_speak")
+				||	!strcmp(kv->first, "non_owners_team_speak")
+				||	!strcmp(kv->first, "non_team_speak")
+				||	!strcmp(kv->first, "owners_team_speak")
+				||	!strcmp(kv->first, "speak")
+				||	!strcmp(kv->first, "team_speak")
+				)
+				{
+					ParseSentence(kv->second);
+				}
+			}
 
 			const char *token = kv->second;
 
 			// TODO: This is fast, but should be made more robust if possible
 			// Need at least 5 chars, assuming filename is:
 			// [alpha][.][alpha]{3}
-			if(tokenLength >= 5)
+			if(valueLength >= 5)
 			{
-				if(token[tokenLength - 4] == '.')
+				if(token[valueLength - 4] == '.')
 				{
-					const int c1 = ::tolower(token[tokenLength - 3]);
-					const int c2 = ::tolower(token[tokenLength - 2]);
-					const int c3 = ::tolower(token[tokenLength - 1]);
+					const int c1 = ::tolower(token[valueLength - 3]);
+					const int c2 = ::tolower(token[valueLength - 2]);
+					const int c3 = ::tolower(token[valueLength - 1]);
 
 					if(c1 == 'm' && c2 == 'd' && c3 == 'l')
 					{
@@ -606,11 +631,21 @@ bool RESGen::LoadBSPData(const std::string &file, std::string &entdata, StringMa
 
 void RESGen::AddRes(std::string res, const char * const prefix, const char * const suffix)
 {
-	// Sometimes res entries start with a non alphanumeric character. Strip it.
-	while (!isalnum(res[0])) // keep stripping until a valid char is found
+	// Sometimes res entries start with a non alphanumeric character. Strip
+	// until valid char found
+	while (
+		!res.empty()
+	&&	!isalnum(res[0])
+	)
 	{
 		// Remove character
 		res.erase(res.begin());
+	}
+
+	if(res.empty())
+	{
+		// Nothing to add
+		return;
 	}
 
 	replaceCharAll(res, '\\', '/');
@@ -927,6 +962,93 @@ bool RESGen::CheckModelExtTexture(const std::string &model)
 	}
 
 	return false;
+}
+
+void RESGen::ParseSentence(const char* const sentence)
+{
+	// Not so performance critical here
+	std::string sentenceLower(sentence);
+	strToLower(sentenceLower);
+
+	if(
+		(sentenceLower.length() > 0)
+		// References string in sentences.txt
+	&&	(sentenceLower[0] != '!')
+		// References string in Titles.txt
+	&&	(sentenceLower[0] != '#') 
+	)
+	{
+		// See if value references a wav file
+		if(
+			// Only one word
+			(sentenceLower.find(' ') == std::string::npos)
+		&&	!CompareStrEnd(sentenceLower, ".wav")
+		)
+		{
+			// TODO: Check that specifying a wav actually
+			// works, and not that people are just misusing
+			// this entity
+
+			std::string resource = sentenceLower;
+			std::string soundPrefix("sound/");
+
+			// Add sound/ to start if it isn't already
+			if(resource.compare(0, soundPrefix.length(), soundPrefix))
+			{
+				resource.insert(0, soundPrefix);
+			}
+
+			AddRes(resource);
+		}
+		else
+		{
+			// Everything between parentheses is for intonation
+			// Ignore unbalanced parentheses - we'll just fail to find a
+			// resource for that token (probably an emoticon)
+			stripParentheses(sentenceLower);
+
+			const size_t slashIndex = sentenceLower.find('/');
+
+			std::string soundPrefix("sound/");
+
+			// Is an announcer specified?
+			if(slashIndex != std::string::npos)
+			{
+				soundPrefix += sentenceLower.substr(0, slashIndex + 1);
+				sentenceLower.erase(0, slashIndex + 1);
+			}
+			else
+			{
+				// Default announcer
+				soundPrefix += "vox/";
+			}
+
+			// These get converted into comma and period sounds which definitely exist
+			replaceCharAll(sentenceLower, ',', ' ');
+			replaceCharAll(sentenceLower, '.', ' ');
+
+			removeSubstring(sentenceLower, "\\n");
+			removeSubstring(sentenceLower, "\\r");
+			
+			// Ignore any other illegal characters left over
+			replaceCharAll(sentenceLower, '\\', ' ');
+
+			Tokenizer<' '> tokenizer(sentenceLower);
+
+			// while(true) incorrectly triggers MSVC C4127
+			for(;;)
+			{
+				const char* token = tokenizer.Next();
+
+				if(token == NULL)
+				{
+					break;
+				}
+
+				AddRes(token, soundPrefix.c_str(), ".wav");
+			}
+		}
+	}
 }
 
 bool RESGen::OpenFirstValidPath(File &outFile, std::string fileName, const char* const mode)

@@ -36,6 +36,7 @@ public:
 
 	int GetNumBlocksRead() const;
 
+	ptrdiff_t GetLatestKeyLength() const;
 	ptrdiff_t GetLatestValueLength() const;
 
 	const KeyValuePair* NextPair();
@@ -63,6 +64,9 @@ protected:
 	int blocksRead;
 
 	KeyValuePair pair;
+
+	ptrdiff_t keyLength;
+	ptrdiff_t valueLength;
 };
 
 
